@@ -1,7 +1,5 @@
 ## 🚀 Git 작업 흐름
 
----
-
 1️⃣ **기능 브랜치 생성** 
 
 `main`과 `dev` 브랜치에서는 직접 작업하지 않고, 기능별 브랜치를 만들어 작업합니다.
@@ -13,7 +11,6 @@ git checkout -b feat/기능명  # 브랜치 생성
 ```
 
 > 📌 브랜치 명명 규칙은 [🔽 브랜치 규칙](https://www.notion.so/22f5f5c2ca4980e98a0bed9f431d9576?pvs=21) 참고
-> 
 
 2️⃣ **기능 구현 & 커밋** 
 
@@ -25,7 +22,6 @@ git commit -m "feat: 회원가입 API 구현"
 ```
 
 > 📌 커밋 컨벤션은  [🔽 커밋 메시지 규칙  (Conventional Commits)](https://www.notion.so/Conventional-Commits-22f5f5c2ca498086809cc1c2e5845c09?pvs=21) 참고
-> 
 
 3️⃣ **원격 저장소에 푸시** 
 
@@ -45,11 +41,10 @@ GitHub에서 **`dev` 브랜치로 PR**을 생성합니다.
 </aside>
 
 > 📌 자세한 형식은 [🔽 PR (Pull Request) 규칙](https://www.notion.so/PR-Pull-Request-22f5f5c2ca498088a05ddbf61fb8c855?pvs=21) 참고
-> 
+>
+<br> 
 
-### 🔽 브랜치 규칙
-
----
+## 🔽 브랜치 규칙
 
 ```
 main             # 배포용 브랜치 (⛔ push 금지)
@@ -70,11 +65,11 @@ chore/*          # 설정 변경, 빌드, 패키지 등
 > docs/readme-update
 > refactor/db-models
 > ```
+>
 > 
+<br>
 
-### 🔽 커밋 메시지 규칙  (Conventional Commits)
-
----
+## 🔽 커밋 메시지 규칙  (Conventional Commits)
 
 **형식** 
 
@@ -99,11 +94,11 @@ chore/*          # 설정 변경, 빌드, 패키지 등
 > docs: README에 실행 방법 추가
 > refactor: DB 모델 초기화 로직 분리
 > ```
+>
 > 
+<br>
 
-### 🔽 PR (Pull Request) 규칙
-
----
+## 🔽 PR (Pull Request) 규칙
 
 - **PR 생성**
     
