@@ -1,38 +1,53 @@
 import React from 'react';
+import BuyVoucherButton from './buttons/BuyVoucherButton';
+import AIbotButton from './buttons/AIbotButton';
 
 export default function ShopNav() {
     return (
-        <nav style={{
+        <nav
+            style={{
             display: 'flex',
-            alignItems: 'center',
-            padding: '0 16px',
-            height: '60px',
-            backgroundColor: '#fff',
             justifyContent: 'space-between',
+            alignItems: 'center',
+            height: '45px',
+            backgroundColor: '#B6D19B',
+            padding: '0 24px',
             fontFamily: 'Arial, sans-serif',
-        }}>
-
-      {/* 쇼핑페이지 상품 종류 카테고리바 */}
-        <ul style={{
+            marginTop: '-15px',
+            width: '100%',
+            maxWidth: '1200px',
+            margin: '0 auto',
+            boxSizing: 'border-box',
+        }}
+        >
+      {/* 왼쪽: 카테고리 리스트 */}
+        <ul
+            style={{
             display: 'flex',
             listStyle: 'none',
             margin: 0,
             padding: 0,
-            gap: '20px',
-            backgroundColor: '#B6D19B',
-        }}>
-            <li><button style={buttonStyle}>전체 상품</button></li>
-            <li><button style={buttonStyle}>쌀,잡곡</button></li>
-            <li><button style={buttonStyle}>채소,버섯</button></li>
-            <li><button style={buttonStyle}>과일,견과</button></li>
-            <li><button style={buttonStyle}>축산,축산가공</button></li>
-            <li><button style={buttonStyle}>수산물</button></li>
-            <li><button style={buttonStyle}>반찬,양념,가루</button></li>
-            <li><button style={buttonStyle}>식사대용,간편식</button></li>
-            <li><button style={buttonStyle}>간식,음료,유제품</button></li>
-            <li><button style={buttonStyle}>건강,차</button></li>
+            gap: '16px',
+            flex: 1,
+            alignItems: 'center',
+            }}
+        >
+        {[
+            '전체 상품', '쌀,잡곡', '채소,버섯', '과일,견과', '축산,축산가공',
+            '수산물', '반찬,양념,가루', '식사대용,간편식', '간식,음료,유제품', '건강,차'
+        ].map((label, idx) => (
+            <li key={idx}>
+            <button style={buttonStyle}>{label}</button>
+            </li>
+            ))}
         </ul>
-        </nav>
+
+      {/* 오른쪽: 버튼 두 개 */}
+        <div style={{ display: 'flex', gap: '10px' }}>
+            <BuyVoucherButton />
+            <AIbotButton />
+        </div>
+    </nav>
     );
 }
 
@@ -42,8 +57,9 @@ const buttonStyle = {
     cursor: 'pointer',
     fontSize: '14px',
     color: '#49454F',
-    padding: '6px 8px',
-    borderRadius: '4px',
+    padding: '6px 4px',
     transition: 'background-color 0.2s',
     outline: 'none',
+    textAlign: 'left',
+    whiteSpace: 'nowrap', // 줄바꿈 방지
 };

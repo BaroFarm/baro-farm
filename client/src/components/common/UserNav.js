@@ -11,6 +11,7 @@ export default function SmallNavbar() {
             backgroundColor: '#fff',
             justifyContent: 'space-between',
             fontFamily: 'Arial, sans-serif',
+            marginTop:'35px'
         }}>
 
       {/* 오른쪽: 작은 네비 메뉴 */}
@@ -45,8 +46,6 @@ const buttonStyle = {
     fontSize: '14px',
     color: 'gray',
     padding: '6px 8px',
-    borderRadius: '4px',
-    transition: 'background-color 0.2s',
     borderBottom: '1px solid #ddd',
 };
 const searchContainerStyle = {

@@ -1,5 +1,8 @@
 .App {
   text-align: center;
+  width: 1200px;      /* 고정 너비 */
+  margin: 0 auto;    /* 가로 중앙 정렬 */
+  position: relative; /* 위치 기준 */
 }
 
 .App-logo {
