@@ -7,7 +7,7 @@ function generateNewGuestId() {
   return "guest_" + Date.now() + "_" + Math.floor(Math.random() * 10000);
 }
 
-export default function SeasonalProduct() {
+export default function Recommendations() {
     const [products, setProducts] = useState([]);
 
      // 게스트 아이디를 localStorage에서 불러오거나 새로 생성
@@ -36,7 +36,7 @@ export default function SeasonalProduct() {
                 const params = accessToken ? {} : { user_id: guestUserIdRef.current };
 
                 const response = await axios.get(
-                    "https://api.baro-farm.com/api/products/seasonal",
+                    "https://api.baro-farm.com/api/products/recommendations",
                     {
                         headers,
                         params,
@@ -106,7 +106,7 @@ export default function SeasonalProduct() {
     return (
         <div className="w-full px-4">
             <h2 className="text-xl font-bold mb-4"
-                style={{ textAlign: 'left' }}> 제철 상품 추천</h2>
+                style={{ textAlign: 'left' }}> 추천 상품</h2>
             {console.log("렌더링 시 products:", products)}
             <div 
             style={{

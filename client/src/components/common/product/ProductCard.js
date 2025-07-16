@@ -6,9 +6,9 @@ export default function ProductCard({ product }) {
     const stars = '⭐'.repeat(Math.round(product.rating || 0));
 
     return (
-        <div className="w-[200px] border rounded p-3"
+        <div className="border rounded p-3"
         style={{
-            width: 232,
+            width: "19.3%",
             height: 250,
             backgroundColor: "#eee",
             display: "flex", flexDirection: "column",
