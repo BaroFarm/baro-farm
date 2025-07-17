@@ -8,7 +8,7 @@ export default function ProductCard({ product }) {
     return (
         <div className="border rounded p-3"
         style={{
-            width: "19.3%",
+            width: "100%",
             height: 250,
             backgroundColor: "#eee",
             display: "flex", flexDirection: "column",
