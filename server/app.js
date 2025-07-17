@@ -26,8 +26,7 @@ app.use(session({
     },
 }));
 
-app.use('/', indexRouter);
-
+app.use('/api', indexRouter); // 모든 api 경로 앞에 /api 붙도록 수정
 
 app.use((req, res, next) => {
     res.status(404).send('Not Found');
