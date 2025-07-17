@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import ProductCard from "./ProductCard";
+import ProductSlider from "./ProductSlider";
 
 //비회원인 경우 userId
 function generateNewGuestId() {
@@ -104,21 +104,8 @@ export default function SeasonalProduct() {
     }, []);
 
     return (
-        <div className="w-full px-4">
-            <h2 className="text-xl font-bold mb-4"
-                style={{ textAlign: 'left' }}> 제철 상품 추천</h2>
-            {console.log("렌더링 시 products:", products)}
-            <div 
-            style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "10px",
-                justifyContent: "flex-start"
-            }}>
-                {products.map((product) => (
-                    <ProductCard key={product.id} product={product} />
-                ))}
-            </div>
-        </div>
+        
+        <ProductSlider products={products} title="제철 상품 추천" />
+                
     );
 }

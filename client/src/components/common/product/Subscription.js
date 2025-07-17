@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import ProductSlider from './ProductSlider';
-//import ProductCard from "./ProductCard";
+import ProductSlider from "./ProductSlider";
 
 //비회원인 경우 userId
 function generateNewGuestId() {
   return "guest_" + Date.now() + "_" + Math.floor(Math.random() * 10000);
 }
 
-export default function Recommendations() {
+export default function Subscription({
+        category,
+        region,
+        sort = "rating",
+        page = 1,
+        limit = 12,
+}) {
     const [products, setProducts] = useState([]);
 
      // 게스트 아이디를 localStorage에서 불러오거나 새로 생성
@@ -34,10 +39,17 @@ export default function Recommendations() {
                     ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
                 };
 
-                const params = accessToken ? {} : { user_id: guestUserIdRef.current };
+                const params = {
+                    category,      // ✅ props로 받아온 동적 값
+                    ...(region && { region }),
+                    sort,
+                    page,
+                    limit,
+                    ...(accessToken ? {} : { user_id: guestUserIdRef.current }),
+                };
 
                 const response = await axios.get(
-                    "https://api.baro-farm.com/api/products/recommendations",
+                    "https://api.baro-farm.com/api/products/subscription",
                     {
                         headers,
                         params,
@@ -46,11 +58,12 @@ export default function Recommendations() {
 
             if (response.data.status === "success") {
                 // 필요한 데이터 가공 (별점이 없으면 0으로)
-                const productsWithRating = response.data.data.map((item) => ({
-                    ...item,
+                const productsWithRating = response.data.products.map((item) => ({
+                    id: item.product_id,
                     name: item.title,
-                    rating: item.rating || 0,
+                    price: item.price,
                     image: item.image_url,
+                    rating: item.average_rating || 0,
                 }));
 
                 setProducts(productsWithRating);
@@ -102,10 +115,11 @@ export default function Recommendations() {
         };
 
         fetchProducts();
-    }, []);
-
+    }, [category, region, sort, page, limit]);  // ✅ 의존성 추가
 
     return (
-        <ProductSlider products={products} title="추천 상품" />
+        
+        <ProductSlider products={products} title="정기배송 가능 상품" />
+                
     );
 }
