@@ -1,19 +1,34 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
+import {useNavigate, useLocation} from 'react-router-dom';
 import BuyVoucherButton from './buttons/BuyVoucherButton';
 import AIbotButton from './buttons/AIbotButton';
 
+const categories = [
+    '전체 상품', '쌀,잡곡', '채소,버섯', '과일,견과', '축산,축산가공',
+    '수산물', '반찬,양념,가루', '식사대용,간편식', '간식,음료,유제품', '건강,차'
+];
+
 export default function ShopNav() {
+
     const [selectedCategory, setSelectedCategory] = useState('전체 상품');
+
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    useEffect(() => {
+        const path = decodeURIComponent(location.pathname);
+        const matched = categories.find(cat => path.includes(cat));
+        setSelectedCategory(matched || '전체 상품');
+    }, [location.pathname]);
 
     const handleCategoryClick = (label) => {
         setSelectedCategory(label);
-        // 👉 필요하다면 props로 상위에 전달하거나 페이지 이동도 여기서 처리 가능
+        if(label === '전체 상품'){
+            navigate('/'); //전체는 기본 페이지로 이동
+        } else{
+            navigate(`/shop/${encodeURIComponent(label)}`)  //한글 카테고리 인코딩 필수
+        }
     };
-
-    const categories = [
-        '전체 상품', '쌀,잡곡', '채소,버섯', '과일,견과', '축산,축산가공',
-        '수산물', '반찬,양념,가루', '식사대용,간편식', '간식,음료,유제품', '건강,차'
-    ];
 
     return (
         <nav

@@ -9,6 +9,7 @@ function generateNewGuestId() {
 
 export default function ProductList({
     category,
+    region,
     sort = "latest",
     page = 1,
     limit = 20,
@@ -40,16 +41,20 @@ export default function ProductList({
                 };
 
                 const params = {
-                    ...(category && { category }), // 선택적 파라미터
+                    ...(category ? { category } : {}), // 선택적 파라미터
+                    ...(category && region && { region }),  // ✅ category가 있을 때만 지역 필터 추가
                     sort,
                     page,
-                    limit: 20,
+                    limit,
                     ...(accessToken ? {} : { user_id: guestUserIdRef.current }),
                 };
+                
+                // 👇 엔드포인트 분기 처리
+                const endpoint = category
+                    ? "https://api.baro-farm.com/api/products/category"
+                    : "https://api.baro-farm.com/api/products";
 
-                const response = await axios.get(
-                    "https://api.baro-farm.com/api/products",
-                    {
+                const response = await axios.get(endpoint, {
                         headers,
                         params,
                     }
@@ -62,7 +67,7 @@ export default function ProductList({
                 
                 const productsWithRating = response.data.products.map((item) => ({
                     id: item.product_id,
-                    name: item.title,
+                    name: item.name,
                     price: item.price,
                     image: item.image_url,
                     rating: item.average_rating || 0,
@@ -76,6 +81,7 @@ export default function ProductList({
             console.error("상품 불러오기 실패", error);
             //alert("상품 정보를 불러올 수 없습니다.");
             // 임시: 백엔드 연결 안됐을 때 더미 데이터로 테스트
+        
             setProducts([
                 {
                     id: "101",
@@ -117,7 +123,7 @@ export default function ProductList({
         };
 
         fetchProducts();
-    }, [category, sort, page, limit, onTotalPagesChange]);
+    }, [category, region, sort, page, limit, onTotalPagesChange]);
 
     return (
         
