@@ -1,24 +1,23 @@
-import logo from './logo.svg';
+import React from 'react';
 import './App.css';
+import Header from './components/common/Header';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import ShopPage from "./pages/ShopPage";
+import CategoryPage from "./pages/CategoryPage";
 
 function App() {
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div className="App">
+        <Header />
+        <Routes>
+          <Route path="/" element={<ShopPage />} />
+          <Route path="/shop/:category" element={<CategoryPage />} />
+          {/* 추가 페이지들도 여기에 */}
+        </Routes>
+      </div>
+    </Router>
   );
 }
 
