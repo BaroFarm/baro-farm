@@ -51,8 +51,8 @@ export default function ProductList({
                 
                 // 👇 엔드포인트 분기 처리
                 const endpoint = category
-                    ? "https://api.baro-farm.com/api/products/category"
-                    : "https://api.baro-farm.com/api/products";
+                    ? `${process.env.REACT_APP_API_BASE_URL}/api/products/category`
+                    : `${process.env.REACT_APP_API_BASE_URL}/api/products`;
 
                 const response = await axios.get(endpoint, {
                         headers,

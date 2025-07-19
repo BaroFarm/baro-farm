@@ -7,7 +7,7 @@ export default function PromoBanner(){
     useEffect(() => {
         const fetchBanners = async () => {
             try {
-                const response = await axios.get("https://api.baro-farm.com/api/banners", {
+                const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/banners`, {
                 params: { position: "main", limit: 3 },
                 });
                 setBanners(response.data.data);  // 데이터 상태에 저장

@@ -1,20 +1,66 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 export default function LoginForm() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [rememberId, setRememberId] = useState(false);
-    const [isBuyerLogin, setIsBuyerLogin] = useState(true); // 구매자 or 판매자 버튼
+    const [isBuyerLogin, setIsBuyerLogin] = useState(true); // 구매자/판매자 선택
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // TODO: 로그인 API 연동
-        console.log({
-            email,
-            password,
-            rememberId,
-            userType: isBuyerLogin ? 'buyer' : 'seller',
-        });
+
+        try {
+            const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/auth/login`, {
+                email,
+                password,
+                user_type: isBuyerLogin ? 'buyer' : 'seller',
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            const { accessToken, user, tokenType } = response.data.data;
+
+            // ✅ localStorage 저장
+            localStorage.setItem('accessToken', accessToken);
+            localStorage.setItem('userId', user.user_id);
+            localStorage.setItem('userEmail', user.email);
+            localStorage.setItem('userType', user.user_type);
+            localStorage.setItem('tokenType', tokenType);
+
+            if (rememberId) {
+                localStorage.setItem('rememberedEmail', email);
+            } else {
+                localStorage.removeItem('rememberedEmail');
+            }
+
+            alert('로그인 성공!');
+            // TODO: navigate("/shop") 등으로 이동 처리 가능
+        } catch (err) {
+            const { response } = err;
+
+            if (response) {
+            // 서버 응답이 있는 경우
+                const { status, data } = response;
+
+                if (status === 401 && data?.error?.code === "INVALID_CREDENTIALS") {
+                    alert(data.error.message); // "이메일 또는 비밀번호가 올바르지 않습니다."
+                } else if (status === 500 && data?.code === "SERVER_ERROR") {
+                    alert(data.message); // "서버 내부 오류가 발생했습니다."
+                } else {
+                    alert("알 수 없는 오류가 발생했습니다.");
+                }
+
+            } else {
+            // 서버 응답 없음 (네트워크 문제 등)
+                alert("서버에 연결할 수 없습니다. 인터넷 연결을 확인해 주세요.");
+            }
+
+        console.error('로그인 에러:', err);
+        }
+
     };
 
     return (

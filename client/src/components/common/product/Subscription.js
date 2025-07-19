@@ -49,7 +49,7 @@ export default function Subscription({
                 };
 
                 const response = await axios.get(
-                    "https://api.baro-farm.com/api/products/subscription",
+                    `${process.env.REACT_APP_API_URL}/api/products/subscription`,
                     {
                         headers,
                         params,
