@@ -1,7 +1,10 @@
 import React from 'react';
 import { FaSearch } from 'react-icons/fa';
+import {useNavigate} from 'react-router-dom';
 
 export default function SmallNavbar() {
+    const navigate = useNavigate(); // 네비게이션 훅 사용
+
     return (
         <nav style={{
             display: 'flex',
@@ -22,9 +25,9 @@ export default function SmallNavbar() {
             padding: 0,
             gap: '20px',
         }}>
-            <li><button style={buttonStyle}>장바구니</button></li>
-            <li><button style={buttonStyle}>마이페이지</button></li>
-            <li><button style={buttonStyle}>로그인</button></li>
+            <li><button style={buttonStyle} >장바구니</button></li>
+            <li><button style={buttonStyle} >마이페이지</button></li>
+            <li><button style={buttonStyle} onClick={() => navigate('/login')}>로그인</button></li>
         </ul>
         
       {/* 검색창 */}
