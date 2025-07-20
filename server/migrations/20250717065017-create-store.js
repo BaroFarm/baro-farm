@@ -1,0 +1,38 @@
+'use strict';
+
+module.exports = {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable('store', {
+      store_id: {
+        type: Sequelize.BIGINT,
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      name: {
+        type: Sequelize.STRING(100),
+        allowNull: false,
+      },
+      zip_code: {
+        type: Sequelize.STRING(20),
+        allowNull: false,
+      },
+      street: {
+        type: Sequelize.STRING(100),
+        allowNull: false,
+      },
+      detail: {
+        type: Sequelize.STRING(100),
+        allowNull: true,
+      },
+      created_at: {
+        type: Sequelize.DATE,
+        allowNull: false,
+      }
+    });
+  },
+
+  async down(queryInterface, Sequelize) {
+    await queryInterface.dropTable('store');
+  }
+};
