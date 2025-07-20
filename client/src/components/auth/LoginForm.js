@@ -39,27 +39,28 @@ export default function LoginForm() {
             alert('로그인 성공!');
             // TODO: navigate("/shop") 등으로 이동 처리 가능
         } catch (err) {
-            const { response } = err;
+    const { response } = err;
 
-            if (response) {
-            // 서버 응답이 있는 경우
-                const { status, data } = response;
+    if (response) {
+        const { status, data } = response;
 
-                if (status === 401 && data?.error?.code === "INVALID_CREDENTIALS") {
-                    alert(data.error.message); // "이메일 또는 비밀번호가 올바르지 않습니다."
-                } else if (status === 500 && data?.code === "SERVER_ERROR") {
-                    alert(data.message); // "서버 내부 오류가 발생했습니다."
-                } else {
-                    alert("알 수 없는 오류가 발생했습니다.");
-                }
+        const message = data?.error?.message || data?.message || "알 수 없는 오류가 발생했습니다.";
 
-            } else {
-            // 서버 응답 없음 (네트워크 문제 등)
-                alert("서버에 연결할 수 없습니다. 인터넷 연결을 확인해 주세요.");
-            }
-
-        console.error('로그인 에러:', err);
+        if (status === 401 && data?.error?.code === "INVALID_CREDENTIALS") {
+            alert(message); 
+        } else if (status === 500 && data?.code === "SERVER_ERROR") {
+            alert(message);
+        } else {
+            alert(message);
         }
+
+    } else {
+        alert("서버에 연결할 수 없습니다. 인터넷 연결을 확인해 주세요.");
+    }
+
+    console.error('로그인 에러:', err);
+}
+
 
     };
 
@@ -97,23 +98,48 @@ export default function LoginForm() {
                 <label htmlFor="rememberId" className="text-sm">아이디 저장</label>
             </div>
 
-            {/* 로그인 버튼 */}
-            <div className="flex space-x-2 mt-4">
-                <button
-                    type="submit"
-                    onClick={() => setIsBuyerLogin(true)}
-                    className={`w-1/2 py-2 rounded ${isBuyerLogin ? 'bg-[#B6D19B] text-white' : 'border'}`}
-                >
-                    구매자로 로그인
-                </button>
-                <button
-                    type="submit"
-                    onClick={() => setIsBuyerLogin(false)}
-                    className={`w-1/2 py-2 rounded ${!isBuyerLogin ? 'bg-[#B6D19B] text-white' : 'border'}`}
-                >
-                    판매자로 로그인
-                </button>
-            </div>
+        {/* 로그인 버튼 */}
+        <div className="flex space-x-4 mt-6">
+            {/* 구매자로 로그인 (초록 버튼) */}
+            <button
+                type="submit"
+                onClick={() => setIsBuyerLogin(true)}
+                className="w-1/2 py-3 rounded-full text-lg font-semibold bg-[#B6D19B] text-white"
+            >
+                구매자로 로그인
+            </button>
+
+            {/* 판매자로 로그인 (흰 배경 + 초록 테두리/글자) */}
+            <button
+                type="submit"
+                onClick={() => setIsBuyerLogin(false)}
+                className="w-1/2 py-3 rounded-full text-lg font-semibold bg-white border-2 border-[#B6D19B] text-[#B6D19B]"
+            >     
+                판매자로 로그인
+            </button>
+        </div>
+
+        {/* 아이디/비밀번호 찾기/회원가입 */}
+        <div className="flex justify-between text-sm text-gray-600 mt-2 px-1">
+            <button type="button" style={buttonStyle} onClick={() => alert('아이디 찾기')}>
+                아이디 찾기
+            </button>
+            <button type="button" style={buttonStyle} onClick={() => alert('비밀번호 찾기')}>
+                비밀번호 찾기
+            </button>
+            <button type="button" style={buttonStyle} onClick={() => alert('회원가입')}>
+                회원가입
+            </button>
+        </div>
         </form>
     );
 }
+
+const buttonStyle = {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '14px',
+    padding: '6px 5px',
+    borderBottom: 'none',
+};
