@@ -14,17 +14,11 @@ function App() {
           {/* 로그인 페이지: Header 안 보이게 */}
           <Route path="/login" element={<LoginPage />} />
 
-          {/* 나머지 모든 페이지는 Layout으로 감싸기 */}
-          <Route
-            path="/"
-            element={
-            <Layout>
-              <ShopPage />
-              <CategoryPage />
-            </Layout>
-          }
-        />
-        {/* 다른 페이지들도 이처럼 Layout으로 감싸기 */}
+          {/* 나머지 페이지는 Layout으로 감싸기 */}
+          <Route element={<Layout />}>
+            <Route path="/" element={<ShopPage />} />
+            <Route path="/shop/:category" element={<CategoryPage />} />
+          </Route>
         </Routes>
       </div>
     </Router>

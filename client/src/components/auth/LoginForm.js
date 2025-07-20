@@ -100,24 +100,22 @@ export default function LoginForm() {
 
         {/* 로그인 버튼 */}
         <div className="flex space-x-4 mt-6">
-            {/* 구매자로 로그인 (초록 버튼) */}
-            <button
-                type="submit"
-                onClick={() => setIsBuyerLogin(true)}
-                className="w-1/2 py-3 rounded-full text-lg font-semibold bg-[#B6D19B] text-white"
-            >
-                구매자로 로그인
-            </button>
+  {/* 구매자 버튼: 초록색 고정 */}
+  <button
+    type="submit"
+    className="w-1/2 py-3 rounded-full text-lg font-semibold bg-[#B6D19B] text-white"
+  >
+    구매자로 로그인
+  </button>
 
-            {/* 판매자로 로그인 (흰 배경 + 초록 테두리/글자) */}
-            <button
-                type="submit"
-                onClick={() => setIsBuyerLogin(false)}
-                className="w-1/2 py-3 rounded-full text-lg font-semibold bg-white border-2 border-[#B6D19B] text-[#B6D19B]"
-            >     
-                판매자로 로그인
-            </button>
-        </div>
+  {/* 판매자 버튼: 흰색 배경 + 초록 테두리/글자 고정 */}
+  <button
+    type="submit"
+    className="w-1/2 py-3 rounded-full text-lg font-semibold bg-white border-2 border-[#B6D19B] text-[#B6D19B]"
+  >
+    판매자로 로그인
+  </button>
+</div>
 
         {/* 아이디/비밀번호 찾기/회원가입 */}
         <div className="flex justify-between text-sm text-gray-600 mt-2 px-1">
