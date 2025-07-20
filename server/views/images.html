@@ -1,11 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <title>이미지 업로드</title>
 </head>
 <body>
-    <h1>hi</h1>
+  <h1>이미지 업로드</h1>
+  <form id="upload-form" enctype="multipart/form-data">
+    <input type="file" name="images" multiple required><br><br>
+    <button type="submit">업로드</button>
+  </form>
+
+  <script>
+    const productId = window.location.pathname.split('/')[3]; // /api/s-products/{id}/images
+
+    document.getElementById('upload-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+
+      const res = await fetch(`/api/s-products/${productId}/images`, {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        alert('이미지 업로드 성공!');
+        console.log(result.urls); // 이미지 URL들
+      } else {
+        alert('업로드 실패: ' + result.message);
+      }
+    });
+  </script>
 </body>
 </html>
