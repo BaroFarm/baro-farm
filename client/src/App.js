@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ShopPage from "./pages/ShopPage";
 import CategoryPage from "./pages/CategoryPage";
 import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
 
 function App() {
 
@@ -13,6 +14,7 @@ function App() {
         <Routes>
           {/* 로그인 페이지: Header 안 보이게 */}
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
 
           {/* 나머지 페이지는 Layout으로 감싸기 */}
           <Route element={<Layout />}>
