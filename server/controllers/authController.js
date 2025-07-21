@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const { Customer, Seller, Store } = require('../models');
 require('dotenv').config();
 
+// 회원가입
 exports.signup = async (req, res) => {
     try { 
         const { email, password, confirmPassword, phone, // 공통
@@ -17,9 +18,9 @@ exports.signup = async (req, res) => {
         }
 
         const hash = await bcrypt.hash(password, 10); // 비밀번호 해시
-        let newUser, newStore, token;
+        let newUser, newStore;
 
-        /* 구매자 회원가입 */ 
+        // 구매자 회원가입
         if (user_type === 'buyer') {
             // 이메일 중복 확인
             const existing = await Customer.findOne({ where: { email } });
@@ -34,7 +35,7 @@ exports.signup = async (req, res) => {
             });
         }
         
-        /* 판매자 회원가입 */ 
+        // 판매자 회원가입
         if (user_type === 'seller') {
             const existing = await Seller.findOne({ where: { email } });
             if (existing) {
@@ -58,10 +59,12 @@ exports.signup = async (req, res) => {
         const user_id = user_type === 'buyer' ? newUser.customer_id : newUser.seller_id; // 회원 유형에 따른 회원 아이디 저장
 
         // 토큰 발급
-        token = jwt.sign({
+        const token = jwt.sign({
             id: user_id, //
             email, user_type
-        }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '1d' }); // 토큰 유효기간
+        }, 
+        process.env.JWT_SECRET, 
+        { expiresIn: process.env.JWT_EXPIRES_IN || '1d' }); // 토큰 유효기간
 
         res.status(201).json({
             status: "success",
@@ -82,3 +85,104 @@ exports.signup = async (req, res) => {
     }
 };
 
+// 로그인
+exports.login = async (req, res) => {
+    try {
+        const { email, password, user_type } = req.body;
+        let user;
+
+        if (user_type === 'buyer') {
+            user = await Customer.findOne({ where: { email } });
+        } else if (user_type === 'seller') {
+            user = await Seller.findOne({ where: { email } });
+        } 
+
+        // 비밀번호 확인
+        const passwordMatch = await bcrypt.compare(password, user.password);
+        if (!user || !passwordMatch) {
+            return res.status(401).json({
+                status: 'error',
+                error: {
+                    code: 'INVALID_CREDENTIALS',
+                    message: '이메일 또는 비밀번호가 올바르지 않습니다.'
+                }
+            });
+        }
+
+        const user_id = user_type === 'buyer' ? user.customer_id : user.seller_id; // 회원 유형에 따른 회원 아이디 저장
+
+        const expiresInSeconds = 60 * 60; // 토큰 유효 시간 (초 단위)
+        const token = jwt.sign(
+            {
+                id: user_id,
+                email: user.email,
+                user_type: user.user_type
+            }, 
+            process.env.JWT_SECRET, 
+            { expiresIn:expiresInSeconds }
+        );
+        
+        res.status(200).json({
+            status: 'success',
+            data: {
+                accessToken: token,
+                tokenType: 'Bearer',
+                expiresIn: expiresInSeconds,
+                user: {
+                    user_id: user_id,
+                    email: user.email,
+                    user_type: user.user_type
+                }
+            }
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ 
+            status: 'error',
+            code: 'SERVER_ERROR',
+            message: '서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+        });
+    }
+};
+
+// 로그아웃
+exports.logout = async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+
+        // Authorization 헤더가 없는 경우
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({
+                status: 'error',
+                code: 'UNAUTHORIZED',
+                message: '인증 정보가 없습니다.',
+            });
+        }
+
+        const token = authHeader.split(' ')[1];
+
+        // 토큰 유효성 검사
+        try {
+            jwt.verify(token, process.env.JWT_SECRET);
+        } catch (err) {
+            return res.status(401).json({
+                status: 'error',
+                code: 'UNAUTHORIZED',
+                message: '유효하지 않거나 만료된 토큰입니다.',
+            });
+        }
+
+        // 클라이언트에서 토큰 삭제
+        res.status(200).json({
+            status: 'success',
+            message: '로그아웃 되었습니다. 클라이언트에서 토큰을 삭제해주세요.'
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ 
+            status: 'error',
+            code: 'SERVER_ERROR',
+            message: '서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+        });
+    }
+};
