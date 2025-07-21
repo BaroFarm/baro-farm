@@ -69,7 +69,7 @@ export default function SignupBuyerPage() {
 return (
     <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="w-full max-w-md px-6">
-            <h2 className="text-xl font-bold mb-4 text-center">구매 회원가입</h2>
+        <img src="/logo.svg" alt="로고" style={{ width: '100px', height: '100px', margin: '0 auto', display: 'block' }} />
 
         <SignupForm
             form={form}
