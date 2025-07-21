@@ -1,7 +1,8 @@
 import React, {useState} from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import SignupForm from '../components/auth/SignupForm/SignupForm';
-
+import SearchAddressModal from '../components/auth/SignupForm/SearchAddressModal';
 
 export default function SignupBuyerPage() {
     const [form, setForm] = useState({
@@ -19,15 +20,32 @@ export default function SignupBuyerPage() {
     const [errors, setErrors] = useState({
         email: '', password: '', nickname:'', });
 
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    
+    const navigate = useNavigate();
+
     const handleSignup = async () => {
         if (form.password !== form.confirmPassword) {
             setErrors({ ...errors, password: '비밀번호가 일치하지 않습니다.' });
             return;
         }
+        const payload = {
+            email: form.email,
+            password: form.password,
+            confirmPassword: form.confirmPassword,
+            name: form.name,               // 필수!
+            nickname: form.nickname,
+            phone: form.phoneNumber,       // 필드명 확인
+            zip_code: form.zipCode,        // 필드명 확인
+            street: form.street,
+            detail: form.detail,
+            user_type: form.user_type,
+        };
 
         try {
-            const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/auth/signup`, form);
+            const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/auth/signup`, payload);
             console.log('회원가입 성공:', res.data);
+            navigate('/login');
         } catch (err) {
             const error = err.response?.data?.error;
             if (error?.code === 'DUPLICATE_EMAIL_OR_NICKNAME') {
@@ -40,14 +58,34 @@ export default function SignupBuyerPage() {
         }
     };
 
+    const handleCompletePost = (data) => {
+        const fullAddress = data.address;
+        const zoneCode = data.zonecode;
+        setForm({ ...form, zipCode: zoneCode, street: fullAddress });
+        setIsModalOpen(false); // 모달 닫기
+    };
 
-    return(
-        <div>
-            <h2>구매 회원가입</h2>
-                <SignupForm form={form} setForm={setForm} errors={errors} setErrors={setErrors} />
 
+return (
+    <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="w-full max-w-md px-6">
+            <h2 className="text-xl font-bold mb-4 text-center">구매 회원가입</h2>
 
-             {/* 가입하기 버튼 */}
+        <SignupForm
+            form={form}
+            setForm={setForm}
+            errors={errors}
+            setErrors={setErrors}
+            onOpenAddressModal={() => setIsModalOpen(true)}
+        />
+
+        <SearchAddressModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            onCompletePost={handleCompletePost}
+        />
+
+        <div className="flex justify-center mt-4">
             <button
                 onClick={handleSignup}
                 style={{
@@ -59,12 +97,13 @@ export default function SignupBuyerPage() {
                     fontSize: '16px',
                     border: 'none',
                     cursor: 'pointer',
-
                 }}
             >
                 등록
             </button>
             </div>
-
+        </div>
+    </div>
     );
+
 }

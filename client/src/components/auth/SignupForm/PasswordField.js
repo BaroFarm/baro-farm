@@ -23,7 +23,7 @@ export default function PasswordField({ form, setForm, errors, setErrors }) {
                 setErrors({ ...errors, password: '' });
             }}
             onClear={() => setForm({ ...form, confirmPassword: '' })}
-            placeholder="다시 입력해주세요"
+            placeholder=""
         />
         {errors.password && <p className="text-sm text-red-500">{errors.password}</p>}
     </>

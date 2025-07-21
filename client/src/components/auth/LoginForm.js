@@ -61,7 +61,9 @@ export default function LoginForm() {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="w-full max-w-md mt-6 space-y-4">
+        <div className="min-h-screen flex items-center justify-center">
+        <form onSubmit={handleSubmit} 
+            className="w-full max-w-md mt-6 space-y-4 mx-auto flex flex-col items-center">
             {/* 이메일 입력 */}
             <InputField
                 type="email"
@@ -97,7 +99,7 @@ export default function LoginForm() {
             </div>
 
         {/* 로그인 버튼 */}
-            <div className="flex space-x-4 mt-6">
+            <div className="flex justify-center space-x-4 mt-6">
             {/* 구매자 로그인 버튼: 초록 배경 */}
                 <button
                     type="submit"
@@ -150,6 +152,7 @@ export default function LoginForm() {
             </button>
         </div>
         </form>
+    </div>
     );
 }
 
