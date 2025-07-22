@@ -4,7 +4,7 @@ const morgan = require('morgan');
 const path = require('path');
 const session = require('express-session');
 const dotenv = require('dotenv');
-const { sequelize } = require('./models'); // ✅ 이거 추가!
+const { sequelize } = require('./models');
 
 dotenv.config();
 const indexRouter = require('./routes');
@@ -28,7 +28,6 @@ app.use(session({
     },
 }));
 
-// test
 app.use(express.static(path.join(__dirname, 'views')));
 app.use('/', indexRouter);
 
@@ -45,7 +44,7 @@ app.use((err, req, res, next) => {
     res.status(500).send(err.message);
 });
 
-sequelize.sync({ force: false }) // ✅ 모델 기준으로 테이블 생성
+sequelize.sync({ force: false })
   .then(() => {
     app.listen(app.get('port'), () => {
       console.log(app.get('port'), '번 포트에서 대기 중');
