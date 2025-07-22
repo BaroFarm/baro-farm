@@ -52,9 +52,9 @@ export default function SignupBuyerPage() {
             const error = err.response?.data?.error;
             if (error?.code === 'DUPLICATE_EMAIL_OR_NICKNAME') {
                 if (error.message.includes('닉네임')) {
-                    setErrors({ ...errors, nickname: error.message });
+                    setErrors((prev) => ({ ...prev, nickname: error.message }));
                 } else {
-                    setErrors({ ...errors, email: error.message });
+                    setErrors((prev) => ({ ...prev, email: error.message }));
                 }
             }
         }

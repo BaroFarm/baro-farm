@@ -3,6 +3,9 @@ import InputField from '../../form/InputField';
 import PasswordField from './PasswordField';
 
 export default function SignupForm({ form, setForm, errors, setErrors, onOpenAddressModal, user_type }) {
+    const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+    
     return (
         <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginTop: '10px'}} >
             <div style={{ width: '100%', maxWidth: '28rem', display: 'flex', flexDirection: 'column', gap: '12px', padding: '0 1rem' }}>
@@ -12,9 +15,20 @@ export default function SignupForm({ form, setForm, errors, setErrors, onOpenAdd
                     type="email"
                     value={form.email}
                     onChange={(e) => {
-                        setForm({ ...form, email: e.target.value });
-                        setErrors({ ...errors, email: '' });
+                        const email = e.target.value;
+                        setForm({ ...form, email });
+
+                        setErrors((prev) => {
+                            if (!isValidEmail(email)) {
+                                return { ...prev, email: '유효한 이메일 형식이 아닙니다.' };
+                            } else if (prev.email === '유효한 이메일 형식이 아닙니다.') {
+                                return { ...prev, email: '' };
+                            } else {
+                                return prev; // 중복 메시지는 유지
+                            }
+                        });
                     }}
+
                     onClear={() => setForm({ ...form, email: '' })}
                     placeholder="example@example.com"
                 />
