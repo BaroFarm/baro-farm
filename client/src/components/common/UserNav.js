@@ -1,9 +1,19 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import { FaSearch } from 'react-icons/fa';
 import {useNavigate} from 'react-router-dom';
 
 export default function SmallNavbar() {
     const navigate = useNavigate(); // 네비게이션 훅 사용
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+    useEffect(() => {
+        const token = localStorage.getItem('accessToken');
+        setIsLoggedIn(!!token);
+    }, []);
+
+    const handleLogout = () => {
+        
+    }
 
     return (
         <nav style={{
