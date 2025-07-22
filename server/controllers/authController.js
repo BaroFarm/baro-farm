@@ -82,3 +82,65 @@ exports.signup = async (req, res) => {
     }
 };
 
+//프론트에서 로그인 함수 추가했습니다!
+exports.login = async (req, res) => {
+    try {
+        const { email, password, user_type } = req.body;
+
+        if (!email || !password || !user_type) {
+            return res.status(400).json({ message: '이메일, 비밀번호, 사용자 유형은 필수입니다.' });
+        }
+
+        let user;
+
+        if (user_type === 'buyer') {
+            user = await Customer.findOne({ where: { email } });
+        } else if (user_type === 'seller') {
+            user = await Seller.findOne({ where: { email } });
+        } else {
+            return res.status(400).json({ message: '잘못된 사용자 유형입니다.' });
+        }
+
+        if (!user) {
+            return res.status(401).json({ message: '존재하지 않는 이메일입니다.' });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ message: '비밀번호가 일치하지 않습니다.' });
+        }
+
+        const user_id = user_type === 'buyer' ? user.customer_id : user.seller_id;
+
+        const token = jwt.sign(
+            {
+                userId: user_id,
+                email,
+                user_type
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: process.env.JWT_EXPIRES_IN || '1h' } // 예: 1시간
+        );
+
+        res.status(200).json({
+            status: 'success',
+            data: {
+                accessToken: token,
+                tokenType: 'Bearer',
+                expiresIn: 3600, // 초 단위
+                user: {
+                    user_id,
+                    email,
+                    user_type
+                }
+            }
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            status: 'error',
+            code: 'SERVER_ERROR',
+            message: '로그인 중 서버 오류가 발생했습니다.',
+        });
+    }
+};

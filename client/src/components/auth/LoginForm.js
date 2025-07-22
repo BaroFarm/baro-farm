@@ -25,7 +25,11 @@ export default function LoginForm() {
                 },
             });
 
-            const { accessToken, user, tokenType } = response.data.data;
+            const { accessToken, tokenType, user } = response.data.data || {};
+            if (!user) {
+                alert('로그인 응답에서 사용자 정보를 찾을 수 없습니다.');
+                return;
+            }
 
             // ✅ localStorage 저장
             localStorage.setItem('accessToken', accessToken);
@@ -114,6 +118,7 @@ export default function LoginForm() {
                         backgroundColor: '#B6D19B',
                         color: 'black',
                         border: 'none',
+                        cursor: 'pointer',
                     }}
                 >
                     구매자로 로그인
@@ -132,6 +137,7 @@ export default function LoginForm() {
                         backgroundColor: 'white',
                         color: 'black',
                         border: '1px solid gray',
+                        cursor: 'pointer',
                     }}
                 >
                     판매자로 로그인
