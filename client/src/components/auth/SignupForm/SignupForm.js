@@ -69,6 +69,14 @@ export default function SignupForm({ form, setForm, errors, setErrors, onOpenAdd
                 )}
 
                 {/* 주소 */}
+                <InputField
+                    label="우편번호"
+                    type="text"
+                    value={form.zipCode} // ✅ 정확한 key로
+                    readOnly
+                    onClear={null} // 필요 시 제거 또는 유지
+                    placeholder="우편번호"
+                />
                 <div style={{ display: 'flex', alignItems: 'center', width: '100%', marginBottom: '12px' }}>
                     <label style={{ width: '100px', fontSize: '14px', fontWeight: 'bold', color: '#111827', marginRight: '8px', textAlign: 'right' }}>
                         {user_type === 'seller' ? '스토어 주소' : '주소'}

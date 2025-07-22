@@ -46,28 +46,45 @@ export default function SignupSellerPage() {
             license_number: form.license_number,
             contact: form.contact,
             user_type: form.user_type,
+            status: '활성',
         };
+        console.log("📦 payload", payload);
+
 
         try {
             const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/auth/signup`, payload);
             console.log('회원가입 성공:', res.data);
             navigate('/login');
         } catch (err) {
-            const error = err.response?.data?.error;
-            if (error?.code === 'DUPLICATE_EMAIL_OR_NICKNAME') {
-                if (error.message.includes('닉네임')) {
-                    setErrors({ ...errors, nickname: error.message });
-                } else {
-                    setErrors({ ...errors, email: error.message });
-                }
-            }
-        }
+  alert("에러 발생");
+  console.log("🔥 err:", err);
+
+  if (err.response) {
+    console.log("🔥 err.response.data:", err.response.data);
+    console.log("🔥 상태 코드:", err.response.status);
+
+    const { message, code } = err.response.data;
+    if (code === 'DUPLICATE_EMAIL_OR_NICKNAME') {
+      if (message.includes('닉네임')) {
+        setErrors({ ...errors, nickname: message });
+      } else {
+        setErrors({ ...errors, email: message });
+      }
+    }
+  } else {
+    console.error("⚠️ 네트워크 또는 서버 미응답 오류");
+  }
+}
     };
 
     const handleCompletePost = (data) => {
         const fullAddress = data.address;
         const zoneCode = data.zonecode;
-        setForm({ ...form, zipCode: zoneCode, street: fullAddress });
+        setForm(prev => ({
+            ...prev,
+            zipCode: zoneCode,
+            street: fullAddress,
+        }));
         setIsModalOpen(false); // 모달 닫기
     };
 

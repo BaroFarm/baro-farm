@@ -40,7 +40,9 @@ export default function SignupBuyerPage() {
             street: form.street,
             detail: form.detail,
             user_type: form.user_type,
+            status: '활성',
         };
+        
 
         try {
             const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/auth/signup`, payload);
@@ -61,7 +63,12 @@ export default function SignupBuyerPage() {
     const handleCompletePost = (data) => {
         const fullAddress = data.address;
         const zoneCode = data.zonecode;
-        setForm({ ...form, zipCode: zoneCode, street: fullAddress });
+
+        setForm(prev => ({
+            ...prev,
+            zipCode: zoneCode,
+            street: fullAddress,
+        }));
         setIsModalOpen(false); // 모달 닫기
     };
 
