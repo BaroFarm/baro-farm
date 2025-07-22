@@ -36,7 +36,7 @@ export default function SeasonalProduct() {
                 const params = accessToken ? {} : { user_id: guestUserIdRef.current };
 
                 const response = await axios.get(
-                    "https://api.baro-farm.com/api/products/seasonal",
+                    `${process.env.REACT_APP_API_URL}/api/products/seasonal`,
                     {
                         headers,
                         params,

@@ -7,41 +7,44 @@ export default function PromoBanner(){
     useEffect(() => {
         const fetchBanners = async () => {
             try {
-                const response = await axios.get("https://api.baro-farm.com/api/banners", {
+                const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/banners`, {
                 params: { position: "main", limit: 3 },
                 });
                 setBanners(response.data.data);  // 데이터 상태에 저장
             } catch (error) {
-                console.error("배너 불러오기 실패", error);
-                if (error.response) {
-                    alert(`에러 발생: ${error.response.data.error.message}`);
-                } else {
-                    alert("서버와 연결할 수 없습니다.");
-                }
-            
-            // 👉 에러 시 더미 데이터 세팅
-            const exampleData = [
-                {
-                    banner_id: "bn001",
-                    title: "7월 여름맞이 할인!",
-                    image_url: "https://cdn.baro.com/banner/summer.png",
-                    link_url: "https://baro-farm.com/event/summer",
-                    alt_text: "여름 특가 이벤트 배너",
-                    priority: 1,
-                    position: "main",
-                },
-                {
-                    banner_id: "bn002",
-                    title: "정기배송 상품 추천",
-                    image_url: "https://cdn.baro.com/banner/subscription.png",
-                    link_url: "https://baro-farm.com/subscription",
-                    alt_text: "정기배송 추천 배너",
-                    priority: 2,
-                    position: "main",
-                },
-            ];
-            setBanners(exampleData);
-        }
+    console.error("배너 불러오기 실패", error);
+
+    const fallbackMessage =
+        error?.response?.data?.error?.message ||
+        error?.response?.data?.message ||
+        error?.message ||
+        "배너를 불러오는 중 오류가 발생했습니다.";
+
+    alert(`에러 발생: ${fallbackMessage}`);
+
+    // 👉 에러 시 더미 데이터 세팅
+    const exampleData = [
+        {
+            banner_id: "bn001",
+            title: "7월 여름맞이 할인!",
+            image_url: "https://cdn.baro.com/banner/summer.png",
+            link_url: "https://baro-farm.com/event/summer",
+            alt_text: "여름 특가 이벤트 배너",
+            priority: 1,
+            position: "main",
+        },
+        {
+            banner_id: "bn002",
+            title: "정기배송 상품 추천",
+            image_url: "https://cdn.baro.com/banner/subscription.png",
+            link_url: "https://baro-farm.com/subscription",
+            alt_text: "정기배송 추천 배너",
+            priority: 2,
+            position: "main",
+        },
+    ];
+    setBanners(exampleData);
+    }
     };
     
     fetchBanners();

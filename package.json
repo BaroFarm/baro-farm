@@ -21,7 +21,10 @@
   "homepage": "https://github.com/BaroFarm/baro-farm#readme",
   "dependencies": {
     "express": "^5.1.0",
-    "react-router-dom": "^7.6.3"
+    "mysql2": "^3.14.2",
+    "react-router-dom": "^7.6.3",
+    "sequelize": "^6.37.7",
+    "sequelize-cli": "^6.6.3"
   },
   "devDependencies": {
     "nodemon": "^3.1.10",

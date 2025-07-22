@@ -4,6 +4,8 @@ const morgan = require('morgan');
 const path = require('path');
 const session = require('express-session');
 const dotenv = require('dotenv');
+//프론트에서 추가했습니다..!
+const cors = require('cors');
 
 dotenv.config();
 const indexRouter = require('./routes');
@@ -11,6 +13,7 @@ const indexRouter = require('./routes');
 const app = express();
 app.set('port', process.env.PORT || 3002);
 
+app.use(cors());
 app.use(morgan('dev'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
@@ -36,6 +39,7 @@ app.use((err, req, res, next) => {
     console.error(err);
     res.status(500).send(err.message);
 });
+
 
 app.listen(app.get('port'), () => {
     console.log(app.get('port'), '번 포트에서 대기 중');

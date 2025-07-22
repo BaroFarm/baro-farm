@@ -37,7 +37,7 @@ export default function Recommendations() {
                 const params = accessToken ? {} : { user_id: guestUserIdRef.current };
 
                 const response = await axios.get(
-                    "https://api.baro-farm.com/api/products/recommendations",
+                    `${process.env.REACT_APP_API_URL}/api/products/recommendations`,
                     {
                         headers,
                         params,
