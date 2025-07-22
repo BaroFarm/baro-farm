@@ -1,19 +1,27 @@
 import React, {useEffect, useState} from 'react';
 import { FaSearch } from 'react-icons/fa';
-import {useNavigate} from 'react-router-dom';
+import {useNavigate, useLocation} from 'react-router-dom';
 
 export default function SmallNavbar() {
     const navigate = useNavigate(); // 네비게이션 훅 사용
+    const location = useLocation(); 
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     useEffect(() => {
         const token = localStorage.getItem('accessToken');
         setIsLoggedIn(!!token);
-    }, []);
+    }, [location]);
 
     const handleLogout = () => {
-        
-    }
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('userType');
+        localStorage.removeItem('tokenType');
+        alert('로그아웃 되었습니다.');
+        setIsLoggedIn(false);
+        navigate('/');
+    };
 
     return (
         <nav style={{
@@ -37,7 +45,13 @@ export default function SmallNavbar() {
         }}>
             <li><button style={buttonStyle} >장바구니</button></li>
             <li><button style={buttonStyle} >마이페이지</button></li>
-            <li><button style={buttonStyle} onClick={() => navigate('/login')}>로그인</button></li>
+            <li>
+            {isLoggedIn ? (
+                        <button style={buttonStyle} onClick={handleLogout}>로그아웃</button>
+                    ) : (
+                        <button style={buttonStyle} onClick={() => navigate('/login')}>로그인</button>
+                    )}
+            </li>
         </ul>
         
       {/* 검색창 */}
