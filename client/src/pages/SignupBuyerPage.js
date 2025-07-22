@@ -49,13 +49,16 @@ export default function SignupBuyerPage() {
             console.log('회원가입 성공:', res.data);
             navigate('/login');
         } catch (err) {
-            const error = err.response?.data?.error;
-            if (error?.code === 'DUPLICATE_EMAIL_OR_NICKNAME') {
-                if (error.message.includes('닉네임')) {
-                    setErrors((prev) => ({ ...prev, nickname: error.message }));
-                } else {
-                    setErrors((prev) => ({ ...prev, email: error.message }));
-                }
+            const errorMessage = err.response?.data?.message;
+
+            if (errorMessage?.includes('이메일')) {
+                setErrors((prev) => ({ ...prev, email: errorMessage }));
+            } else if (errorMessage?.includes('닉네임')) {
+                setErrors((prev) => ({ ...prev, nickname: errorMessage }));
+            } else if (errorMessage?.includes('비밀번호')) {
+                setErrors((prev) => ({ ...prev, password: errorMessage }));
+            } else {
+                console.error('알 수 없는 에러:', err.response?.data || err.message);
             }
         }
     };

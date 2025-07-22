@@ -16,16 +16,18 @@ export default function SignupForm({ form, setForm, errors, setErrors, onOpenAdd
                     value={form.email}
                     onChange={(e) => {
                         const email = e.target.value;
-                        setForm({ ...form, email });
+                        setForm({ ...form, email: email });
 
                         setErrors((prev) => {
                             if (!isValidEmail(email)) {
                                 return { ...prev, email: '유효한 이메일 형식이 아닙니다.' };
-                            } else if (prev.email === '유효한 이메일 형식이 아닙니다.') {
+                            } 
+                            if (prev.email === '유효한 이메일 형식이 아닙니다.') {
                                 return { ...prev, email: '' };
-                            } else {
-                                return prev; // 중복 메시지는 유지
                             }
+
+                            return prev; // 중복 메시지는 유지
+                            
                         });
                     }}
 

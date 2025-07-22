@@ -56,25 +56,18 @@ export default function SignupSellerPage() {
             console.log('회원가입 성공:', res.data);
             navigate('/login');
         } catch (err) {
-  alert("에러 발생");
-  console.log("🔥 err:", err);
+            const errorMessage = err.response?.data?.message;
 
-  if (err.response) {
-    console.log("🔥 err.response.data:", err.response.data);
-    console.log("🔥 상태 코드:", err.response.status);
-
-    const { message, code } = err.response.data;
-    if (code === 'DUPLICATE_EMAIL_OR_NICKNAME') {
-      if (message.includes('닉네임')) {
-        setErrors({ ...errors, nickname: message });
-      } else {
-        setErrors({ ...errors, email: message });
-      }
-    }
-  } else {
-    console.error("⚠️ 네트워크 또는 서버 미응답 오류");
-  }
-}
+            if (errorMessage?.includes('이메일')) {
+                setErrors((prev) => ({ ...prev, email: errorMessage }));
+            } else if (errorMessage?.includes('닉네임')) {
+                setErrors((prev) => ({ ...prev, nickname: errorMessage }));
+            } else if (errorMessage?.includes('비밀번호')) {
+                setErrors((prev) => ({ ...prev, password: errorMessage }));
+            } else {
+                console.error('알 수 없는 에러:', err.response?.data || err.message);
+            }
+        }
     };
 
     const handleCompletePost = (data) => {
