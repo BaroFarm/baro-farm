@@ -3,6 +3,7 @@ import Layout from './components/layout/Layout';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ShopPage from "./pages/ShopPage";
 import CategoryPage from "./pages/CategoryPage";
+import ProductDetail from './pages/ProductDetail';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import SignupBuyerPage from './pages/SignupBuyerPage';
@@ -25,6 +26,7 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<ShopPage />} />
             <Route path="/shop/:category" element={<CategoryPage />} />
+            <Route path="/shop/product/:productId" element={<ProductDetail />} />
           </Route>
         </Routes>
       </div>

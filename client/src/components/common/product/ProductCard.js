@@ -1,12 +1,18 @@
-//만들고 -> 상품 추천 리스트 짜고 -> 카테고리별 페이지 이동 링크 설정
 import React from 'react';
+import {useNavigate} from 'react-router-dom';
 
 export default function ProductCard({ product }) {
+    const navigate = useNavigate();
     // 별점 수에 따라 ⭐ 반복
     const stars = '⭐'.repeat(Math.round(product.rating || 0));
 
+    const handleClick = () => {
+        navigate(`/shop/product/${product.id}`); // ← 백엔드와 일치하는 ID 경로
+    };
+
     return (
         <div className="border rounded p-3"
+        onClick={handleClick}
         style={{
             width: "100%",
             height: 250,
@@ -14,6 +20,7 @@ export default function ProductCard({ product }) {
             display: "flex", flexDirection: "column",
             justifyContent: "start",
             color: "#555",
+            cursor: 'pointer',
             }}>
             {/* 이미지 */}
             <img src={product.image} alt={product.name} 
