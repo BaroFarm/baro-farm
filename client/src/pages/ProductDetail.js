@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import { useParams } from 'react-router-dom';
 import ShopNav from '../components/common/ShopNav';
 import ProductSummary from '../components/productDetail/ProductSummary';
+import ProductDetailInfo from '../components/productDetail/ProductDetailInfo';
 
 export default function ProductDetail(){
 
@@ -66,6 +67,7 @@ export default function ProductDetail(){
         <div>
             <ShopNav />
             <ProductSummary product={product} />
+            <ProductDetailInfo product={product} />
         </div>
     );
 }

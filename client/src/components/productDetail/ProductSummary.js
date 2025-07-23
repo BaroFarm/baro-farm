@@ -26,7 +26,7 @@ export default function ProductSummary({ product }) {
                             position: 'relative',
                             margin: '20px 10px',
                             width: 'fit-content',
-                            fontSize: '14px',
+                            fontSize: '16px',
                         }}
                     >
                         {product.is_returnable ? '반품 가능' : '반품 불가'}
@@ -72,7 +72,7 @@ export default function ProductSummary({ product }) {
 }
 
 const roundStyle = {
-    fontSize: '15px',
+    fontSize: '16px',
     padding: '6px 12px',
     borderRadius: '999px',
     backgroundColor: '#B6D19B',
