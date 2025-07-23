@@ -75,11 +75,11 @@ function ProductFinalPage() {
           &lt; 이전 단계로 이동
         </button>
         <button
-          style={styles.buttonGreen}
-          onClick={() => alert('상품이 최종 등록되었습니다!')}
-        >
-          최종 등록하기
-        </button>
+        style={styles.buttonGreen}
+        onClick={() => navigate('/product/complete')}
+      >
+        최종 등록하기
+      </button>
       </div>
     </div>
   );

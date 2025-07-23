@@ -12,6 +12,8 @@ import ProductAICustomInput from './pages/ProductAICustomInput';
 import ProductSummaryPreview from './pages/ProductSummaryPreview';
 import ProductVideoPreview from './pages/ProductVideoPreview';
 import ProductFinalPage from './pages/ProductFinalPage';
+import ProductCompletePage from './pages/ProductCompletePage';
+
 
 
 function App() {
@@ -30,6 +32,7 @@ function App() {
           <Route path="/product/summary-preview" element={<ProductSummaryPreview />} />
           <Route path="/product/video-preview" element={<ProductVideoPreview />} />
           <Route path="/product/final" element={<ProductFinalPage />} />
+          <Route path="/product/complete" element={<ProductCompletePage />} />
 
           
         </Routes>
