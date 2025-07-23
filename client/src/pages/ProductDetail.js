@@ -25,7 +25,7 @@ export default function ProductDetail(){
                     weight: "2kg",
                     status: "판매중",
                     description: "청송 농장에서 직접 수확한 신선한 유기농 사과입니다.",
-                    image_url: "https://cdn.baro.com/images/apple.jpg",
+                    image_url: "https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?w=600&h=400&fit=crop",
                     is_returnable: true,
                     is_subscription: true,
                     is_video: true,
