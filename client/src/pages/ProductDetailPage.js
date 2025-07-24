@@ -2,13 +2,20 @@ import React, {useEffect, useState} from 'react';
 import { useParams } from 'react-router-dom';
 import ShopNav from '../components/common/ShopNav';
 import ProductSummary from '../components/productDetail/ProductSummary';
+import ProductDetailNav from '../components/productDetail/ProductDetailNav';
 import ProductDetailInfo from '../components/productDetail/ProductDetailInfo';
+import ProductPolicy from '../components/productDetail/ProductPolicy';
+import ProductReviewList from '../components/productDetail/ProductReviewList';
+import ProductReviewSummary from '../components/productDetail/ProductReviewSummary';
+import ProductQnA from '../components/productDetail/ProductQnA';
 
 export default function ProductDetail(){
 
     const {productId} = useParams();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [selectedCategory, setSelectedCategory] = useState('상품 설명');
+
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -67,7 +74,18 @@ export default function ProductDetail(){
         <div>
             <ShopNav />
             <ProductSummary product={product} />
-            <ProductDetailInfo product={product} />
+            <ProductDetailNav 
+                selectedCategory={selectedCategory}
+                onSelectCategory={setSelectedCategory}
+            />
+                
+            {/* 아래 컴포넌트만 바뀜 */}
+            <div style={{ padding: '24px' }}>
+                {selectedCategory === '상품 설명' && <ProductDetailInfo product={product} />}
+                {selectedCategory === '상세정보' && <ProductPolicy product={product} />}
+                {selectedCategory === '후기' && <ProductReviewList productId={product.id} />}
+                {selectedCategory === '문의' && <ProductQnA productId={product.id} />}
+            </div>
         </div>
     );
 }

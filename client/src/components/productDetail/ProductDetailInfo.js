@@ -7,7 +7,7 @@ export default function ProductDetailInfo({ product }) {
     return (
         <>
             <section style={{ display: 'flex', gap: '40px', alignItems: 'start', padding: '24px' }}>
-                <h3 style={{ margin: '10px 0 30px 0', fontSize: '18px', textAlign: 'left' }}>상품 상세 정보</h3>
+                <h3 style={{ margin: '10px 0 30px 0', fontSize: '18px', textAlign: 'left' }}>상품 설명</h3>
             </section>
 
             {/* 상품 상세 정보 iframe */}
@@ -53,7 +53,7 @@ export default function ProductDetailInfo({ product }) {
                 onClick={toggleOpen}
             >
                 <span style={{ fontWeight: 'bold' }}>
-                    상세정보 {isOpen ? '접기 ▲' : '펼쳐보기 ▼'}
+                    상세 정보 {isOpen ? '접기 ▲' : '펼쳐보기 ▼'}
                 </span>
             </div>
         </>
