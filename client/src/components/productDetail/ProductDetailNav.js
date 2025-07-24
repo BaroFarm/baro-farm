@@ -43,7 +43,7 @@ const liStyle = {
 const buttonStyle = {
     width: '100%',
     padding: '16px 0',
-    background: 'none',
+    backgroundColor: '#F6F7F5',
     border: 'none',
     fontSize: '16px',
     color: '#666',

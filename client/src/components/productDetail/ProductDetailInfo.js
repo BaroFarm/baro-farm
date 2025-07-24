@@ -1,8 +1,20 @@
-import React, {useState} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
+import ProductReviewList from './ProductReviewList';
 
 export default function ProductDetailInfo({ product }) {
-    const [isOpen, setIsOpen] = useState(false);
-    const toggleOpen = () => setIsOpen(prev => !prev);
+    //상세정보 펼쳐보기 버튼
+    const [isShowMore, setIsShowMore] = useState(false);
+    //const toggleOpen = () => setIsShowMore(prev => !prev);
+    const detailRef = useRef(null);
+    const [detailHeight, setDetailHeight] = useState('500px');
+
+    useEffect(() => {
+        if(isShowMore && detailRef.current){
+            setDetailHeight(`${detailRef.current.scrollHeight}px`);
+        } else {
+            setDetailHeight('500px');
+        }
+    }, [isShowMore]);
 
     return (
         <>
@@ -12,7 +24,8 @@ export default function ProductDetailInfo({ product }) {
 
             {/* 상품 상세 정보 iframe */}
             {product.is_video && product.video_url && (
-                <div style={{ marginTop: '0px', padding: '0px 24px' }}>
+                <div 
+                    style={{ marginTop: '0px', padding: '0px 24px'}}>
                     <iframe
                         width="100%"
                         height="400"
@@ -22,8 +35,17 @@ export default function ProductDetailInfo({ product }) {
                     />
                 </div>
                 )}
-            {product.detail_page?.figma_export_url && (
-                <div style={{ marginTop: '0px', padding: '0px 24px' }}>
+            
+            <div 
+                ref={detailRef}
+                    style={{ 
+                        marginTop: '0px', padding: '0px 24px',
+                        maxHeight: detailHeight,
+                        overflow: 'hidden',
+                        transition: 'max-height 0.4s ease',
+                    }}
+            >
+                {product.detail_page?.figma_export_url && (
                     <iframe
                         src={product.detail_page.figma_export_url}
                         width="100%"
@@ -31,31 +53,32 @@ export default function ProductDetailInfo({ product }) {
                         style={{ border: 'none' }}
                         title="상세정보 보기"
                     />
-                </div>
-            )}
+                )}
+            </div>
 
             {/* 플로팅 버튼 */}
             <div
                 style={{
                     position: 'relative',
-                    // bottom: 20,
                     left: '50%',
-                    width: '500px',
+                    width: '800px',
                     transform: 'translateX(-50%)',
                     background: '#fff',
                     border: '1px solid #ccc',
                     padding: '12px 24px',
                     borderRadius: '8px',
                     boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-                    zIndex: 1000,
                     cursor: 'pointer',
                 }}
-                onClick={toggleOpen}
+                onClick={() => setIsShowMore(prev => !prev)}
             >
                 <span style={{ fontWeight: 'bold' }}>
-                    상세 정보 {isOpen ? '접기 ▲' : '펼쳐보기 ▼'}
+                    상세 정보 {isShowMore ? '접기 ▲' : '펼쳐보기 ▼'}
                 </span>
             </div>
+            
+            <ProductReviewList productId={product.id} />
+            
         </>
     );
 }
