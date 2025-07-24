@@ -32,7 +32,6 @@ app.use(express.static(path.join(__dirname, 'views')));
 app.use('/', indexRouter);
 
 app.use('/api/s-products', sProductsRouter);
-app.use('/api/:productId/images', sProductsRouter);
 
 
 app.use((req, res, next) => {
@@ -53,8 +52,3 @@ sequelize.sync({ force: false })
   .catch(err => {
     console.error('DB 연결 실패:', err);
   });
-
-
-app.listen(app.get('port'), () => {
-    console.log(app.get('port'), '번 포트에서 대기 중');
-});
