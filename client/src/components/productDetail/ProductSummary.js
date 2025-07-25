@@ -1,4 +1,5 @@
 import React from 'react';
+import StarRating from '../common/product/StarRating';
 
 export default function ProductSummary({ product }) {
     return (
@@ -38,12 +39,20 @@ export default function ProductSummary({ product }) {
             <div style={{ flex: 1, }}>
                 <h2 style={{ marginTop: 120, textAlign: 'left'}}>{product.title} ({product.weight})</h2>
                 <p style={{textAlign: 'left'}}>{product.description}</p>
-                <p style={{ fontSize: '20px', fontWeight: 'bold', textAlign: 'left' }}>
-                    {product.price.toLocaleString()}원
-                </p>
-                <p style={{ fontSize: '18px', color: '#fbc02d', textAlign: 'right' }}>
-                    {'⭐'.repeat(Math.round(product.rating))} ({product.rating})
-                </p>
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    margin: '12px 0',
+                }}>
+                    <p style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>
+                        {product.price.toLocaleString()}원
+                    </p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <StarRating value={product.rating} size={20} />
+                    </div>
+                </div>
+                
                 {/* 쿠폰 영역 (나중에 추가) */}
                 <div style={{border: '1px solid gray', height: '100px'}}>쿠폰 영역 (나중에 추가)</div>
 

@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import ProductReviewItem from '../common/product/ProductReviewItem';
+import ProductReviewSummary from './ProductReviewSummary';
 
 export default function ProductReviewList({productId}){
     const [reviews, setReviews] = useState([]);
@@ -39,11 +40,12 @@ export default function ProductReviewList({productId}){
 
     return (
         <div style={{ padding: '24px' }}>
-            <h3 style={{ margin: '30px 0 30px 0', fontSize: '18px', textAlign: 'left' }}>리뷰 ({reviews.length})</h3>
             {reviews.length === 0 ? (
                 <p>아직 작성된 후기가 없습니다.</p>
             ) : (
                 <>
+                <ProductReviewSummary productId={productId} />
+
                 <ul style={{ listStyle: 'none', padding: 0 }}>
                     {reviews.slice(0, visibleCount).map((review, idx) => (
                             <ProductReviewItem key={idx} review={review} />

@@ -6,7 +6,6 @@ import ProductDetailNav from '../components/productDetail/ProductDetailNav';
 import ProductDetailInfo from '../components/productDetail/ProductDetailInfo';
 import ProductPolicy from '../components/productDetail/ProductPolicy';
 import ProductReviewList from '../components/productDetail/ProductReviewList';
-import ProductReviewSummary from '../components/productDetail/ProductReviewSummary';
 import ProductQnA from '../components/productDetail/ProductQnA';
 
 export default function ProductDetail(){

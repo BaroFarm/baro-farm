@@ -1,7 +1,7 @@
 import React from 'react';
+import StarRating from './StarRating';
 
 export default function ProductReviewItem({ review }) {
-    const starts = '⭐'.repeat(Math.round(review.rating));
 
     return (
         <div style={{flex: 1,}}>
@@ -27,7 +27,7 @@ export default function ProductReviewItem({ review }) {
                         alignItems: 'center',
                     }}>
                         <p style={{ fontWeight: 'bold', lineHeight: '1.2'}}>{review.user_id}</p>
-                        <p>{starts}</p>
+                        <p><StarRating value={review.rating} size={20} /></p>
                     </div>
                     <p style={{ fontSize: '13px', color: '#999', margin: 0, lineHeight: '1.2', textAlign: 'left'}}>
                         {review.date}</p>
