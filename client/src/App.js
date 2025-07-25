@@ -4,6 +4,8 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ShopPage from "./pages/ShopPage";
 import CategoryPage from "./pages/CategoryPage";
 import ProductDetailPage from './pages/ProductDetailPage';
+import CartPage from './pages/CartPage';
+
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import SignupBuyerPage from './pages/SignupBuyerPage';
@@ -27,6 +29,7 @@ function App() {
             <Route path="/" element={<ShopPage />} />
             <Route path="/shop/:category" element={<CategoryPage />} />
             <Route path="/shop/product/:productId" element={<ProductDetailPage />} />
+            <Route path="/cart" element={<CartPage />} />
           </Route>
         </Routes>
       </div>
