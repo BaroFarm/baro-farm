@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import ShopNav from '../components/common/ShopNav';
 import CartNav from '../components/cart/CartNav';
+import CartActionBar from '../components/cart/CartActionBar';
 import SmartDelivery from '../components/cart/SmartDelivery';
 import QuickPickUp from '../components/cart/QuickPickUp';
 
@@ -8,9 +9,11 @@ export default function CartPage(){
 
     const [selectedTab, setSelectedTab] = useState('스마트 배송');
     const [cartItems, setCartItems] = useState([]);
-    const [selectedSmartItems, setSelectedSmartItems] = useState([]);
+    const [selectedItems, setSelectedItems] = useState([]);
     const [isDeliveryModalOpen, setIsDeliveryModalOpen] = useState(false);
-    
+    const visibleItems = cartItems.filter(item => 
+        selectedTab === '스마트 배송' ? item.delivery_type === 'smart' : item.delivery_type === 'pickup'
+    );
 //예시 데이터 사용
     useEffect(() => {
   // 임시 데이터
@@ -28,13 +31,20 @@ export default function CartPage(){
                 product_name: '유기농 감자',
                 quantity: 1,
                 delivery_type: 'smart'
+            },
+            {
+                cart_item_id: 3,
+                product_id: 103,
+                product_name: '유기농 감자',
+                quantity: 1,
+                delivery_type: 'pickup'
             }
         ];
         setCartItems(mockItems);
     }, []);
     
     const handleDeleteSelected = () => {
-        if (selectedSmartItems.length === 0) {
+        if (selectedItems.length === 0) {
             alert('삭제할 상품을 선택해주세요.');
             return;
         }
@@ -43,7 +53,7 @@ export default function CartPage(){
     };
 
     const handleChangeDeliveryMethod = () => {
-        if (selectedSmartItems.length === 0) {
+        if (selectedItems.length === 0) {
             alert('변경할 상품을 선택해주세요.');
             return;
         }
@@ -56,14 +66,27 @@ export default function CartPage(){
             <CartNav
                 selectedTab={selectedTab}
                 onSelectTab={setSelectedTab}
-                        />
-                <div style={{ padding: '24px' }}>
+            />
+
+            <div style={{ padding: '24px' }}>
+                <CartActionBar
+                    allSelected={selectedItems.length === visibleItems.length}
+                    onSelectAll={(checked) => {
+                        if (checked) {
+                            setSelectedItems(visibleItems.map(i => i.cart_item_id));
+                        } else {
+                            setSelectedItems([]);
+                        }
+                    }}
+                    onDelete={handleDeleteSelected}
+                    onChangeDelivery={handleChangeDeliveryMethod}
+                />
                     {/* 아래 컴포넌트만 바뀜 */}
                     {selectedTab === '스마트 배송' &&
                         <SmartDelivery  
                             cartItems={cartItems.filter(item => item.delivery_type === 'smart')}
-                            selectedItems={selectedSmartItems}
-                            setSelectedItems={setSelectedSmartItems}
+                            selectedItems={selectedItems}
+                            setSelectedItems={setSelectedItems}
                             onDeleteSelected={handleDeleteSelected}
                             onChangeDelivery={handleChangeDeliveryMethod}
                             // setIsDeliveryModalOpen={setIsDeliveryModalOpen}
