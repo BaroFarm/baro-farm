@@ -157,7 +157,98 @@ exports.saveAIDescription = async (req, res) => {
   }
 };
 
+// 상세설명 직접 작성
+exports.getManualPage = (req, res) => {
+  res.sendFile(path.join(__dirname, '../views/manual-description.html'));
+};
+
+// 직접 작성한 설명 저장
+exports.saveManualDescription = async (req, res) => {
+  const { productId } = req.params;
+  const { description } = req.body;
+
+  if (!description) {
+    return res.status(400).json({ message: '설명이 비어 있습니다.' });
+  }
+
+  try {
+    const [updated] = await Product.update(
+      { description },
+      { where: { product_id: productId } }
+    );
+
+    if (updated === 0) {
+      return res.status(404).json({ message: '상품을 찾을 수 없습니다.' });
+    }
+
+    res.status(200).json({ message: '설명이 성공적으로 저장되었습니다.' });
+  } catch (err) {
+    console.error('설명 저장 실패:', err);
+    res.status(500).json({ message: '설명 저장 중 오류 발생', error: err.message });
+  }
+};
+
 // AI 상세 설명 요약
 exports.getSummaryPage = (req, res) => {
   res.sendFile(path.join(__dirname, "../views/summary.html"));
+};
+
+exports.getSummaryDescription = async (req, res) => {
+  const productId = req.params.productId;
+
+  try {
+    const product = await Product.findOne({
+      where: { product_id: productId },
+    });
+
+    if (!product || !product.description) {
+      return res.status(404).json({ message: "상품 설명이 없습니다." });
+    }
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content: "상품 설명을 고객이 이해하기 쉽도록 1~2줄로 요약해줘.",
+        },
+        {
+          role: "user",
+          content: product.description,
+        },
+      ],
+    });
+
+    const summary = completion.choices[0].message.content.trim();
+    res.status(200).json({ summary }); // 화면에 보여주기용
+  } catch (err) {
+    console.error("요약 오류:", err);
+    res.status(500).json({ message: "요약 실패", error: err.message });
+  }
+};
+
+// AI 상세 설명 요약 저장
+exports.saveSummaryToIntro = async (req, res) => {
+  const productId = req.params.productId;
+  const { summary } = req.body;
+
+  if (!summary) {
+    return res.status(400).json({ message: "요약 내용이 없습니다." });
+  }
+
+  try {
+    const [updated] = await Product.update(
+      { intro: summary },
+      { where: { product_id: productId } }
+    );
+
+    if (updated === 0) {
+      return res.status(404).json({ message: "상품을 찾을 수 없습니다." });
+    }
+
+    res.status(200).json({ message: "intro에 저장 완료" });
+  } catch (err) {
+    console.error("요약 저장 오류:", err);
+    res.status(500).json({ message: "요약 저장 실패", error: err.message });
+  }
 };

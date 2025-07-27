@@ -12,10 +12,17 @@ router.post('/basic', controller.postBasicInfo);
 router.get('/:productId/images', controller.getImagesPage);
 router.post('/:productId/images', upload.array('images', 5), controller.uploadImages);
 
-// AI 설명 생성 및 저장
+// AI 상세 설명 생성 및 저장
 router.get('/:productId/description/ai-gen', controller.getAIGenPage);
 router.post('/:productId/description/ai-gen', controller.generateAIDescription);
-router.get('/:productId/description/summary', controller.getSummaryPage);
 router.post('/:productId/description/ai-save', controller.saveAIDescription);
+
+// 상세 설명 직접 작성 및 저장
+router.get('/:productId/description/manual', controller.getManualPage);
+router.post('/:productId/description/manual', controller.saveManualDescription);
+
+// AI 상세 설명 요약
+router.get('/:productId/description/summary', controller.getSummaryDescription);
+router.post('/:productId/description/summary-save', controller.saveSummaryToIntro);
 
 module.exports = router;

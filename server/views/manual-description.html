@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>상품 설명 직접 입력</title>
+</head>
+<body>
+  <h2>상품 설명을 직접 작성하세요</h2>
+  <form id="manualForm">
+    <textarea name="description" id="description" rows="15" cols="80" placeholder="여기에 상품 설명을 입력하세요..."></textarea>
+    <br />
+    <button type="submit">다음</button>
+  </form>
+
+  <script>
+    const productId = window.location.pathname.split("/")[3];
+    const form = document.getElementById("manualForm");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const description = document.getElementById("description").value;
+
+      try {
+        const response = await fetch(`/api/s-products/${productId}/description/manual`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ description }),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          alert(data.message);
+          // 다음 단계로 리다이렉트 (예시)
+          window.location.href = `/api/s-products/${productId}/description/summary`;
+        } else {
+          alert(data.message || "저장 실패");
+        }
+      } catch (err) {
+        alert("요청 실패: " + err.message);
+      }
+    });
+  </script>
+</body>
+</html>

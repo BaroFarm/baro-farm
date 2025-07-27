@@ -1,11 +1,108 @@
-<!DOCTYPE html>
-<html lang="en">
+<!-- <!DOCTYPE html>
+<html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <title>상품 설명 요약</title>
 </head>
 <body>
-   간단하게 요약하기
+  <h3>요약 설명</h3>
+  <div id="summary">요약을 불러오는 중...</div>
+  <br>
+  <button id="next-button">다음 단계로 이동</button>
+
+  <script>
+    (async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const productId = urlParams.get("product_id");
+      const summaryDiv = document.getElementById("summary");
+
+      if (!productId || !/^\d+$/.test(productId)) {
+        summaryDiv.textContent = "유효한 상품 ID가 없습니다.";
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/s-products/${productId}/description/summary`);
+        const data = await res.json();
+
+        if (!res.ok || data.status !== "success") {
+          throw new Error(data.message || "요약 실패");
+        }
+
+        summaryDiv.textContent = data.summary;
+
+        // 다음 버튼 이벤트 등록
+        document.getElementById("next-button").addEventListener("click", () => {
+          window.location.href = `/api/s-products/${productId}/video-gen`;
+        });
+      } catch (err) {
+        console.error("요약 오류:", err);
+        summaryDiv.textContent = "요약 정보를 불러오는 데 실패했습니다.";
+      }
+    })();
+  </script>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>상품 설명 요약</title>
+</head>
+<body>
+  <h3>상품 요약 설명</h3>
+  <div id="summary">불러오는 중...</div>
+
+  <button id="nextBtn" style="margin-top: 20px;">다음</button>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get("product_id");
+    const summaryEl = document.getElementById("summary");
+    const nextBtn = document.getElementById("nextBtn");
+
+    let summaryText = "";
+
+    if (!productId) {
+      summaryEl.textContent = "❗ 상품 ID가 없습니다.";
+      nextBtn.disabled = true;
+    } else {
+      fetch(`/api/s-products/${productId}/description/summary`)
+        .then((res) => {
+          if (!res.ok) throw new Error("요약 실패");
+          return res.json();
+        })
+        .then((data) => {
+          summaryText = data.summary;
+          summaryEl.textContent = summaryText;
+        })
+        .catch((err) => {
+          console.error(err);
+          summaryEl.textContent = "❗ 요약을 불러오는 데 실패했습니다.";
+          nextBtn.disabled = true;
+        });
+    }
+
+    nextBtn.addEventListener("click", async () => {
+      try {
+        const res = await fetch(`/api/s-products/${productId}/description/summary-save`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ summary: summaryText }),
+        });
+
+        if (!res.ok) throw new Error("intro 저장 실패");
+
+        // 저장 성공 시 다음 단계로 이동
+        window.location.href = `/api/s-products/${productId}/video-gen`;
+      } catch (err) {
+        console.error(err);
+        alert("intro 저장에 실패했습니다.");
+      }
+    });
+  </script>
 </body>
 </html>
+
