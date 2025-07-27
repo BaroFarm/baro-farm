@@ -1,10 +1,12 @@
 import React, {useState} from 'react';
 import CartItem from './CartItem';
+import DeliveryFarmInfo from './DeliveryFarmInfo';
 
 export default function SmartDelivery({
     cartItems,
     selectedItems,
     setSelectedItems,
+    setCartItems,
     onDeleteSelected,
     onChangeDelivery     
 }){
@@ -17,8 +19,10 @@ export default function SmartDelivery({
     };
 
     const handleDeleteSingle = (id) => {
-        // TODO: 백엔드 연동 시 단일 삭제 API 호출
-        alert(`${id}번 상품 삭제 (예시)`);
+        // 해당 아이템만 제외하고 갱신
+        const updatedItems = cartItems.filter(item => item.cart_item_id !== id);
+        setCartItems(updatedItems);
+        setSelectedItems(prev => prev.filter(itemId => itemId !== id)); // 선택된 항목에서도 제거
     };
 
     const handlePurchaseSingle = (id) => {
@@ -43,6 +47,12 @@ export default function SmartDelivery({
                     </li>
                 ))}
             </ul>
+            <DeliveryFarmInfo
+                farmName="직매장(농가) 명"
+                estimatedTime={40}
+                arrivalTime="13시 51분"
+                imageUrl="" // or 실제 이미지 URL
+            />
 (나중에 백엔드 API 명세서 확인 후 다시 수정...가격도 추가)
             
             <h3>일반 배송 상품</h3>

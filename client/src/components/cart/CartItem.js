@@ -58,13 +58,6 @@ const imageStyle = {
     objectFit: 'cover',
 };
 
-const leftGroupStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    flex: 1,
-    gap: '8px',
-};
 
 const infoStyle = {
     display: 'flex',
@@ -78,16 +71,6 @@ const quantityStyle = {
     gap: '6px',
 };
 
-const deliveryStyle = {
-    fontSize: '14px',
-    color: '#666',
-};
-
-const buttonGroupStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-};
 
 const buttonStyle = {
     backgroundColor: '#d6e9c6',

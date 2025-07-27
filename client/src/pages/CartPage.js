@@ -4,6 +4,7 @@ import CartNav from '../components/cart/CartNav';
 import CartActionBar from '../components/cart/CartActionBar';
 import SmartDelivery from '../components/cart/SmartDelivery';
 import QuickPickUp from '../components/cart/QuickPickUp';
+import CartSummary from '../components/cart/CartSummary';
 
 export default function CartPage(){
 
@@ -48,7 +49,10 @@ export default function CartPage(){
             alert('삭제할 상품을 선택해주세요.');
             return;
         }
-        alert('삭제 기능 작동 (연동 준비)');
+        // 선택된 항목 제거
+        const updatedItems = cartItems.filter(item => !selectedItems.includes(item.cart_item_id));
+        setCartItems(updatedItems);
+        setSelectedItems([]); // 선택 항목 초기화
         // 이후 fetchCartItems();
     };
 
@@ -86,6 +90,7 @@ export default function CartPage(){
                         <SmartDelivery  
                             cartItems={cartItems.filter(item => item.delivery_type === 'smart')}
                             selectedItems={selectedItems}
+                            setCartItems={setCartItems}
                             setSelectedItems={setSelectedItems}
                             onDeleteSelected={handleDeleteSelected}
                             onChangeDelivery={handleChangeDeliveryMethod}
@@ -93,8 +98,24 @@ export default function CartPage(){
                         />
                     }
                     
-                    {selectedTab === '바로 찾음' && <QuickPickUp />}
-                
+                    {selectedTab === '바로 찾음' && 
+                        <QuickPickUp 
+                            cartItems={cartItems.filter(item => item.delivery_type === 'pickup')}
+                            selectedItems={selectedItems}
+                            setCartItems={setCartItems}
+                            setSelectedItems={setSelectedItems}
+                            onDeleteSelected={handleDeleteSelected}
+                            onChangeDelivery={handleChangeDeliveryMethod}
+                            // setIsDeliveryModalOpen={setIsDeliveryModalOpen}
+                        />
+                    }
+                    <CartSummary 
+                        totalItems={2}
+                        totalPrice={30000}
+                        discount={5000}
+                        shippingFee={3000}
+                        onOrderClick={() => alert('주문하기 버튼 클릭!')}
+                    />
                 </div>
         </div>
     )
