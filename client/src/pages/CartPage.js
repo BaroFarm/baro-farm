@@ -5,16 +5,22 @@ import CartActionBar from '../components/cart/CartActionBar';
 import SmartDelivery from '../components/cart/SmartDelivery';
 import QuickPickUp from '../components/cart/QuickPickUp';
 import CartSummary from '../components/cart/CartSummary';
+import PickupAddressModal from '../components/cart/PickupAddressModal';
 
 export default function CartPage(){
 
     const [selectedTab, setSelectedTab] = useState('스마트 배송');
     const [cartItems, setCartItems] = useState([]);
     const [selectedItems, setSelectedItems] = useState([]);
-    const [isDeliveryModalOpen, setIsDeliveryModalOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);  //바로찾음> 주소 찾기 팝업
     const visibleItems = cartItems.filter(item => 
         selectedTab === '스마트 배송' ? item.delivery_type === 'smart' : item.delivery_type === 'pickup'
     );
+    const [selectedFarm, setSelectedFarm] = useState(null);
+    const [selectedAddress, setSelectedAddress] = useState('');
+
+    const [pickupDate, setPickupDate] = useState('');
+
 //예시 데이터 사용
     useEffect(() => {
   // 임시 데이터
@@ -94,7 +100,6 @@ export default function CartPage(){
                             setSelectedItems={setSelectedItems}
                             onDeleteSelected={handleDeleteSelected}
                             onChangeDelivery={handleChangeDeliveryMethod}
-                            // setIsDeliveryModalOpen={setIsDeliveryModalOpen}
                         />
                     }
                     
@@ -106,15 +111,32 @@ export default function CartPage(){
                             setSelectedItems={setSelectedItems}
                             onDeleteSelected={handleDeleteSelected}
                             onChangeDelivery={handleChangeDeliveryMethod}
-                            // setIsDeliveryModalOpen={setIsDeliveryModalOpen}
+                            selectedFarm={selectedFarm}
+                            setIsDeliveryModalOpen={setIsModalOpen}
+                            selectedAddress = {selectedAddress}
+                            pickupDate={pickupDate}
+                            setPickupDate={setPickupDate}
                         />
                     }
+                    <PickupAddressModal
+                        isOpen={isModalOpen}
+                        onClose={() => setIsModalOpen(false)}
+                            onComplete={({ address, farm }) => {
+                                setSelectedAddress(address);
+                                setSelectedFarm(farm);
+                        }}
+                    />
+
                     <CartSummary 
-                        totalItems={2}
+                        totalItems={selectedItems.length}
                         totalPrice={30000}
                         discount={5000}
                         shippingFee={3000}
                         onOrderClick={() => alert('주문하기 버튼 클릭!')}
+                        productId={cartItems.find(item => selectedItems.includes(item.cart_item_id))?.product_id || 0} 
+                        pickupDate={pickupDate}
+                        pickupTime={"14:00"}
+                        pickupLocationId={selectedFarm?.id}
                     />
                 </div>
         </div>

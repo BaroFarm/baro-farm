@@ -7,7 +7,13 @@ export default function QuickPickUp ({
     setCartItems,
     setSelectedItems,
     onDeleteSelected,
-    onChangeDelivery     
+    onChangeDelivery,
+    selectedFarm,
+    setIsDeliveryModalOpen,
+    selectedAddress,
+    pickupDate,
+    setPickupDate,
+
 }){
     const handleToggleSelect = (id) => {
             setSelectedItems(prev =>
@@ -45,11 +51,68 @@ export default function QuickPickUp ({
                             />
                         </li>
                     ))}
-                </ul>
-    (나중에 백엔드 API 명세서 확인 후 다시 수정...가격도 추가)
-                
-                
+                </ul> (나중에 백엔드 API 명세서 확인 후 다시 수정...가격도 추가)<br />
+                {/* <hr style={{ margin: '40px 0', borderColor: 'gray', borderWidth: '0.5px' }} /> */}
+                {/* 주문자 정보 입력 영역 */}
+                <span style={{fontSize: '18px'}}>바로찾음 서비스 안내</span>
+                <p>바로찾음 서비스는 날짜와 시간, 상품을 구매할 매장을 지정한 후 직접 픽업할 수 있는 서비스입니다.</p>
+            <div style={{ paddingTop: '40px', paddingBottom: '40px', maxWidth: '600px', margin: '0 auto' }}>
+            <section style={{ border: '1px solid #ccc', padding: '24px', borderRadius: '8px' }}>
+                <h3>바로 찾음 주문자 정보 입력</h3>
+                <p>정확하게 입력해주세요.</p>
+
+                <form>
+                    <div style={{ marginBottom: '16px' }}>
+                        <label>이름 *</label><br />
+                        <input type="text" placeholder="Value" style={{ width: '100%' }} />
+                    </div>
+
+                    <div style={{ marginBottom: '16px' }}>
+                        <label>전화번호 *</label><br />
+                        <input type="tel" placeholder="Value" style={{ width: '100%' }} />
+                    </div>
+
+                    <div style={{ marginBottom: '16px' }}>
+                        <label>주소 *</label><br />
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <input type="text" placeholder="주소 찾기" style={{ flex: 1 }} readOnly value={selectedAddress} />
+                            <button type="button" onClick={() => setIsDeliveryModalOpen(true)}>주소 찾기</button>
+                        </div>
+                    </div>
+
+                    <div style={{ marginBottom: '16px' }}>
+                        <label>희망 픽업 일시</label><br />
+                        <input type="date" style={{ width: '100%' }}
+                            value={pickupDate} onChange={(e) => setPickupDate(e.target.value)}/>
+                    </div>
+
+                    <div>
+                        <label>
+                            <input type="checkbox" /> 입력된 정보 저장
+                        </label>
+                    </div>
+                </form>
+            </section>
         </div>
-        );
-    
+        {selectedFarm && (
+            <div style={{ fontSize: '18px', marginTop: '40px' }}>
+                선택한 직매장(농가)
+                    <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginTop: '12px' }}>
+                        <div style={{
+                            width: '60px',
+                            height: '60px',
+                            backgroundColor: '#ddd',
+                            borderRadius: '4px',
+                            backgroundImage: `url(${selectedFarm.imageUrl})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center'
+                        }} />
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <div style={{ fontWeight: 'bold' }}>{selectedFarm.name}</div>
+                        </div>
+                    </div>
+                </div>
+            )}
+    </div>
+    );
 }
