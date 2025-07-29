@@ -2,6 +2,7 @@ import React from 'react';
 import OrdererInfo from '../components/payment/OrdererInfo';
 import OrderItemList from '../components/payment/OrderItemList';
 import CouponDiscount from '../components/payment/CouponDiscount';
+import PaymentSummary from '../components/payment/PaymentSummary';
 
 export default function PaymentPage(){
     return(
@@ -15,6 +16,7 @@ export default function PaymentPage(){
                 ]}
             />
             <CouponDiscount />
+            <PaymentSummary />
         </div>
     );
 }
