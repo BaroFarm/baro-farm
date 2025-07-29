@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import SignupBuyerPage from './pages/SignupBuyerPage';
 import SignupSellerPage from './pages/SignupSellerPage';
+import BuyerMyPage from './pages/BuyerMyPage';
 
 function App() {
 
@@ -25,6 +26,7 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<ShopPage />} />
             <Route path="/shop/:category" element={<CategoryPage />} />
+            <Route path="/mypage/buyer" element={<BuyerMyPage />} />
           </Route>
         </Routes>
       </div>
