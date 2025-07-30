@@ -97,9 +97,7 @@ exports.login = async (req, res) => {
             user = await Seller.findOne({ where: { email } });
         } 
 
-        // 비밀번호 확인
-        const passwordMatch = await bcrypt.compare(password, user.password);
-        if (!user || !passwordMatch) {
+        if (!user || !(await bcrypt.compare(password, user.password))) {
             return res.status(401).json({
                 status: 'error',
                 error: {
