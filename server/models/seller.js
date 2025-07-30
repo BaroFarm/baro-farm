@@ -66,6 +66,14 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: false,
     underscored: true,
   });
+  
+  // Store와의 관계 추가
+  Seller.associate = (models) => {
+    Seller.belongsTo(models.Store, {
+      foreignKey: 'store_id',
+      targetKey: 'store_id',
+    });
+  };
 
   return Seller;
 };
