@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function OrderCard({ order }) {
     const {
@@ -23,6 +24,8 @@ export default function OrderCard({ order }) {
     };
 
     const showReviewButton = delivery_status === 'DELIVERED';
+
+    const navigate = useNavigate();
 
     return (
         <div
@@ -119,6 +122,7 @@ export default function OrderCard({ order }) {
                     )}
 
                     <button
+                        onClick={() => navigate(`/my/orders/${order.order_id}`)}
                         style={{
                             border: '1px solid #ccc',
                             padding: '6px 18px',

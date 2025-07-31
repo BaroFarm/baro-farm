@@ -9,6 +9,7 @@ import SignupBuyerPage from './pages/SignupBuyerPage';
 import SignupSellerPage from './pages/SignupSellerPage';
 import BuyerMyPage from './pages/BuyerMyPage';
 import OrderListPage from './components/mypage/order/OrderListPage'
+import OrderDetail from './components/mypage/order/OrderDetail';
 
 function App() {
 
@@ -29,6 +30,7 @@ function App() {
             <Route path="/shop/:category" element={<CategoryPage />} />
             <Route path="/mypage/buyer" element={<BuyerMyPage />} />
             <Route path="/my/orders" element={<OrderListPage />} />
+            <Route path="/my/orders/:orderId" element={<OrderDetail />} />
           </Route>
         </Routes>
       </div>

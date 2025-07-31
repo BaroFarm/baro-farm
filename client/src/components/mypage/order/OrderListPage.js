@@ -94,7 +94,8 @@ export default function OrderListPage() {
 
     return (
         <div style={{ padding: '48px' }}>
-            <div style={{ fontWeight: 'bold', fontSize: '22px', textAlign: 'left' }}>주문/배송 조회</div>
+            <div style={{ fontWeight:'bold', fontSize:'22px', textAlign:'left',borderBottom: '1px solid gray',lineHeight: '2.5',
+                }}>주문/배송 조회</div>
 
             
                 <div style={{ color: 'gray', marginTop: '12px', fontSize: '14px' }}>
