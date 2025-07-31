@@ -8,6 +8,7 @@ import SignupPage from './pages/SignupPage';
 import SignupBuyerPage from './pages/SignupBuyerPage';
 import SignupSellerPage from './pages/SignupSellerPage';
 import BuyerMyPage from './pages/BuyerMyPage';
+import OrderListPage from './components/mypage/order/OrderListPage'
 
 function App() {
 
@@ -27,6 +28,7 @@ function App() {
             <Route path="/" element={<ShopPage />} />
             <Route path="/shop/:category" element={<CategoryPage />} />
             <Route path="/mypage/buyer" element={<BuyerMyPage />} />
+            <Route path="/my/orders" element={<OrderListPage />} />
           </Route>
         </Routes>
       </div>

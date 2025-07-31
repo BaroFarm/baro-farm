@@ -1,7 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FaTruck, FaUndoAlt } from 'react-icons/fa';
 
 export default function OrderQueryBox(){
+    
+    const navigate = useNavigate();
+
     return(
         <div style={{
             backgroundColor: '#F9F9F9',
@@ -10,7 +14,8 @@ export default function OrderQueryBox(){
         }}>
             <div style={{fontWeight: 'bold', fontSize:"18px", textAlign: 'Left'}}> 주문 관련 정보 조회</div>
             
-            <div style={{ display: 'flex', gap: '40px', margin: '25px', marginLeft: '100px'}}>
+            <div style={{ display: 'flex', gap: '40px', margin: '25px', marginLeft: '100px'}}
+                onClick={() => navigate('/my/orders')}>
             {/* 주문/배송 조회 */}
                 <div style={{ textAlign: 'center', cursor: 'pointer' }}>
                     <FaTruck size={36} />
