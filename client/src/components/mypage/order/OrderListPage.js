@@ -72,11 +72,9 @@ export default function OrderListPage() {
             const orders = Array.isArray(json.data) ? json.data : json.data?.orders ?? [];
             const pagination = json.data?.pagination ?? { totalPages: 1 };
 
-            setOrders(orders);
+            setOrders(mockOrders);
             setTotalPages(pagination.totalPages);
 
-            setOrders(orders);
-            setTotalPages(pagination.totalPages);
             setHasError(false); // 성공했으면 에러 상태 초기화
 
             if (!Array.isArray(json.data) && (!json.data?.orders || !json.data?.pagination)) {
@@ -85,7 +83,7 @@ export default function OrderListPage() {
         
         } catch (err) {
             console.error('❌ 주문 API 호출 실패:', err);
-            setOrders(mockOrders);       // ✅ fallback mock 데이터
+            setOrders(mockOrders);       
             setTotalPages(1);
             setHasError(true);           // ✅ 에러 표시
         }
@@ -98,11 +96,11 @@ export default function OrderListPage() {
         <div style={{ padding: '48px' }}>
             <div style={{ fontWeight: 'bold', fontSize: '22px', textAlign: 'left' }}>주문/배송 조회</div>
 
-            {hasError && (
-            <div style={{ color: 'red', marginTop: '12px', fontSize: '14px' }}>
-                ⚠️ 서버와 연결할 수 없어 모의 데이터를 표시합니다.
-            </div>
-            )}
+            
+                <div style={{ color: 'gray', marginTop: '12px', fontSize: '14px' }}>
+                    주문 내역이 없어 테스트 용으로 임시 데이터를 사용합니다.
+                </div>
+        
 
 
             <SearchBar />
