@@ -17,7 +17,7 @@ const authMiddleware = async (req, res, next) => {
 
         if (decoded.user_type === 'buyer') {
             user = await Customer.findByPk(decoded.id);
-        } else if (decode.user_type === 'seller') {
+        } else if (decoded.user_type === 'seller') {
             user = await Seller.findByPk(decoded.id);
         }
 
