@@ -89,3 +89,74 @@ exports.deleteProduct = async (req, res) => {
     });
   }
 };
+
+// 상품 정보 조회
+exports.getProductDetail = async (req, res) => {
+    try {
+      const sellerId = req.user.seller_id;
+      const productId = req.params.product_id;
+  
+      const product = await Product.findOne({
+        where: { product_id: productId, seller_id: sellerId }
+      });
+  
+      if (!product) {
+        return res.status(404).json({
+          status: 'error',
+          message: '해당 상품을 찾을 수 없습니다.',
+          code: 404
+        });
+      }
+  
+      return res.status(200).json({
+        status: 'success',
+        data: product
+      });
+  
+    } catch (error) {
+      console.error('상품 조회 오류:', error);
+      return res.status(500).json({
+        status: 'error',
+        message: '서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+        code: 500
+      });
+    }
+  };
+
+// 상품 정보 수정
+exports.updateProduct = async (req, res) => {
+    try {
+      const sellerId = req.user.seller_id;
+      const productId = req.params.product_id;
+  
+      const product = await Product.findOne({
+        where: { product_id: productId, seller_id: sellerId }
+      });
+  
+      if (!product) {
+        return res.status(404).json({
+          status: 'error',
+          message: '해당 상품을 찾을 수 없습니다.',
+          code: 404
+        });
+      }
+  
+      await product.update(req.body);
+  
+      return res.status(200).json({
+        status: 'success',
+        message: '상품 정보가 수정되었습니다.',
+        data: {
+          product_id: product.product_id
+        }
+      });
+  
+    } catch (error) {
+      console.error('상품 수정 오류:', error);
+      return res.status(500).json({
+        status: 'error',
+        message: '서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+        code: 500
+      });
+    }
+  };
