@@ -6,7 +6,6 @@ exports.getSellerInfo = async (req, res) => {
     // const sellerId = 1;
     // 로그인/회원가입과 연동하면 윗줄 지우고 아래 코드로 대체하면 됩니다
     const sellerId = req.user.get('seller_id');
-
     
     const seller = await Seller.findOne({
       where: { seller_id: sellerId },
@@ -48,6 +47,7 @@ exports.patchSellerInfo = async (req, res) => {
     // const sellerId = 1;
     // 로그인/회원가입과 연동하면 윗줄 지우고 아래 코드로 대체하면 됩니다
     const sellerId = req.user.get('seller_id');
+
     const { name, email, password, phone, contact, license_number } = req.body;
 
     const [updated] = await Seller.update(
