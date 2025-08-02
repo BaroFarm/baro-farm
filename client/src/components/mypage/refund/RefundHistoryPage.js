@@ -12,17 +12,27 @@ const mockData = [
         "refund_id": "CANC-001", 
         "order_id": "ORD-20250713-0001",
         "product_name": "유기농 사과",
+        "quantity": 2,
         "amount": 30000, // 환불 금액
         "created_at": "2025-07-13T15:00:00Z", // 요청일
         "status": "PROCESSING", // 현재 처리 상태
+        "paymentInfo": { 
+            "method": "CreditCard", // 결제 수단
+            "amount": 30000 // 원래 결제 금액
+        },
         },
         {
         "refund_id": "CANC-002",
         "order_id": "ORD-20250710-0005",
         "product_name": "친환경 바나나",
+        "quantity": 1,
         "amount": 5000,
         "created_at": "2025-07-10T11:00:00Z",
         "status": "COMPLETED",
+        "paymentInfo": { 
+            "method": "CreditCard", // 결제 수단
+            "amount": 5000 // 원래 결제 금액
+        },
         }
     ],
     "pagination": {
@@ -99,12 +109,13 @@ export default function RefundHistoryPage(){
         
         
             <SearchBar />
+            <RefundItemCard refunds={refunds}/>
             <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={(page) => setCurrentPage(page)}
             />
-            <RefundItemCard refunds={refunds}/>
+            
         </div>
     );
 }
