@@ -10,6 +10,7 @@ import SignupSellerPage from './pages/SignupSellerPage';
 import BuyerMyPage from './pages/BuyerMyPage';
 import OrderListPage from './components/mypage/order/OrderListPage'
 import OrderDetail from './components/mypage/order/OrderDetail';
+import RefundHistoryPage from './components/mypage/refund/RefundHistoryPage';
 
 function App() {
 
@@ -31,6 +32,7 @@ function App() {
             <Route path="/mypage/buyer" element={<BuyerMyPage />} />
             <Route path="/my/orders" element={<OrderListPage />} />
             <Route path="/my/orders/:orderId" element={<OrderDetail />} />
+            <Route path="my/refunds" element={<RefundHistoryPage />} />
           </Route>
         </Routes>
       </div>

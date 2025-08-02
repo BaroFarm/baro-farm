@@ -14,16 +14,17 @@ export default function OrderQueryBox(){
         }}>
             <div style={{fontWeight: 'bold', fontSize:"18px", textAlign: 'Left'}}> 주문 관련 정보 조회</div>
             
-            <div style={{ display: 'flex', gap: '40px', margin: '25px', marginLeft: '100px'}}
-                onClick={() => navigate('/my/orders')}>
+            <div style={{ display: 'flex', gap: '40px', margin: '25px', marginLeft: '100px'}}>
             {/* 주문/배송 조회 */}
-                <div style={{ textAlign: 'center', cursor: 'pointer' }}>
+                <div style={{ textAlign: 'center', cursor: 'pointer' }}
+                    onClick={() => navigate('/my/orders')}>
                     <FaTruck size={36} />
                     <div>주문/배송 조회</div>
                 </div>
 
             {/* 취소/반품/환불 내역 */}
-                <div style={{ textAlign: 'center', cursor: 'pointer' }}>
+                <div style={{ textAlign: 'center', cursor: 'pointer' }}
+                    onClick={() => navigate('/my/refunds')}>
                     <FaUndoAlt size={36} />
                     <div>취소/반품/환불 내역</div>
                 </div>
