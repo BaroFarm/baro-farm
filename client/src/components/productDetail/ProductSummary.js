@@ -1,10 +1,12 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
+import AddCartModal from '../modal/AddCartModal';
 import StarRating from '../common/product/StarRating';
 
 export default function ProductSummary({ product }) {
 
     const navigate = useNavigate();
+    const [openModal, setOpenModal] = useState(false);
     
     const handleAddToWishlist = async () => {
         const accessToken = localStorage.getItem('accessToken');
@@ -147,7 +149,13 @@ export default function ProductSummary({ product }) {
 
                 {/* 오른쪽: 장바구니 + 구매하기 */}
                 <div style={{ display: 'flex', gap: '12px' }}>
-                    <button style={{ ...roundStyle, width: '100px' }}>장바구니</button>
+                    <button 
+                        onClick={() => {setOpenModal(true); }}
+                        style={{ ...roundStyle, width: '100px' }}>
+                            장바구니
+                    </button>
+                    {openModal ? <AddCartModal openModal={openModal} setOpenModal={setOpenModal}/> : null}
+                    
                     <button style={{ ...roundStyle, width: '100px' }}>구매하기</button>
                 </div>
             </div>
