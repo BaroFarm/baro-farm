@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../../middlewares/authMiddleware');
+const { authMiddleware, optionalAuth } = require('../../middlewares/authMiddleware');
 const { getFavoriteStores, getProductWishlists } = require('../../controllers/mypage-buyer/wishlistController');
 
 // 스토어 즐겨찾기 목록 조회
