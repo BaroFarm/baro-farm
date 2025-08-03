@@ -1,7 +1,79 @@
 import React from 'react';
+import {useNavigate} from 'react-router-dom';
 import StarRating from '../common/product/StarRating';
 
 export default function ProductSummary({ product }) {
+
+    const navigate = useNavigate();
+    
+    const handleAddToWishlist = async () => {
+        const accessToken = localStorage.getItem('accessToken');
+        if (!accessToken) {
+            alert("로그인이 필요합니다.");
+            navigate("/login")
+            return;
+        }
+        //찜하기
+        try {
+            const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/users/wishlist`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`,
+                },
+                body: JSON.stringify({ product_id: product.product_id }),
+            });
+
+            const json = await res.json();
+            if (res.status === 201) {
+                alert(json.message || '찜 목록에 추가되었습니다!');
+            } else {
+                alert(json.message || '찜하기 실패!');
+            }
+        } catch (err) {
+            console.error('찜하기 에러:', err);
+            alert('서버 오류가 발생했습니다.');
+        }
+    };
+
+    //즐겨찾기
+    const handleAddToFavorites = async () => {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+        alert("로그인이 필요합니다.");
+        navigate("/login");
+        return;
+    }
+    try {
+        const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/favorites`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({
+                target_id: product.seller.store_id, // 매장 ID로 바꿔주세요
+                target_type: "store"
+            })
+        });
+        const json = await res.json();
+        if (res.status === 201) {
+            alert(json.message || "즐겨찾기에 추가되었습니다.");
+        } else {
+            alert(json.message || "즐겨찾기 추가 실패!");
+        }
+    } catch (err) {
+        console.error("즐겨찾기 추가 중 오류:", err);
+        alert("서버 오류가 발생했습니다.");
+    }
+};
+
+
+    //장바구니
+
+    //구매
+
+
     return (
         <section style={{ display: 'flex', gap: '40px', alignItems: 'start', padding: '24px' }}>
             {/* 왼쪽 영역 */}
@@ -11,7 +83,9 @@ export default function ProductSummary({ product }) {
             {/* 아래 줄: 판매자명 + 즐겨찾기 */}
                 <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
                     <h2 style={{ margin: 0 }}>{product.seller.name}</h2>
-                    <button style={{ ...roundStyle, cursor: 'pointer' }}>즐겨찾기</button>
+                    <button 
+                        onClick={handleAddToFavorites}
+                        style={{ ...roundStyle, cursor: 'pointer' }}>즐겨찾기</button>
                 </div>
             {/* 이미지 및 반품 뱃지 */}
                 <div style={{ position: 'relative' }}>
@@ -64,7 +138,9 @@ export default function ProductSummary({ product }) {
                 marginTop: '20px' 
                 }}>
                 {/* 왼쪽: 찜하기 */}
-                <button style={{ ...roundStyle, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <button 
+                    onClick={handleAddToWishlist}
+                    style={{ ...roundStyle, display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <img src="/logoWithoutText.svg" alt="찜" style={{ width: '20px', height: '20px' }} />
                         찜하기
                 </button>
