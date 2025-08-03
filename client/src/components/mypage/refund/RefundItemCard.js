@@ -35,10 +35,10 @@ export default function RefundItemCard({ refunds }) {
                     </div>
                     <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>{refund.product_name}</div>
                     <div style={{ marginBottom: '4px' }}>수량: {refund.quantity}개</div>
-                    <div style={{ marginBottom: '4px' }}>상품 가격: ~~~원</div>
-                    <div style={{ marginBottom: '4px' }}>할인 금액: -~~~원</div>
-                    <div style={{ marginBottom: '4px' }}>배송비: ~~~원</div>
-                    <div style={{ margin: '8px 0', fontWeight: 'bold' }}>환불 금액: {refund.amount.toLocaleString()}원</div>
+                    <div style={{ marginBottom: '4px' }}>상품 가격: {refund.paymentInfo.amount.toLocaleString()}원</div>
+                    {/* <div style={{ marginBottom: '4px' }}>할인 금액: -~~~원</div> */}
+                    <div style={{ marginBottom: '4px' }}>배송비: {refund.shipping_fee.toLocaleString()}원</div>
+                    <div style={{ margin: '8px 0', fontWeight: 'bold' }}>환불 금액: {refund.refund_amount.toLocaleString()}원</div>
                     <div>환불 계좌: {refund.paymentInfo.method}</div>
                 </div>
             </div>
