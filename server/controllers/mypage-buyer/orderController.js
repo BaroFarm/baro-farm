@@ -1,4 +1,4 @@
-const { Order, OrderProduct, Product, DeliveryDetail, Payment, Seller, Store } = require('../../models');
+const { Order, OrderProduct, Product, DeliveryDetail, Payment, Seller, Store, ProductImg } = require('../../models');
 
 // 주문/배송 내역 조회
 const getMyOrders = async (req, res) => {
@@ -15,7 +15,12 @@ const getMyOrders = async (req, res) => {
           include: [
             {
               model: Product,
-              attributes: ['product_id', 'title']
+              attributes: ['product_id', 'title'],
+              include: [
+                {
+                  model: ProductImg, 
+                }
+              ]
             }
           ]
         },
@@ -38,6 +43,7 @@ const getMyOrders = async (req, res) => {
       itemsPreview: order.OrderProducts.map(item => ({
         product_id: item.Product.product_id ?? null, 
         product_name: item.Product.title ?? null, 
+        product_img: item.Product?.ProductImgs.img_url || null, // 상품 이미지 추가
         quantity: item.order_product_quantity ?? null, 
         price: item.order_product_price ?? null, 
       }))
@@ -76,7 +82,6 @@ const getMyOrderDetail = async (req, res) => {
           include: [
             {
               model: Product,
-              attributes: ['product_id', 'title'],
               include: [
                 {
                   model: Seller,
@@ -85,8 +90,11 @@ const getMyOrderDetail = async (req, res) => {
                     {
                       model: Store,
                       attributes: ['name'] // 스토어 이름
-                    }
+                    },
                   ]
+                },
+                {
+                  model: ProductImg, 
                 }
               ]
             }
@@ -118,6 +126,7 @@ const getMyOrderDetail = async (req, res) => {
         delivery_status: order.DeliveryDetail?.delivery_status || null,
         tracking_number: order.DeliveryDetail?.tracking_number || null,
         courier: order.DeliveryDetail?.courier || null,
+        shipping_fee : order.order_shipping_fee, // 배송비 추가
         receiver_name: order.receiver_name,
         receiver_phone: order.receiver_phone,
         deliveryAddress: {
@@ -132,6 +141,7 @@ const getMyOrderDetail = async (req, res) => {
         order_product_id: item.order_product_id,
         product_id: item.Product?.product_id,
         product_name: item.Product?.title,
+        product_img: item.Product?.ProductImgs.img_url || null, // 상품 이미지 추가
         order_product_quantity: item.order_product_quantity,
         order_product_price: item.order_product_price,
         sellerName: item.Product?.Seller?.Store?.name || null
