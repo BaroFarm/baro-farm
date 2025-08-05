@@ -1,11 +1,13 @@
 import React, {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
+import CartSuccessModal from './CartSuccessModal';
 //https://dev-ini.tistory.com/90 참고
 
 export default function AddCartModal({ openModal, setOpenModal, product }) {
     
     const [count, setCount] = useState(1);
     const [deliveryType, setDeliveryType] = useState('default');
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
     const navigate = useNavigate();
 
     const price = product?.price || 0;
@@ -46,6 +48,8 @@ export default function AddCartModal({ openModal, setOpenModal, product }) {
 
     if (res.ok && data.status === 'success') {
         alert(data.message || '장바구니에 추가되었습니다!');
+        // 모달 닫지 않고 → 확인창 띄우기
+        setShowConfirmModal(true);
         setOpenModal(false);
     } else {
         alert(data.message || '장바구니 추가 실패');
@@ -58,6 +62,10 @@ export default function AddCartModal({ openModal, setOpenModal, product }) {
 
 
     return (
+    <>
+    {showConfirmModal && (
+        <CartSuccessModal onClose={() => setShowConfirmModal(false)} />
+    )}
     <div style={styles.overlay}>
     <div style={styles.cartContainer}>
         
@@ -120,6 +128,7 @@ export default function AddCartModal({ openModal, setOpenModal, product }) {
                         >
                             장바구니 담기
                         </button>
+                        
 
                         {/* 반품 안내 */}
                         <details>
@@ -154,6 +163,7 @@ export default function AddCartModal({ openModal, setOpenModal, product }) {
                 </button>
         </div>
     </div>
+    </>
     );
 }
 
