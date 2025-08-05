@@ -1,12 +1,14 @@
 import React, {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import AddCartModal from '../modal/AddCartModal';
+import BuyNowModal from '../modal/BuyNowModal';
 import StarRating from '../common/product/StarRating';
 
 export default function ProductSummary({ product }) {
 
     const navigate = useNavigate();
-    const [openModal, setOpenModal] = useState(false);
+    const [openCartModal, setOpenCartModal] = useState(false);
+    const [openBuyModal, setOpenBuyModal] = useState(false);
     
     const handleAddToWishlist = async () => {
         const accessToken = localStorage.getItem('accessToken');
@@ -150,17 +152,26 @@ export default function ProductSummary({ product }) {
                 {/* 오른쪽: 장바구니 + 구매하기 */}
                 <div style={{ display: 'flex', gap: '12px' }}>
                     <button 
-                        onClick={() => {setOpenModal(true); }}
+                        onClick={() => {setOpenCartModal(true); }}
                         style={{ ...roundStyle, width: '100px' }}>
                             장바구니
                     </button>
-                    {openModal ? <AddCartModal 
-                                    openModal={openModal} 
-                                    setOpenModal={setOpenModal}
+                    {openCartModal ? <AddCartModal 
+                                    openModal={openCartModal} 
+                                    setOpenModal={setOpenCartModal}
                                     product={product}
                     /> : null}
                     
-                    <button style={{ ...roundStyle, width: '100px' }}>구매하기</button>
+                    <button 
+                        onClick={() => {setOpenBuyModal(true); }}
+                        style={{ ...roundStyle, width: '100px' }}>
+                            구매하기
+                    </button>
+                    {openBuyModal ? <BuyNowModal 
+                        openModal={openBuyModal} 
+                        setOpenModal={setOpenBuyModal}
+                        product={product}
+                    /> : null}
                 </div>
             </div>
         </div>
