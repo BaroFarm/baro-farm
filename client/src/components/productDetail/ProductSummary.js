@@ -154,7 +154,11 @@ export default function ProductSummary({ product }) {
                         style={{ ...roundStyle, width: '100px' }}>
                             장바구니
                     </button>
-                    {openModal ? <AddCartModal openModal={openModal} setOpenModal={setOpenModal}/> : null}
+                    {openModal ? <AddCartModal 
+                                    openModal={openModal} 
+                                    setOpenModal={setOpenModal}
+                                    product={product}
+                    /> : null}
                     
                     <button style={{ ...roundStyle, width: '100px' }}>구매하기</button>
                 </div>

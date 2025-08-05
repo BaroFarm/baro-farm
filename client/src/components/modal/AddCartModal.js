@@ -1,28 +1,157 @@
-import React from 'react';
+import React, {useState} from 'react';
+import {useNavigate} from 'react-router-dom';
 //https://dev-ini.tistory.com/90 참고
 
-export default function AddCartModal({ openModal, setOpenModal }) {
+export default function AddCartModal({ openModal, setOpenModal, product }) {
+    
+    const [count, setCount] = useState(1);
+    const [deliveryType, setDeliveryType] = useState('default');
+    const navigate = useNavigate();
+
+    const price = product?.price || 0;
+    const totalPrice = price * count;
+
+    const handleMinus = () => {
+        if (count > 1) setCount(prev => prev - 1);
+    };
+
+    const handlePlus = () => {
+        setCount(prev => prev + 1);
+    };
+
+    //장바구니 담기 API 연결
+    const handleAddToCart = async () => {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+        alert("로그인이 필요합니다.");
+        navigate('/login');
+        return;
+    }
+
+    try {
+        const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/cart`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({
+        product_id: product.product_id,
+        quantity: count,
+        delivery_type: deliveryType === 'default' ? 'smart' : deliveryType
+        })
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.status === 'success') {
+        alert(data.message || '장바구니에 추가되었습니다!');
+        setOpenModal(false);
+    } else {
+        alert(data.message || '장바구니 추가 실패');
+    }
+    } catch (error) {
+        console.error('장바구니 추가 오류:', error);
+        alert('서버 오류가 발생했습니다.');
+    }
+    };
+
+
     return (
     <div style={styles.overlay}>
     <div style={styles.cartContainer}>
-        <span style={styles.productName}>[풀무원] 국물 떡볶이</span>
-        <span style={styles.productPrice}>4,000원</span>
+        
+        <div style={{ display: 'flex', gap: '24px' }}>
+                    {/* 이미지 */}
+                    <img
+                        src={product?.image_url || '/placeholder.png'}
+                        alt={product?.title}
+                        style={{ width: 300, height: 300, objectFit: 'cover', background: '#eee', marginTop: '20px' }}
+                    />
 
-        <div style={styles.count}>
-            <div style={styles.minus}>-</div>
-            <div style={styles.number}>2</div>
-            <div style={styles.plus}>+</div>
-        </div>
+                    {/* 우측 내용 */}
+                    <div style={{ flex: 1 }}>
+                        <h2>{product?.title} ({product?.weight})</h2>
 
-        <span style={styles.total}>합계</span>
-        <span style={styles.totalPrice}>8,000원</span>
+                        <div style={{ backgroundColor: '#CFF7D3',
+                                color: '#02542D', 
+                                fontWeight: 'normal', 
+                                fontSize: '14px', 
+                                borderRadius: '5px',
+                                display: 'inline-block',
+                                padding: '2px 6px',
+                                marginBottom: '6px'}}>가격</div>
+                        <div style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '12px' }}>
+                            {totalPrice.toLocaleString()}원
+                        </div>
 
-        <button style={styles.cancel} type="button"
-            onClick={() => {setOpenModal(false); }}>취소
-        </button>
-        {!openModal ? setOpenModal(true) : null}   {/* state 반전시키기 */}
+                        {/* 수량 */}
+                        <div style={{ marginBottom: '12px' }}>
+                            <label style={{ marginRight: '12px', fontWeight: 'normal', }}>수량</label>
+                            <button onClick={handleMinus}>-</button>
+                            <span style={{ margin: '0 8px' }}>{count}</span>
+                            <button onClick={handlePlus}>+</button>
+                        </div>
 
-        <button style={styles.addCart} type="button">장바구니 담기</button>
+                        {/* 상품 수령 방식 */}
+                        <div style={{ marginBottom: '12px' }}>
+                            <label style={{ marginRight: '12px' }}>상품 수령 방식 선택</label>
+                            <select value={deliveryType} onChange={(e) => setDeliveryType(e.target.value)}>
+                                <option value="default">스마트 배송</option>
+                                <option value="pickup">바로 찾음</option>
+                            </select>
+                        </div>
+
+                        {/* 구매 버튼 */}
+                        <button
+                            onClick={handleAddToCart}
+                            style={{
+                                width: '100%',
+                                backgroundColor: '#333',
+                                color: 'white',
+                                padding: '12px 0',
+                                fontWeight: 'normal',
+                                fontSize: '16px',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                marginBottom: '12px',
+                            }}
+                        >
+                            장바구니 담기
+                        </button>
+
+                        {/* 반품 안내 */}
+                        <details>
+                        <summary style={{ cursor: 'pointer' }}>
+                            {product?.is_returnable
+                                ? '해당 상품은 반품 가능 상품입니다.'
+                                : '해당 상품은 반품 불가 상품입니다.'}
+                        </summary>
+                        <p style={{ marginTop: '8px', color: '#888' }}>
+                            {product?.is_returnable
+                                ? '상품 수령 후 7일 이내에 반품하실 수 있습니다.'
+                                : '반품 불가 상품은 구매 전에 꼭 확인해 주세요.'}
+                        </p>
+                        </details>
+                    </div>
+                </div>
+
+                {/* 취소 버튼 */}
+                <button
+                    onClick={() => setOpenModal(false)}
+                    style={{
+                        position: 'absolute',
+                        right: '20px',
+                        top: '20px',
+                        fontSize: '18px',
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer'
+                    }}
+                >
+                    ✕
+                </button>
         </div>
     </div>
     );
@@ -42,8 +171,8 @@ const styles = {
     },
     cartContainer: {
         backgroundColor: '#ffffff',
-        width: '250px',
-        height: '150px',
+        width: '650px',
+        height: '350px',
         border: '1px solid #cccccc',
         borderRadius: '20px',
         padding: '20px',
@@ -54,78 +183,7 @@ const styles = {
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
+        textAlign: 'left'
     },
-    productName: {
-        display: 'inline-block',
-        fontSize: '14px',
-        position: 'absolute',
-    },
-    productPrice: {
-        fontSize: '14px',
-        position: 'absolute',
-        left: '20px',
-        top: '60px',
-    },
-    count: {
-        width: '70px',
-        height: '20px',
-        border: '1px solid #cccccc',
-        position: 'absolute',
-        right: '20px',
-        top: '50px',
-        padding: '2px 0',
-    },
-    minus: {
-        position: 'absolute',
-        left: '10%',
-    },
-    number: {
-        position: 'absolute',
-        left: '45%',
-    },
-    plus: {
-        position: 'absolute',
-        right: '10%',
-    },
-    total: {
-        display: 'inline-block',
-        position: 'absolute',
-        left: '20px',
-        top: '100px',
-        fontSize: '14px',
-    },
-    totalPrice: {
-        fontSize: '22px',
-        fontWeight: 600,
-        display: 'inline-block',
-        position: 'absolute',
-        right: '20px',
-        top: '50%',
-    },
-    cancel: {
-        position: 'absolute',
-        left: '20px',
-        bottom: '20px',
-        width: '120px',
-        padding: '7px 0',
-        backgroundColor: 'white',
-        color: '#0f6cfc',
-        fontWeight: 600,
-        border: '1px solid #0f6cfc',
-        borderRadius: '5px',
-        cursor: 'pointer',
-    },
-    addCart: {
-        position: 'absolute',
-        right: '20px',
-        bottom: '20px',
-        width: '120px',
-        padding: '7px 0',
-        backgroundColor: '#0f6cfc',
-        color: 'white',
-        fontWeight: 600,
-        border: '1px solid #0f6cfc',
-        borderRadius: '5px',
-        cursor: 'pointer',
-    },
+    
 };
