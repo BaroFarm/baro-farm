@@ -1,5 +1,6 @@
 //만들고 -> 상품 추천 리스트 짜고 -> 카테고리별 페이지 이동 링크 설정
 import React from 'react';
+import StarRating from './StarRating';
 
 export default function ProductCard({ product }) {
     // 별점 수에 따라 ⭐ 반복
