@@ -1,10 +1,9 @@
 import React from 'react';
 import {useNavigate} from 'react-router-dom';
+import StarRating from './StarRating';
 
 export default function ProductCard({ product }) {
     const navigate = useNavigate();
-    // 별점 수에 따라 ⭐ 반복
-    const stars = '⭐'.repeat(Math.round(product.rating || 0));
 
     const handleClick = () => {
         navigate(`/shop/product/${product.id}`); // ← 백엔드와 일치하는 ID 경로
@@ -33,9 +32,10 @@ export default function ProductCard({ product }) {
                 {product.price.toLocaleString()}원
             </div>
             {/* 별점 */}
-            <div style={{ marginTop: 4, color: "#fbc02d", fontSize: 14, textAlign: "left" }}>
-                {stars}
-            </div>
+            
+                <p><StarRating value={product.rating} size={20} /></p>
+
+            
         </div>
     );
 }
