@@ -3,6 +3,7 @@ import Layout from './components/layout/Layout';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ShopPage from "./pages/ShopPage";
 import CategoryPage from "./pages/CategoryPage";
+import SubscriptionPage from "./pages/SubscriptionPage";
 import ProductDetailPage from './pages/ProductDetailPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
@@ -26,6 +27,7 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<ShopPage />} />
             <Route path="/shop/:category" element={<CategoryPage />} />
+            <Route path="/shop/products/subscription" element={<SubscriptionPage />} />
             <Route path="/shop/product/:productId" element={<ProductDetailPage />} />
           </Route>
         </Routes>

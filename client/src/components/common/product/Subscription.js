@@ -122,7 +122,7 @@ export default function Subscription({
 
     return (
     
-        <ProductSlider products={products} title="정기배송 가능 상품" onMoreClick={() => navigate('/subscription')} />
+        <ProductSlider products={products} title="정기배송 가능 상품" onMoreClick={() => navigate('/shop/products/subscription')} />
 
     );
 }

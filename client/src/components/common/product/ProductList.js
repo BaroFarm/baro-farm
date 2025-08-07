@@ -8,6 +8,7 @@ function generateNewGuestId() {
 }
 
 export default function ProductList({
+    type="all", //all 또는 subscription
     category,
     region,
     sort = "latest",
@@ -19,6 +20,7 @@ export default function ProductList({
 
      // 게스트 아이디를 localStorage에서 불러오거나 새로 생성
     const guestUserIdRef = React.useRef(null);
+    
 
     if (!guestUserIdRef.current) {
         let id = localStorage.getItem("guestUserId");
@@ -50,7 +52,10 @@ export default function ProductList({
                 };
                 
                 // 👇 엔드포인트 분기 처리
-                const endpoint = category
+                const endpoint =
+                    type === "subscription"
+                    ? `${process.env.REACT_APP_API_BASE_URL}/api/products/subscription`
+                    : category
                     ? `${process.env.REACT_APP_API_BASE_URL}/api/products/category`
                     : `${process.env.REACT_APP_API_BASE_URL}/api/products`;
 
@@ -67,7 +72,7 @@ export default function ProductList({
                 
                 const productsWithRating = response.data.products.map((item) => ({
                     id: item.product_id,
-                    name: item.name,
+                    name: item.name || item.title,
                     price: item.price,
                     image: item.image_url,
                     rating: item.average_rating || 0,
@@ -123,7 +128,7 @@ export default function ProductList({
         };
 
         fetchProducts();
-    }, [category, region, sort, page, limit, onTotalPagesChange]);
+    }, [type, category, region, sort, page, limit, onTotalPagesChange]);
 
     return (
         

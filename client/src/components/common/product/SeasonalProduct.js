@@ -105,7 +105,7 @@ export default function SeasonalProduct() {
 
     return (
         
-        <ProductSlider products={products} title="제철 상품 추천" />
+        <ProductSlider products={products} title="제철 상품" />
                 
     );
 }
