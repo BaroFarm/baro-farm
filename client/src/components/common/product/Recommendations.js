@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import ProductSlider from './ProductSlider';
-//import ProductCard from "./ProductCard";
+import mockRecoProducts from '../../../data/mockRecoProducts';
 
 //비회원인 경우 userId
 function generateNewGuestId() {
@@ -48,6 +48,7 @@ export default function Recommendations() {
                 // 필요한 데이터 가공 (별점이 없으면 0으로)
                 const productsWithRating = response.data.data.map((item) => ({
                     ...item,
+                    id: item.product_id,
                     name: item.title,
                     rating: item.rating || 0,
                     image: item.image_url,
@@ -61,43 +62,15 @@ export default function Recommendations() {
             console.error("상품 불러오기 실패", error);
             //alert("상품 정보를 불러올 수 없습니다.");
             // 임시: 백엔드 연결 안됐을 때 더미 데이터로 테스트
-            setProducts([
-                {
-                    id: "101",
-                    name: "감자",
-                    image: "https://via.placeholder.com/200x150?text=감자",
-                    price: 3200,
-                    rating: 4.3,
-                },
-                {
-                id: "102",
-                name: "강원도 고구마",
-                image: "https://via.placeholder.com/200x150?text=고구마",
-                price: 5800,
-                rating: 4.7,
-                },
-                                {
-                    id: "103",
-                    name: "감자",
-                    image: "https://via.placeholder.com/200x150?text=감자",
-                    price: 3200,
-                    rating: 4.3,
-                },
-                                {
-                    id: "104",
-                    name: "감자",
-                    image: "https://via.placeholder.com/200x150?text=감자",
-                    price: 3200,
-                    rating: 4.3,
-                },
-                                {
-                    id: "105",
-                    name: "감자",
-                    image: "https://via.placeholder.com/200x150?text=감자",
-                    price: 3200,
-                    rating: 4.3,
-                },
-            ]);
+            const mappedMock = mockRecoProducts.map((item) => ({
+                id: item.product_id ,
+                name: item.title,
+                image: item.image_url,
+                price: item.price,
+                rating: 0, // 별점 없음 처리
+            }));
+
+            setProducts(mappedMock);
             }
         };
 

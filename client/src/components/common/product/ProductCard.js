@@ -17,7 +17,7 @@ export default function ProductCard({ product }) {
             height: 250,
             backgroundColor: "#eee",
             display: "flex", flexDirection: "column",
-            justifyContent: "start",
+            justifyContent: "space-between",
             color: "#555",
             cursor: 'pointer',
             }}>

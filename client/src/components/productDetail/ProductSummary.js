@@ -149,30 +149,40 @@ export default function ProductSummary({ product }) {
                         찜하기
                 </button>
 
-                {/* 오른쪽: 장바구니 + 구매하기 */}
-                <div style={{ display: 'flex', gap: '12px' }}>
-                    <button 
-                        onClick={() => {setOpenCartModal(true); }}
-                        style={{ ...roundStyle, width: '100px' }}>
-                            장바구니
+                {/* 오른쪽: 조건부 버튼 렌더링 */}
+                {
+                    product.is_subscription_available ? (
+                    // 정기배송 상품일 때
+                    <button style={{ ...roundStyle, width: '140px' }}>
+                    정기배송 신청
                     </button>
-                    {openCartModal ? <AddCartModal 
-                                    openModal={openCartModal} 
-                                    setOpenModal={setOpenCartModal}
-                                    product={product}
-                    /> : null}
-                    
-                    <button 
-                        onClick={() => {setOpenBuyModal(true); }}
-                        style={{ ...roundStyle, width: '100px' }}>
-                            구매하기
-                    </button>
-                    {openBuyModal ? <BuyNowModal 
-                        openModal={openBuyModal} 
-                        setOpenModal={setOpenBuyModal}
-                        product={product}
-                    /> : null}
-                </div>
+                    ) : (
+                    // 일반 상품일 때
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                        <button 
+                            onClick={() => {setOpenCartModal(true); }}
+                            style={{ ...roundStyle, width: '100px' }}>
+                                장바구니
+                        </button>
+                        {openCartModal ? <AddCartModal 
+                            openModal={openCartModal} 
+                            setOpenModal={setOpenCartModal}
+                            product={product}
+                        /> : null}
+                
+                        <button 
+                            onClick={() => {setOpenBuyModal(true); }}
+                            style={{ ...roundStyle, width: '100px' }}>
+                                구매하기
+                        </button>
+                        {openBuyModal ? <BuyNowModal 
+                            openModal={openBuyModal} 
+                            setOpenModal={setOpenBuyModal}
+                            product={product}
+                        /> : null}
+                    </div>
+                    )
+                }
             </div>
         </div>
     </section>

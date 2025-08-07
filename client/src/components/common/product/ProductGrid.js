@@ -20,7 +20,7 @@ export default function ProductGrid({ products = [], title = "" }) {
             <div
                 style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(5, minmax(220px, 1fr))',
+                    gridTemplateColumns: 'repeat(5, 233px)',
                     gap: '10px',
                 }}
             >

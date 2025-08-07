@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import ProductGrid from "./ProductGrid";
+import {mockProducts} from "../../../data/mockProducts";
 
 //비회원인 경우 userId
 function generateNewGuestId() {
@@ -76,6 +77,7 @@ export default function ProductList({
                     price: item.price,
                     image: item.image_url,
                     rating: item.average_rating || 0,
+                    isSubscription: item.is_subscription_available,
                 }));
 
                 setProducts(productsWithRating);
@@ -87,43 +89,26 @@ export default function ProductList({
             //alert("상품 정보를 불러올 수 없습니다.");
             // 임시: 백엔드 연결 안됐을 때 더미 데이터로 테스트
         
-            setProducts([
-                {
-                    id: "101",
-                    name: "감자",
-                    image: "https://via.placeholder.com/200x150?text=감자",
-                    price: 3200,
-                    rating: 4.3,
-                },
-                {
-                id: "102",
-                name: "강원도 고구마",
-                image: "https://via.placeholder.com/200x150?text=고구마",
-                price: 5800,
-                rating: 4.7,
-                },
-                                {
-                    id: "103",
-                    name: "감자",
-                    image: "https://via.placeholder.com/200x150?text=감자",
-                    price: 3200,
-                    rating: 4.3,
-                },
-                                {
-                    id: "104",
-                    name: "감자",
-                    image: "https://via.placeholder.com/200x150?text=감자",
-                    price: 3200,
-                    rating: 4.3,
-                },
-                                {
-                    id: "105",
-                    name: "감자",
-                    image: "https://via.placeholder.com/200x150?text=감자",
-                    price: 3200,
-                    rating: 4.3,
-                },
-            ]);
+            let filteredMock = mockProducts;
+
+  if (type === "subscription") {
+    filteredMock = mockProducts.filter(item => item.is_subscription_available);
+  } else if (type === "category" && category) {
+    filteredMock = mockProducts.filter(item => item.category === category);
+  }
+  // else "all"인 경우는 그대로 사용
+
+  const productsWithRating = filteredMock.map((item) => ({
+    id: item.product_id,
+    name: item.name,
+    price: item.price,
+    image: item.image_url,
+    rating: item.average_rating || 0,
+    isSubscription: item.is_subscription_available,
+  }));
+
+  setProducts(productsWithRating);
+  console.log("💥 setProducts 호출:", productsWithRating);
             }
         };
 

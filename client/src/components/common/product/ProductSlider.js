@@ -49,10 +49,21 @@ export default function ProductSlider({ products = [], title = "", onMoreClick }
                         display: 'flex',
                         gap: '10px',
                         overflow: 'hidden',
+                        justifyContent: 'flex-start',
                     }}
                 >
                     {visibleProducts.map((product) => (
-                        <ProductCard key={product.id} product={product} />
+                        <div
+                            key={product.id}
+                            style={{
+                                flexShrink: 0,      // 줄어들지 않게
+                                flexGrow: 0,        // 늘어나지 않게 ✅
+                                maxWidth: '233px',
+                                width: '233px', // ✅ 고정 너비로 변경
+                            }}
+                        >
+                            <ProductCard product={product} />
+                        </div>
                     ))}
                 </div>
 
