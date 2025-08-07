@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import {useNavigate} from 'react-router-dom';
 import axios from "axios";
 import ProductSlider from "./ProductSlider";
 
@@ -18,6 +19,8 @@ export default function Subscription({
 
      // 게스트 아이디를 localStorage에서 불러오거나 새로 생성
     const guestUserIdRef = React.useRef(null);
+
+    const navigate = useNavigate();
 
     if (!guestUserIdRef.current) {
         let id = localStorage.getItem("guestUserId");
@@ -118,8 +121,8 @@ export default function Subscription({
     }, [category, region, sort, page, limit]);  // ✅ 의존성 추가
 
     return (
-        
-        <ProductSlider products={products} title="정기배송 가능 상품" />
-                
+    
+        <ProductSlider products={products} title="정기배송 가능 상품" onMoreClick={() => navigate('/subscription')} />
+
     );
 }
