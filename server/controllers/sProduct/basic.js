@@ -1,6 +1,7 @@
 const path = require("path");
 const { Product } = require("../../models");
 
+// 상품 기본 정보 등록
 exports.postBasicInfo = async (req, res) => {
     try {
       // 판매자인지 확인
