@@ -16,8 +16,7 @@ router.post('/:productId/description/ai-gen', authMiddleware, controller.generat
 router.post('/:productId/description/ai-save', authMiddleware, controller.saveAIDescription);
 
 // // 상세 설명 직접 작성 및 저장
-// router.get('/:productId/description/manual', controller.getManualPage);
-// router.post('/:productId/description/manual', controller.saveManualDescription);
+router.post('/:productId/description/manual', authMiddleware, controller.saveManualDescription);
 
 // // AI 상세 설명 요약
 // router.get('/:productId/description/summary', controller.getSummaryDescription);
