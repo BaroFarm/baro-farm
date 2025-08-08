@@ -11,15 +11,18 @@ router.post('/basic', authMiddleware,controller.postBasicInfo);
 // 이미지 등록
 router.post('/:productId/images', authMiddleware, upload.array('images', 5), controller.uploadImages);
 
-// // AI 상세 설명 생성 및 저장
+// AI 상세 설명 생성 및 저장
 router.post('/:productId/description/ai-gen', authMiddleware, controller.generateAIDescription);
 router.post('/:productId/description/ai-save', authMiddleware, controller.saveAIDescription);
 
-// // 상세 설명 직접 작성 및 저장
+// 상세 설명 직접 작성 및 저장
 router.post('/:productId/description/manual', authMiddleware, controller.saveManualDescription);
 
-// // AI 상세 설명 요약
+// AI 상세 설명 요약
 router.get('/:productId/description/summary', authMiddleware, controller.getSummaryDescription);
 router.post('/:productId/description/summary-save', authMiddleware, controller.saveSummaryToIntro);
+
+// AI 영상 생성 (지금은 AI 영상 조회)
+router.get('/:productId/video-gen', authMiddleware, controller.getProductVideo);
 
 module.exports = router;
