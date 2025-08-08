@@ -19,7 +19,7 @@ router.post('/:productId/description/ai-save', authMiddleware, controller.saveAI
 router.post('/:productId/description/manual', authMiddleware, controller.saveManualDescription);
 
 // // AI 상세 설명 요약
-// router.get('/:productId/description/summary', controller.getSummaryDescription);
-// router.post('/:productId/description/summary-save', controller.saveSummaryToIntro);
+router.get('/:productId/description/summary', authMiddleware, controller.getSummaryDescription);
+router.post('/:productId/description/summary-save', authMiddleware, controller.saveSummaryToIntro);
 
 module.exports = router;
