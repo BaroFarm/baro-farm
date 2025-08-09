@@ -25,5 +25,8 @@ router.use('/coupons', couponRoutes);
 const inquiryRoutes = require('./inquiryRoutes'); // 문의 내역 조회
 router.use('/inquiries', inquiryRoutes);
 
+const storeCommunicationRoutes = require('./storeCommunicationRoutes');
+router.use('/store-communication', storeCommunicationRoutes);
+
 module.exports = router;
 
