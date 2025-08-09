@@ -54,6 +54,11 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'inquiry_id',
       sourceKey: 'inquiry_id',
     });
+
+    Inquiry.belongsTo(models.Customer, {
+      foreignKey: 'customer_id',
+      targetKey: 'customer_id',
+    });
   };
 
   return Inquiry;
