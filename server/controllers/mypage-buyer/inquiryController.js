@@ -57,4 +57,70 @@ const getMyInquiries = async (req, res) => {
   }
 };
 
-module.exports = getMyInquiries;
+// 문의 게시
+const createInquiry = async (req, res) => {
+  try {
+    const customerId = req.user.customer_id;
+
+    const raw = req.body || {};
+    let category = typeof raw.category === 'string' ? raw.category.trim() : raw.category;
+    let title    = typeof raw.title === 'string'    ? raw.title.trim()    : raw.title;
+    let content  = typeof raw.content === 'string'  ? raw.content.trim()  : raw.content;
+    
+    const normalizeVisibility = (v) => (v === '공개' ? '공개' : '비공개');
+    const is_visible = normalizeVisibility(raw.is_visible);
+    let finalProductId = raw.product_id;
+
+    // 공백 제거
+    category = typeof category === 'string' ? category.trim() : category;
+    title    = typeof title === 'string'    ? title.trim()    : title;
+    content  = typeof content === 'string'  ? content.trim()  : content;
+
+    if (!category || !title || !content) {
+      return res.status(400).json({
+        status: 'error',
+        message: '카테고리, 제목, 내용을 모두 입력해주세요.'
+      });
+    }
+
+    if (category === '상품 문의') {
+      if (finalProductId) {
+        const exists = await Product.findByPk(finalProductId);
+        if (!exists) {
+          return res.status(404).json({ status: 'error', message: '존재하지 않는 상품입니다.' });
+        }
+      } else {
+        finalProductId = null;  // 마이페이지에서 작성한 일반 상품 문의
+      }
+    }    
+
+    // 문의 생성
+    const inquiry = await Inquiry.create({
+      customer_id: customerId,
+      category,
+      title,
+      content,
+      is_visible,
+      status: '접수',
+      created_at : new Date(),
+      product_id: finalProductId
+    });
+
+    return res.status(201).json({
+      status: 'success',
+      data: { inquiry_id: inquiry.inquiry_id },
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      status: 'error',
+      code: 'SERVER_ERROR',
+      message: '서버 내부 오류가 발생했습니다.'
+    });    
+  }
+};
+
+module.exports = {
+  getMyInquiries, createInquiry
+};
