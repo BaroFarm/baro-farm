@@ -1,4 +1,4 @@
-const { Product, Seller, Category, DirectStore } = require('../models');
+const { Product, Seller, Category, DirectStore } = require('../../models');
 const { Op } = require('sequelize');
 
 exports.getProducts = async (req, res) => {

@@ -1,5 +1,5 @@
 // server/controllers/wishlist.controller.js
-const { ProductWishlist, Product } = require('../models');
+const { ProductWishlist, Product } = require('../../models');
 
 exports.addToWishlist = async (req, res) => {
     try {

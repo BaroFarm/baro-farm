@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {authMiddleware} = require('../middlewares/authMiddleware');
-const favoriteController = require('../controllers/favoriteController');
+const favoriteController = require('../controllers/main/favoriteController');
 
 router.post('/', authMiddleware, favoriteController.addToStoreWishlist);
 

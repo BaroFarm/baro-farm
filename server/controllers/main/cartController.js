@@ -1,5 +1,5 @@
 // controllers/cartController.js
-const { sequelize, Cart, CartItem, Product } = require('../models');
+const { sequelize, Cart, CartItem, Product } = require('../../models');
 const ALLOWED_TYPES = ['pickup', 'smart']; 
 
 exports.addToCart = async (req, res) => {
