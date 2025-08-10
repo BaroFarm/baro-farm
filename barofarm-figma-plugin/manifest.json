@@ -1,0 +1,19 @@
+{
+    "name": "BaroFarm PDP Generator (MVP)",
+    "id": "barofarm-pdp-generator-mvp",
+    "api": "1.0.0",
+    "editorType": ["figma"],
+    "main": "code.js",
+    "ui": "ui.html",
+    "documentAccess": "dynamic-page",
+    "networkAccess": {
+      "allowedDomains": [
+        "https://res.cloudinary.com",
+        "https://picsum.photos"
+      ],
+      "devAllowedDomains": [
+        "http://localhost:3002",
+        "http://localhost:5173"
+      ]
+    }
+  }  
