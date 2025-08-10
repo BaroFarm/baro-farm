@@ -3,23 +3,64 @@ import dummyQnA from '../../data/dummyQnA';
 
 export default function ProductQnA({ productId }) {
     const [qnaList, setQnaList] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [err, setErr] = useState(null);
+    const [page, setPage] = useState(1);
+    const [pageSize] = useState(10);
+    const [totalPages, setTotalPages] = useState(1);
 
 useEffect(() => {
-    // 추후 fetch로 대체될 자리
-    const filtered = dummyQnA.filter((qna) => qna.product_id === productId);
-    setQnaList(filtered);
-}, [productId]);
+    const fetchQnA = async () => {
+        try {
+            setLoading(true);
+            setErr(null);
 
-    const formatDate = (isoDate) => {
-        const date = new Date(isoDate);
-        return date.toLocaleDateString('ko-KR', {
-            year: 'numeric', month: '2-digit', day: '2-digit'
-        });
-    };
+            const accessToken = localStorage.getItem('accessToken');
+            const res = await fetch(
+                `${process.env.REACT_APP_API_BASE_URL}/api/products/${productId}/inquiries?page=${page}&pageSize=${pageSize}`,
+            {
+                headers: {
+                'Content-Type': 'application/json',
+                ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+                },
+            }
+            );
 
-    const formatStatus = (status) => {
-        return status === 'ANSWERED' ? '답변완료' : '답변대기';
-    };
+            if (!res.ok) {
+        // 오늘은 API 실패하면 그냥 dummy 데이터 보여주기
+        console.warn(`API 호출 실패(${res.status}), dummy 데이터 사용`);
+        setQnaList(dummyQnA);
+        setTotalPages(1);
+        setLoading(false);
+        return;
+      }
+
+      const json = await res.json();
+      const items = json?.data?.result ?? [];
+      setQnaList(items);
+      setTotalPages(json?.data?.totalPages ?? 1);
+    } catch (e) {
+      console.error(e);
+      // 네트워크 에러도 dummy로
+      setQnaList(dummyQnA);
+      setTotalPages(1);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (productId) fetchQnA();
+}, [productId, page, pageSize]);
+
+    const formatDate = (iso) =>
+        new Date(iso).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' });
+
+    const formatStatus = (replyCount) => (replyCount > 0 ? '답변완료' : '답변대기');
+
+    if (loading) return <div style={{ padding: 20 }}>상품 문의 불러오는 중...</div>;
+    if (err) return <div style={{ padding: 20, color: 'crimson' }}>{err}</div>;
+
+
 
     return (
         <div className="qna-container" style={{ padding: '20px' }}>
@@ -31,10 +72,12 @@ useEffect(() => {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead style={{ borderBottom: '2px solid #ccc' }}>
             <tr>
-                <th style={{ padding: '12px 10px', textAlign: 'left', width: '45%' }}>제목</th>
+                <th style={{ padding: '12px 10px', textAlign: 'left', width: '40%' }}>제목</th>
                 <th style={{ padding: '12px 10px', textAlign: 'left', width: '20%' }}>작성자</th>
                 <th style={{ padding: '12px 10px', textAlign: 'left', width: '20%' }}>작성일</th>
                 <th style={{ padding: '12px 10px', textAlign: 'left', width: '15%' }}>답변상태</th>
+                <th style={{ padding: '12px 10px', textAlign: 'left', width: '15%' }}>댓글</th>
+
             </tr>
             </thead>
             <tbody>
@@ -45,17 +88,33 @@ useEffect(() => {
                 ) : (
                     qnaList.map((qna) => (
                     <tr key={qna.inquiry_id} style={{ borderBottom: '1px solid #eee' }}>
-                    <td style={{ padding: '12px 10px', textAlign: 'left' }}>
-                        {qna.is_visible === 'private' ? '🔒 비밀글입니다.' : qna.title}
-                    </td>
-                    <td style={{ padding: '12px 10px', textAlign: 'left' }}>{qna.author}</td>
+                        <td style={{ padding: '12px 10px', textAlign: 'left' }}>
+                            {qna.is_visible === '비공개' ? '🔒 비밀글입니다.' : qna.title}
+                        </td>
+                        <td style={{ padding: '12px 10px', textAlign: 'left' }}>{qna.author_masked}</td>
                         <td style={{ padding: '12px 10px', textAlign: 'left' }}>{formatDate(qna.created_at)}</td>
+                        {/* ✅ 답변상태: 이 칸만 남기기 */}
                         <td style={{
                             padding: '12px 10px',
                             textAlign: 'left',
-                            color: qna.status === 'ANSWERED' ? 'black' : '#999'
+                            whiteSpace: 'nowrap',        // 줄바꿈 방지
+                            wordBreak: 'keep-all',       // 한국어 단어 쪼개짐 방지
+                            color: (qna.reply_count ?? 0) > 0 ? 'black' : '#999',
                         }}>
-                        {formatStatus(qna.status)}
+                            {(qna.reply_count ?? 0) > 0 ? '답변완료' : '답변대기'}
+                        </td>
+                        <td
+                            style={{
+                            padding: '12px 10px',
+                            textAlign: 'left',
+                            whiteSpace: 'nowrap',   // 줄바꿈 방지
+                            wordBreak: 'keep-all',  // 한국어 단어 쪼개짐 방지
+                            color: (qna.reply_count ?? 0) > 0 ? 'black' : '#999',
+                        }}
+                        >
+                            {(qna.reply_count ?? 0) > 0
+                                ? `(${qna.reply_count})`
+                                : `(${qna.reply_count ?? 0})`}
                         </td>
                     </tr>
                     ))
