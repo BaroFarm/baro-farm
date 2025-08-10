@@ -15,6 +15,7 @@ const productInquiryRoutes = require('./productInquiryRoutes'); // 상품 문의
 
 const categoryRoutes = require('./category');
 const productRoutes = require('./product');
+const cartRoutes = require('./cart');
 
 router.use('/auth', authRoutes);
 
@@ -36,6 +37,7 @@ router.use('/products', productInquiryRoutes);
 
 router.use('/products', productRoutes);
 
+router.use('/cart', cartRoutes);
 
 router.get('/', (req, res) => {
     res.send('Hello, Express');
