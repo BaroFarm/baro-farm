@@ -14,6 +14,7 @@ const sProductsRoutes = require('./sProducts'); // 판매자 상품 등록
 const productInquiryRoutes = require('./productInquiryRoutes'); // 상품 문의 내역 조회
 
 const categoryRoutes = require('./category');
+const productRoutes = require('./product');
 
 router.use('/auth', authRoutes);
 
@@ -32,6 +33,8 @@ router.use('/s-products', sProductsRoutes);
 router.use('/categories', categoryRoutes);
 
 router.use('/products', productInquiryRoutes);
+
+router.use('/products', productRoutes);
 
 
 router.get('/', (req, res) => {
