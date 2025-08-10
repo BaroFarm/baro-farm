@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ProductCard from './ProductCard';
 
-export default function ProductSlider({ products = [], title = "", onMoreClick }) {
+export default function ProductSlider({ products = [], title = "", onMoreClick, onItemClick }) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const itemsPerPage = 5;
 
@@ -52,19 +52,17 @@ export default function ProductSlider({ products = [], title = "", onMoreClick }
                         justifyContent: 'flex-start',
                     }}
                 >
-                    {visibleProducts.map((product) => (
-                        <div
-                            key={product.id}
-                            style={{
-                                flexShrink: 0,      // 줄어들지 않게
-                                flexGrow: 0,        // 늘어나지 않게 ✅
-                                maxWidth: '233px',
-                                width: '233px', // ✅ 고정 너비로 변경
-                            }}
-                        >
-                            <ProductCard product={product} />
-                        </div>
-                    ))}
+                    {visibleProducts.map((product) => {
+                        const pid = String(product?.id ?? product?.product_id); // ✅ id/product_id 모두 지원
+                        return (
+                            <div
+                                key={pid}
+                                style={{ flexShrink: 0, flexGrow: 0, maxWidth: '233px', width: '233px' }}
+                            >
+                                <ProductCard product={product} onClick={onItemClick ? () => onItemClick(product) : undefined} />
+                            </div>
+                        );
+                    })}
                 </div>
 
                 {/* 왼쪽 버튼 */}

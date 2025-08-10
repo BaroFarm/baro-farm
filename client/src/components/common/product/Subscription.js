@@ -22,6 +22,11 @@ export default function Subscription({
 
     const navigate = useNavigate();
 
+    const handleCardClick = (p) => {
+  // state + 쿼리 둘 다 넘겨서 새로고침에도 유지
+        navigate(`/shop/product/${p.id}?from=sub`, { state: { from: 'subscription' } });
+    };
+
     if (!guestUserIdRef.current) {
         let id = localStorage.getItem("guestUserId");
         if (!id) {
@@ -122,7 +127,9 @@ export default function Subscription({
 
     return (
     
-        <ProductSlider products={products} title="정기배송 가능 상품" onMoreClick={() => navigate('/shop/products/subscription')} />
+        <ProductSlider products={products} title="정기배송 가능 상품" 
+            onMoreClick={() => navigate('/shop/products/subscription')}
+            onItemClick={handleCardClick} />
 
     );
 }

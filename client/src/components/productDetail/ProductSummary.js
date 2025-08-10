@@ -4,7 +4,7 @@ import AddCartModal from '../modal/AddCartModal';
 import BuyNowModal from '../modal/BuyNowModal';
 import StarRating from '../common/product/StarRating';
 
-export default function ProductSummary({ product }) {
+export default function ProductSummary({ product, subscriptionOnly = false }) {
 
     const navigate = useNavigate();
     const [openCartModal, setOpenCartModal] = useState(false);
@@ -150,8 +150,7 @@ export default function ProductSummary({ product }) {
                 </button>
 
                 {/* 오른쪽: 조건부 버튼 렌더링 */}
-                {
-                    product.is_subscription_available ? (
+                {subscriptionOnly ? (
                     // 정기배송 상품일 때
                     <button style={{ ...roundStyle, width: '140px' }}>
                     정기배송 신청

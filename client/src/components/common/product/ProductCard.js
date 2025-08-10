@@ -2,11 +2,18 @@ import React from 'react';
 import {useNavigate} from 'react-router-dom';
 import StarRating from './StarRating';
 
-export default function ProductCard({ product }) {
+export default function ProductCard({ product, onClick }) {
     const navigate = useNavigate();
+    const pid = String(product?.id ?? product?.product_id ?? '');
 
     const handleClick = () => {
-        navigate(`/shop/product/${product.id}`); // ← 백엔드와 일치하는 ID 경로
+        //navigate(`/shop/product/${product.id}`); // ← 백엔드와 일치하는 ID 경로
+        if (onClick) {
+            onClick();
+        } else {
+            if (!pid) return;      // 방어
+            navigate(`/shop/product/${pid}`);
+        }
     };
 
     return (

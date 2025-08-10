@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation, useSearchParams } from 'react-router-dom';
 import ShopNav from '../components/common/ShopNav';
 import ProductSummary from '../components/productDetail/ProductSummary';
 import ProductDetailNav from '../components/productDetail/ProductDetailNav';
@@ -15,6 +15,16 @@ export default function ProductDetail(){
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [selectedCategory, setSelectedCategory] = useState('상품 설명');
+
+    const location = useLocation();
+    const [search] = useSearchParams();
+
+    // 정기배송 더보기/로컬푸드 목록에서 온 경우에만 true
+    const fromSubscription =
+        location.state?.from === 'subscription' || search.get('from') === 'sub';
+
+    // ✅ 출처만 기준으로 전달 (상품 필드랑 OR 하지 말기!)
+    const subscriptionOnly = !!fromSubscription;
 
 
     useEffect(() => {
@@ -40,7 +50,7 @@ export default function ProductDetail(){
     return(
         <div>
             <ShopNav />
-            <ProductSummary product={product} />
+            <ProductSummary product={product} subscriptionOnly={subscriptionOnly} />
             <ProductDetailNav 
                 selectedCategory={selectedCategory}
                 onSelectCategory={setSelectedCategory}

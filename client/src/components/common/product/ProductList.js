@@ -19,6 +19,9 @@ export default function ProductList({
 }) {
     const [products, setProducts] = useState([]);
 
+    
+    const isSubList = type === "subscription"; // ← 정기배송 목록인지 판별
+
      // 게스트 아이디를 localStorage에서 불러오거나 새로 생성
     const guestUserIdRef = React.useRef(null);
     
@@ -117,7 +120,7 @@ export default function ProductList({
 
     return (
         
-        <ProductGrid products={products} title="로컬푸드 목록 " />
+        <ProductGrid products={products} title="로컬푸드 목록 " forceFrom={ isSubList ? "sub" : undefined }  />
                 
     );
 }
