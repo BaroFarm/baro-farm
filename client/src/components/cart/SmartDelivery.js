@@ -8,7 +8,8 @@ export default function SmartDelivery({
     setSelectedItems,
     setCartItems,
     onDeleteSelected,
-    onChangeDelivery     
+    onChangeDelivery,
+    onQuantityChange     
 }){
     const handleToggleSelect = (id) => {
         setSelectedItems(prev =>
@@ -43,6 +44,7 @@ export default function SmartDelivery({
                             onToggleSelect={handleToggleSelect}
                             onDelete={handleDeleteSingle}
                             onPurchase={handlePurchaseSingle}
+                            onQuantityChange={onQuantityChange}
                         />
                     </li>
                 ))}
@@ -66,6 +68,7 @@ export default function SmartDelivery({
                             onToggleSelect={handleToggleSelect}
                             onDelete={handleDeleteSingle}
                             onPurchase={handlePurchaseSingle}
+                            onQuantityChange={onQuantityChange}
                         />
                     </li>
                 ))}

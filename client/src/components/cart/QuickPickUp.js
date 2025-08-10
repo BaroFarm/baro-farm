@@ -8,6 +8,7 @@ export default function QuickPickUp ({
     setSelectedItems,
     onDeleteSelected,
     onChangeDelivery,
+    onQuantityChange,
     selectedFarm,
     setIsDeliveryModalOpen,
     selectedAddress,
@@ -48,6 +49,7 @@ export default function QuickPickUp ({
                                 onToggleSelect={handleToggleSelect}
                                 onDelete={handleDeleteSingle}
                                 onPurchase={handlePurchaseSingle}
+                                onQuantityChange={onQuantityChange}
                             />
                         </li>
                     ))}
