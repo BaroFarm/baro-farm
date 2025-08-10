@@ -1,10 +1,10 @@
 const jwt = require('jsonwebtoken');
-const { Customer, Seller } = require('../models'); // 일단 seller 추가해둠
+const { Customer, Seller } = require('../models'); 
 require('dotenv').config();
 
 const authMiddleware = async (req, res, next) => {
     try {
-        const authHeader = req.headers.authorization; // 
+        const authHeader = req.headers.authorization; 
 
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             return res.status(401).json({ message: '인증 정보가 없습니다.' });
@@ -14,7 +14,6 @@ const authMiddleware = async (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET); // jwt 복호화
 
         let user;
-
         if (decoded.user_type === 'buyer') {
             user = await Customer.findByPk(decoded.id);
         } else if (decoded.user_type === 'seller') {
@@ -34,4 +33,32 @@ const authMiddleware = async (req, res, next) => {
     }
 };
 
-module.exports = authMiddleware;
+// 비로그인 허용 미들웨어
+const optionalAuth = async (req, res, next) => {
+    try {
+        const authHeader = req.headers.authorization;
+
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return next();
+        }
+
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log('decoded:', decoded);
+
+        let user;
+        if (decoded.user_type === 'buyer') {
+            user = await Customer.findByPk(decoded.id);
+        } else if (decoded.user_type === 'seller') {
+            user = await Seller.findByPk(decoded.id); 
+        }
+
+        req.user = user || null;
+        return next();
+    } catch {
+        req.user = null;
+        return next();
+    }
+}
+
+module.exports = { authMiddleware, optionalAuth };

@@ -1,4 +1,4 @@
-const { Refund, Payment, Order, OrderProduct, Product } = require('../../models');
+const { Refund, Payment, Order, OrderProduct, Product, ProductImg } = require('../../models');
 
 // 취소/반품 내역 조회
 const getMyCancellations = async (req, res) => {
@@ -23,44 +23,67 @@ const getMyCancellations = async (req, res) => {
 
     // 환불 목록 조회
     const refunds = await Refund.findAll({
-    include: [
+      include: [
         {
-        model: Payment,
-        include: [
+          model: Payment,
+          include: [
             {
-            model: Order,
-            where: { customer_id: customerId },
-            attributes: ['order_id'],
-            include: [
+              model: Order,
+              where: { customer_id: customerId },
+              include: [
                 {
-                model: OrderProduct,
-                attributes: ['order_product_id'], 
-                include: [
+                  model: OrderProduct,
+                  include: [
                     {
-                    model: Product,
-                    attributes: ['title']
+                      model: Product,
+                      include: [
+                        {
+                          model: ProductImg, // 추가
+                        }
+                      ]
                     }
-                ]
+                  ]
                 }
-            ]
+              ]
             }
-        ]
+          ]
         }
-    ],
-    limit: pageSize,
-    offset,
-    order: [['created_at', 'DESC']]
+      ],
+      limit: pageSize,
+      offset,
+      order: [['created_at', 'DESC']]
     });
 
     // 응답 매핑
-    const cancellations = (refunds || []).map(refund => ({
-        refund_id: refund.refund_id ?? null, 
-        order_id: refund.Payment?.Order?.order_id ?? null, 
-        product_name: refund.Payment?.Order?.OrderProducts?.[0]?.Product?.title || null, // 상품명 조인
-        amount: refund.amount ?? null, 
-        created_at: refund.created_at ?? null, 
-        status: refund.status ?? null, 
-    }));
+    const cancellations = (refunds || []).map(refund => {
+      const order = refund.Payment?.Order;
+      const orderProducts = order?.OrderProducts || [];
+
+      const mainProduct = orderProducts[0]?.Product?.title || '';
+      let product_name = mainProduct;
+      if (orderProducts.length > 1) {
+        product_name += ` 외 ${orderProducts.length - 1}개`;
+      }
+
+      const quantity = orderProducts.reduce((sum, op) => sum + (op.order_product_quantity || 0), 0);
+
+      return {
+        refund_id: refund.refund_id ?? null,
+        order_id: order?.order_id ?? null,
+        product_img: orderProducts[0]?.Product?.ProductImgs?.[0]?.img_url || null, // 상품 이미지 추가
+        product_name,
+        quantity, // 상품 수량 추가
+        paymentInfo: {
+          method: refund.Payment?.method, // 결제 수단
+          amount: refund.Payment?.amount // 결제 금액
+        }, 
+        shipping_fee: order?.order_shipping_fee ?? null, // 배송비 추가
+        refund_amount: refund.amount ?? null, // 환불 금액
+        created_at: refund.created_at ?? null,
+        status: refund.status ?? null
+      };
+    });
+
 
     res.status(200).json({
       status: 'success',
@@ -99,14 +122,17 @@ const getCancellationDetail = async (req, res) => {
           include: [
             {
               model: Order,
-              attributes: ['order_id'],
               include: [
                 {
                   model: OrderProduct,
                   include: [
                     {
                       model: Product,
-                      attributes: ['title']
+                      include: [
+                        {
+                          model: ProductImg, // 추가
+                        }
+                      ]
                     }
                   ]
                 }
@@ -139,17 +165,18 @@ const getCancellationDetail = async (req, res) => {
           refund_id: refund.refund_id,
           order_id: order.order_id,
           product_name,
-          quantity,
-          amount: refund.amount,
-          reason: refund.reason,
-          created_at: refund.created_at,
-          refunded_at: refund.refunded_at,
-          status: refund.status,
+          product_img: refund.Payment?.Order?.OrderProducts?.[0]?.Product?.ProductImgs.img_url || null, // 상품 이미지 추가
+          quantity, // 상품 수량
+          shipping_fee : order.order_shipping_fee, // 배송비 추가
           paymentInfo: {
             method: refund.Payment.method,
-            amount: refund.Payment.amount
+            amount: refund.Payment.amount // 결제 금액
           },
-          refundStatus: refund.status // 상태 코드와 동일하게 처리
+          reason: refund.reason,
+          status: refund.status,
+          refund_amount: refund.amount, // 환불 금액
+          created_at: refund.created_at,
+          refunded_at: refund.refunded_at,
         }
       }
     });

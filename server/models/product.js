@@ -92,30 +92,24 @@ module.exports = (sequelize, DataTypes) => {
       targetKey: 'direct_store_id',
     });
 
-    // Review 관계
-    // Product.hasMany(models.Review, {
-    //   foreignKey: 'product_id',
-    //   sourceKey: 'product_id',
-    // });
-
     // ProductImg 관계
     Product.hasMany(models.ProductImg, {
       foreignKey: 'product_id',
       sourceKey: 'product_id',
     });
 
-    // OrderProduct 관계 추가!!
+    // OrderProduct 관계 추가
     Product.hasMany(models.OrderProduct, {
       foreignKey: 'product_id',
       sourceKey: 'product_id',
     });
 
-    // Wishlist 관계
-    // Product.hasMany(models.Wishlist, {
-    //   foreignKey: 'product_id',
-    //   sourceKey: 'product_id',
-    // });
-    
+
+    Product.hasMany(models.Inquiry, {
+      foreignKey: 'product_id',
+      sourceKey: 'product_id',
+    });
+
   };
 
   return Product;
