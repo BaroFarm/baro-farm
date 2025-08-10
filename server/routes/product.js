@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { authMiddleware } = require('../middlewares/authMiddleware');
 const productController = require('../controllers/main/productController');
-const reviewController = require('../controllers/reviewController'); 
+const reviewController = require('../controllers/main/reviewController'); 
 
 // 상품 목록
 router.get('/',  productController.getProducts);

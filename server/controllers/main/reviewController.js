@@ -1,5 +1,5 @@
-const { Review, ReviewKeyword, Product } = require('../models');
-const { sequelize } = require('../models');
+const { Review, ReviewKeyword, Product } = require('../../models');
+const { sequelize } = require('../../models');
 const { Op } = require('sequelize');
 
 exports.getProductReviews = async (req, res) => {
