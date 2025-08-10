@@ -60,5 +60,12 @@ const Customer = sequelize.define('Customer', {
     timestamps: false
   });
 
+  Customer.associate = (models) => {
+    Customer.hasMany(models.Inquiry, {
+      foreignKey: 'customer_id',
+      sourceKey: 'customer_id',
+    });
+  };
+
   return Customer;
 };
