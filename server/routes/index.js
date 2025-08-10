@@ -17,6 +17,7 @@ const categoryRoutes = require('./category');  // 카테고리 조회
 const productRoutes = require('./product');    // 상품 조회 및 리뷰 
 const cartRoutes = require('./cart');          // 장바구니 관리  
 const wishlistRoutes = require('./wishlist');  // 찜하기 
+const favoriteRoutes = require('./favorites');  // 찜하기 
 
 router.use('/auth', authRoutes);
 
@@ -38,6 +39,7 @@ router.use('/categories', categoryRoutes);
 router.use('/products', productRoutes);
 router.use('/cart', cartRoutes);
 router.use('/wishlist', wishlistRoutes);
+router.use('/favorites', favoriteRoutes);
 
 router.get('/', (req, res) => {
     res.send('Hello, Express');
