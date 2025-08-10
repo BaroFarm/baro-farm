@@ -43,6 +43,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       allowNull: false,
     },
+    figma_export_url: {
+      type: DataTypes.STRING(1024),
+      allowNull: false,
+    },
     is_video: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
@@ -111,12 +115,7 @@ module.exports = (sequelize, DataTypes) => {
     //   foreignKey: 'product_id',
     //   sourceKey: 'product_id',
     // });
-
-    // ProductDetailPage 관계
-    // Product.hasOne(models.ProductDetailPage, {
-    //   foreignKey: 'product_id',
-    //   sourceKey: 'product_id',
-    // });
+    
   };
 
   return Product;
