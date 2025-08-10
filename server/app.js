@@ -31,6 +31,8 @@ app.use(session({
 
 app.use('/api', indexRouter); // 모든 api 경로 앞에 /api 붙도록 수정
 
+app.use(cors({ origin: '*', credentials: false })); // AI 상품 상세페이지 - Figma 플러그인 호출 시 필요
+
 app.use((req, res, next) => {
     res.status(404).send('Not Found');
 });

@@ -97,7 +97,8 @@ exports.login = async (req, res) => {
             user = await Seller.findOne({ where: { email } });
         } 
 
-        if (!user || !(await bcrypt.compare(password, user.password))) {
+        // if (!user || !(await bcrypt.compare(password, user.password))) { // 이거이거 내가 수정한거...
+        if (!user || password !== user.password) {
             return res.status(401).json({
                 status: 'error',
                 error: {
