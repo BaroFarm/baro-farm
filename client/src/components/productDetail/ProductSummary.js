@@ -152,7 +152,19 @@ export default function ProductSummary({ product, subscriptionOnly = false }) {
                 {/* 오른쪽: 조건부 버튼 렌더링 */}
                 {subscriptionOnly ? (
                     // 정기배송 상품일 때
-                    <button style={{ ...roundStyle, width: '140px' }}>
+                    <button style={{ ...roundStyle, width: '140px' }}
+                        onClick={() => navigate(`/shop/subscription/apply/${product.product_id ?? product.id}`, {
+                            state: {
+                            // 선택사항: 새로고침 없이 초기 렌더용
+                                productSnapshot: {
+                                id: product.product_id ?? product.id,
+                                title: product.title,
+                                price: product.price,
+                                image_url: product.image_url,
+                                },
+                                from: 'subscription'
+                            }
+                        })}>
                     정기배송 신청
                     </button>
                     ) : (
