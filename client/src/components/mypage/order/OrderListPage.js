@@ -5,12 +5,12 @@ import Pagination from '../../common/pagination/Pagination';
 
 const mockOrders = [
     {
-        order_id: 'ORD-20250713-0001',
+        order_id: 1,
         order_date: '2025-07-13T14:30:00Z',
         order_price: 55000,
         order_state: 'COMPLETED',
         delivery_status: 'DELIVERED',
-        receiver_name: '구매자 이름',
+        receiver_name: '홍길동',
         street: '서울특별시 종로구 세종대로 175',
         itemsPreview: [
             {
@@ -22,7 +22,7 @@ const mockOrders = [
         ],
         },
         {
-        order_id: 'ORD-20250713-0002',
+        order_id: 2,
         order_date: '2025-07-13T14:30:00Z',
         order_price: 18000,
         order_state: 'COMPLETED',
@@ -39,12 +39,21 @@ const mockOrders = [
         ],
         },
     ];
+const STATUS_MAP = {
+  // 백엔드(한글 ENUM) → 프론트(영문 코드) 매핑이 필요하면 사용
+  '결제 완료': 'COMPLETED',
+  '배송중': 'IN_DELIVERY',
+  '배송완료': 'DELIVERED',
+  '주문취소': 'CANCELLED',
+};
 
 export default function OrderListPage() {
     const [orders, setOrders] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [hasError, setHasError] = useState(false); // 에러 상태 추가
+    // const [isMock, setIsMock] = useState(false);
+    // const [loading, setLoading] = useState(false);
     const limit = 10;
 
     useEffect(() => {
@@ -72,7 +81,7 @@ export default function OrderListPage() {
             const orders = Array.isArray(json.data) ? json.data : json.data?.orders ?? [];
             const pagination = json.data?.pagination ?? { totalPages: 1 };
 
-            setOrders(mockOrders);
+            setOrders(orders);
             setTotalPages(pagination.totalPages);
 
             setHasError(false); // 성공했으면 에러 상태 초기화
@@ -96,11 +105,6 @@ export default function OrderListPage() {
         <div style={{ padding: '48px' }}>
             <div style={{ fontWeight:'bold', fontSize:'22px', textAlign:'left',borderBottom: '1px solid gray',lineHeight: '2.5',
                 }}>주문/배송 조회</div>
-
-            
-                <div style={{ color: 'gray', marginTop: '12px', fontSize: '14px' }}>
-                    주문 내역이 없어 테스트 용으로 임시 데이터를 사용합니다.
-                </div>
         
 
 
