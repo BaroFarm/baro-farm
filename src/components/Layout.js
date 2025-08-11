@@ -15,9 +15,7 @@ function Layout({ children }) {
 
 const styles = {
   wrapper: {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    padding: '0 20px',
+    padding: '20px',
   },
 };
 
