@@ -66,7 +66,12 @@ module.exports = (sequelize, DataTypes) => {
     returnable: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
-    }
+    },
+    regular_delivery: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
   }, {
     tableName: 'product',
     timestamps: false,
