@@ -53,8 +53,7 @@ export default function QuickPickUp ({
                             />
                         </li>
                     ))}
-                </ul> (나중에 백엔드 API 명세서 확인 후 다시 수정...가격도 추가)<br />
-                {/* <hr style={{ margin: '40px 0', borderColor: 'gray', borderWidth: '0.5px' }} /> */}
+                </ul> 
                 {/* 주문자 정보 입력 영역 */}
                 <span style={{fontSize: '18px'}}>바로찾음 서비스 안내</span>
                 <p>바로찾음 서비스는 날짜와 시간, 상품을 구매할 매장을 지정한 후 직접 픽업할 수 있는 서비스입니다.</p>
