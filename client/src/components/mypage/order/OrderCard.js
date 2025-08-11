@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 
 export default function OrderCard({ order }) {
     const {
-        //order_id,
+        order_id,
         order_date,
         order_price,
-        //order_state,
+        order_state,
         delivery_status,
-        //receiver_name,
-        //street,
+        receiver_name,
+        street,
         itemsPreview,
     } = order;
 

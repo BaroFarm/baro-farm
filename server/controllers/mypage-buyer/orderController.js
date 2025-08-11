@@ -1,4 +1,4 @@
-const { Order, OrderProduct, Product, DeliveryDetail, Payment, Seller, Store, ProductImg } = require('../../models');
+const { Order, OrderProduct, Product, DeliveryDetail, Payment, Seller, DirectStore, ProductImg } = require('../../models');
 
 // 주문/배송 내역 조회
 const getMyOrders = async (req, res) => {
@@ -10,15 +10,21 @@ const getMyOrders = async (req, res) => {
       order: [['order_date', 'DESC']],
       include: [
         {
-          model: OrderProduct,
+          model: OrderProduct,  // ← Order.hasMany(OrderProduct) 에 alias 없음
           attributes: ['order_product_quantity', 'order_product_price'],
           include: [
             {
               model: Product,
+              as: 'Product',
               attributes: ['product_id', 'title'],
               include: [
                 {
                   model: ProductImg, 
+                  // ⚠ Product↔ProductImg alias 확인 필요:
+                  // 보통 Product.hasMany(ProductImg, { as: 'ProductImgs' })
+                  // 라면 아래 줄을 켜야 함:
+                  // as: 'ProductImgs',
+                  attributes: ['img_url'],
                 }
               ]
             }
@@ -40,13 +46,22 @@ const getMyOrders = async (req, res) => {
       delivery_status: order.DeliveryDetail?.delivery_status || null,
       receiver_name: order.receiver_name ?? null, 
       street: order.street ?? null, 
-      itemsPreview: order.OrderProducts.map(item => ({
-        product_id: item.Product.product_id ?? null, 
-        product_name: item.Product.title ?? null, 
-        product_img: item.Product?.ProductImgs.img_url || null, // 상품 이미지 추가
-        quantity: item.order_product_quantity ?? null, 
-        price: item.order_product_price ?? null, 
-      }))
+      itemsPreview: order.OrderProducts.map(item => {
+        const p = item.Product;
+        // ProductImgs가 배열일 가능성 큼
+        const firstImgUrl =
+          (p?.ProductImgs && p.ProductImgs[0]?.img_url) ??
+          p?.ProductImg?.img_url ?? // 혹시 단수 관계인 경우 대비
+          null;
+
+        return {
+          product_id: p?.product_id ?? null,
+          product_name: p?.title ?? null,
+          product_img: firstImgUrl,
+          quantity: item.order_product_quantity ?? null,
+          price: item.order_product_price ?? null,
+        };
+      })
     }));
 
     res.status(200).json({
@@ -82,19 +97,23 @@ const getMyOrderDetail = async (req, res) => {
           include: [
             {
               model: Product,
+              as: 'Product',
               include: [
                 {
                   model: Seller,
+                  as:'seller',
                   attributes: ['seller_id'],
                   include: [
                     {
-                      model: Store,
+                      model: DirectStore,
+                      as:'direct_store',
                       attributes: ['name'] // 스토어 이름
                     },
                   ]
                 },
                 {
                   model: ProductImg, 
+                  attributes: ['img_url'],
                 }
               ]
             }
@@ -137,19 +156,26 @@ const getMyOrderDetail = async (req, res) => {
         delivered_at: order.DeliveryDetail?.delivered_at || null,
         deliveryHistory: []
       },
-      orderItems: order.OrderProducts.map(item => ({
-        order_product_id: item.order_product_id,
-        product_id: item.Product?.product_id,
-        product_name: item.Product?.title,
-        product_img: item.Product?.ProductImgs.img_url || null, // 상품 이미지 추가
-        order_product_quantity: item.order_product_quantity,
-        order_product_price: item.order_product_price,
-        sellerName: item.Product?.Seller?.Store?.name || null
-      })),
+      orderItems: order.OrderProducts.map(item => {
+        const p = item.Product;
+        const firstImgUrl =
+          (p?.ProductImgs && p.ProductImgs[0]?.img_url) ??
+          p?.ProductImg?.img_url ?? null;
+
+        return {
+          order_product_id: item.order_product_id,
+          product_id: p?.product_id ?? null,
+          product_name: p?.title ?? null,
+          product_img: firstImgUrl,
+          order_product_quantity: item.order_product_quantity,
+          order_product_price: item.order_product_price,
+          sellerName: p?.Seller?.Store?.name ?? null
+        };
+      }),
       paymentInfo: {
-        approved_at: order.Payment?.approved_at || null,
-        amount: order.Payment?.amount || 0,
-        method: order.Payment?.method || null,
+        approved_at: order.Payment?.approved_at ?? null,
+        amount: order.Payment?.amount ?? 0,
+        method: order.Payment?.method ?? null,
         discountAmount: 0,
         couponUsed: null
       }
