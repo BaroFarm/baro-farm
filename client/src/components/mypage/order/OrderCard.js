@@ -14,18 +14,42 @@ export default function OrderCard({ order }) {
     } = order;
 
     const firstItem = itemsPreview[0];
-    const formattedDate = new Date(order_date).toLocaleDateString('ko-KR');
+    const formattedDate = order_date
+        ? new Date(order_date).toLocaleDateString('ko-KR')
+        : '-';
 
+      // 영문/한글 둘 다 수용
     const deliveryStatusText = {
         DELIVERED: '배송 조회',
+        '배송완료': '배송 조회',
         IN_DELIVERY: '배송 조회',
+        '배송중': '배송 조회',
         PREPARING: '배송 준비중',
+        '배송 준비중': '배송 준비중',
         CANCELED: '취소됨',
+        '취소': '취소됨',
     };
 
-    const showReviewButton = delivery_status === 'DELIVERED';
+    const isDelivered = delivery_status === 'DELIVERED' || delivery_status === '배송완료';
+    const showReviewButton = isDelivered;
 
     const navigate = useNavigate();
+
+    // ✅ 상세에 넘길 ID: 숫자 PK 우선, 없으면 코드 사용
+    const detailId =
+        order.order_pk ??
+        order.id ??
+        (typeof order.order_id === 'number' ? order.order_id : order.order_id);
+
+    const goDetail = () => {
+        if (!detailId) return;
+        // ✅ 스냅샷을 함께 넘겨 상세에서 곧바로 렌더 (API 실패/지연 대비)
+        navigate(`/my/orders/${detailId}`, { state: { orderSnapshot: order } });
+    };
+
+    const fallbackImg =
+        'https://placehold.co/100x100?text=' +
+        encodeURIComponent(firstItem.product_name || '상품');
 
     return (
         <div
@@ -44,8 +68,10 @@ export default function OrderCard({ order }) {
                 <img
                     src={
                         firstItem.image_url ||
-                        'https://www.outdoornews.co.kr/news/photo/202009/32077_90504_551.jpg'
+                        firstItem.product_img ||
+                        fallbackImg
                     }
+                    onError={(e) => { e.currentTarget.src = fallbackImg; }}
                     alt={firstItem.product_name || '상품명 없음'}
                     style={{
                         width: '100px',
@@ -62,7 +88,7 @@ export default function OrderCard({ order }) {
                 <div style={{ fontSize: '13px', color: '#666', textAlign: 'left' }}>{formattedDate} 주문</div>
 
                 {/* 상품명 */}
-                <div style={{ fontSize: '16px', fontWeight: 'bold', textAlign: 'left' }}>{firstItem.product_name}</div>
+                <div style={{ fontSize: '16px', fontWeight: 'bold', textAlign: 'left' }}>{firstItem.product_name || '-'}</div>
 
                 {/* 가격 + 수량 + 문의 */}
                 <div
@@ -76,7 +102,7 @@ export default function OrderCard({ order }) {
                 >
                     <div>
                         {(order_price ?? 0).toLocaleString()} 원&nbsp;&nbsp;&nbsp;&nbsp;
-                            수량: {firstItem?.quantity ?? '-'}
+                            수량: {firstItem?.quantity ?? firstItem?.order_product_quantity ?? '-'}
                     </div>
                     <div style={{ whiteSpace: 'nowrap', fontSize: '13px' }}>
                         직매장(농가) 명 문의 &gt;
@@ -122,7 +148,7 @@ export default function OrderCard({ order }) {
                     )}
 
                     <button
-                        onClick={() => navigate(`/my/orders/${order.order_id}`)}
+                        onClick={goDetail}
                         style={{
                             border: '1px solid #ccc',
                             padding: '6px 18px',
