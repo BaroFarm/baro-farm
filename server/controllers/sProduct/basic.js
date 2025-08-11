@@ -22,6 +22,8 @@ exports.postBasicInfo = async (req, res) => {
         video_url,
         created_at,
         returnable,
+        regular_delivery,
+        figma_export_url
       } = req.body;
   
       const newProduct = await Product.create({
@@ -39,6 +41,8 @@ exports.postBasicInfo = async (req, res) => {
         created_at,
         updated_at: null,
         returnable,
+        regular_delivery,
+        figma_export_url
       });
   
       res.status(201).json({ product: newProduct });

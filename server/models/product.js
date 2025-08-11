@@ -43,6 +43,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       allowNull: false,
     },
+    figma_export_url: {
+      type: DataTypes.STRING(1024),
+      allowNull: false,
+    },
     is_video: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
@@ -62,7 +66,12 @@ module.exports = (sequelize, DataTypes) => {
     returnable: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
-    }
+    },
+    regular_delivery: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
   }, {
     tableName: 'product',
     timestamps: false,
@@ -74,18 +83,21 @@ module.exports = (sequelize, DataTypes) => {
     Product.belongsTo(models.Category, {
       foreignKey: 'category_id',
       targetKey: 'category_id',
+      as: 'category',
     });
 
     // Seller 관계
     Product.belongsTo(models.Seller, {
       foreignKey: 'seller_id',
       targetKey: 'seller_id',
+      as: 'seller', 
     });
 
     // DirectStore 관계
     Product.belongsTo(models.DirectStore, {
       foreignKey: 'direct_store_id',
       targetKey: 'direct_store_id',
+      as: 'direct_store',
     });
 
     // ProductImg 관계
@@ -99,6 +111,7 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'product_id',
       sourceKey: 'product_id',
     });
+
 
     Product.hasMany(models.Inquiry, {
       foreignKey: 'product_id',
