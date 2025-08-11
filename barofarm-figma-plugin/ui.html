@@ -1,0 +1,49 @@
+<!-- 토큰 입력 + 기억하기 + 삭제 -->
+<input id="url" placeholder="http://localhost:3002/api/s-products/19/preview" />
+<div class="row" style="gap:8px; align-items:center;">
+  <input id="token" placeholder="JWT 토큰 (eyJhbGciOi...)" />
+  <label style="display:flex; align-items:center; gap:6px;">
+    <input type="checkbox" id="remember" /> 기억하기
+  </label>
+  <button id="clearToken">로그아웃</button>
+</div>
+
+<div class="row" style="justify-content:flex-end">
+  <button id="genUrl">이 URL로 가져와 생성</button>
+</div>
+
+<script>
+  // 토큰 프리필 (code.js → ui.html)
+  window.onmessage = (event) => {
+    const msg = event.data && event.data.pluginMessage;
+    if (!msg) return;
+    if (msg.type === 'prefill-token') {
+      document.getElementById('token').value = msg.token || '';
+      document.getElementById('remember').checked = !!msg.token;
+    }
+  };
+
+  document.getElementById('genUrl').onclick = () => {
+    const url = document.getElementById('url').value.trim();
+    const token = document.getElementById('token').value.trim();
+    const remember = document.getElementById('remember').checked;
+
+    if (!url) { alert("URL을 입력하세요."); return; }
+
+    // 기억하기 체크되면 저장, 아니면 즉시 삭제(=세션 전용)
+    parent.postMessage({ pluginMessage: { type: 'save-token', token: remember ? token : '' } }, '*');
+
+    parent.postMessage({
+      pluginMessage: {
+        type: 'generate-from-url',
+        payload: { url, token } // 입력된 토큰 우선 사용
+      }
+    }, '*');
+  };
+
+  document.getElementById('clearToken').onclick = () => {
+    document.getElementById('token').value = '';
+    document.getElementById('remember').checked = false;
+    parent.postMessage({ pluginMessage: { type: 'save-token', token: '' } }, '*');
+  };
+</script>
