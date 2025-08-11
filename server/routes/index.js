@@ -13,6 +13,12 @@ const sProductsRoutes = require('./sProducts'); // 판매자 상품 등록
 
 const productInquiryRoutes = require('./productInquiryRoutes'); // 상품 문의 내역 조회
 
+const categoryRoutes = require('./category');   // 카테고리 조회 
+const productRoutes = require('./product');     // 상품 조회 및 리뷰 
+const cartRoutes = require('./cart');           // 장바구니 관리  
+const wishlistRoutes = require('./wishlist');   // 찜하기 
+const favoriteRoutes = require('./favorites');  // 즐겨찾기 
+
 router.use('/auth', authRoutes);
 
 router.use('/my', mypageRoutes);
@@ -29,6 +35,11 @@ router.use('/s-products', sProductsRoutes);
 
 router.use('/products', productInquiryRoutes);
 
+router.use('/categories', categoryRoutes);
+router.use('/products', productRoutes);
+router.use('/cart', cartRoutes);
+router.use('/wishlist', wishlistRoutes);
+router.use('/favorites', favoriteRoutes);
 
 router.get('/', (req, res) => {
     res.send('Hello, Express');
