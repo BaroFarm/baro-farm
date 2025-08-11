@@ -55,7 +55,6 @@ export default function SmartDelivery({
                 arrivalTime="13시 51분"
                 imageUrl="" // or 실제 이미지 URL
             />
-(나중에 백엔드 API 명세서 확인 후 다시 수정...가격도 추가)
             
             <h3>일반 배송 상품</h3>
 

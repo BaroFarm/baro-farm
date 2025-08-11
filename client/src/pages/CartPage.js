@@ -5,7 +5,8 @@ import CartActionBar from '../components/cart/CartActionBar';
 import SmartDelivery from '../components/cart/SmartDelivery';
 import QuickPickUp from '../components/cart/QuickPickUp';
 import CartSummary from '../components/cart/CartSummary';
-import PickupAddressModal from '../components/cart/PickupAddressModal';
+import PickupModal from '../components/cart/PickupModal';
+import '../components/cart/PickupModal.css';
 
 export default function CartPage() {
   const BASE = process.env.REACT_APP_API_BASE_URL;
@@ -201,6 +202,18 @@ export default function CartPage() {
   );
   const pickupShipping = 0; // 정책에 따라 조정
 
+  const searchFarms = async ({ region, road, save }) => {
+  const q = encodeURIComponent(`${region} ${road}`);
+  const res = await fetch(`${BASE}/api/farms/nearby?address=${q}`, {
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!res.ok) throw new Error('매장 검색 실패');
+  const json = await res.json();
+  // [{ id, name, distanceKm, kiosk, hours, tel, imageUrl, ... }]
+  // 거리 기준 정렬 권장
+  return (json?.data ?? []).sort((a,b) => (a.distanceKm ?? 999) - (b.distanceKm ?? 999));
+};
+
   return (
     <div>
       <ShopNav />
@@ -266,15 +279,20 @@ export default function CartPage() {
               pickupDate={pickupDate}
               setPickupDate={setPickupDate}
             />
-
-            <PickupAddressModal
-              isOpen={isModalOpen}
-              onClose={() => setIsModalOpen(false)}
-              onComplete={({ address, farm }) => {
-                setSelectedAddress(address);
-                setSelectedFarm(farm);
-              }}
-            />
+            
+            <PickupModal 
+                isOpen={isModalOpen}
+                onClose={()=>setIsModalOpen(false)} 
+                onSearch={searchFarms}
+                onSelect={(store) => {
+                    setSelectedFarm({
+                        id: store.id,
+                        name: store.name,
+                        imageUrl: store.imageUrl,
+                        kioskAvailable: !!store.kiosk,
+                    });
+                    setIsModalOpen(false);
+                }} />
 
             <CartSummary
               totalItems={selectedPickup.length}

@@ -1,5 +1,6 @@
-import React from 'react';
+import React, {useState} from 'react';
 import CartItem from './CartItem';
+import PickupFarm from './PickupFarm';
 
 export default function QuickPickUp ({
     cartItems,
@@ -35,6 +36,9 @@ export default function QuickPickUp ({
             // TODO: 구매 처리
             alert(`${id}번 상품 구매 (예시)`);
         };
+
+        // ✅ 무인 수령함 사용 여부
+        const [useKiosk, setUseKiosk] = useState(false);
     
         return (
         <div style={{ textAlign: 'left'}}>
@@ -114,6 +118,13 @@ export default function QuickPickUp ({
                     </div>
                 </div>
             )}
+            <PickupFarm
+                farmName="직매장(농가) 명"
+                imageUrl="" // or 실제 이미지 URL
+                kioskAvailable={true}
+                useKiosk={useKiosk}
+                onToggleKiosk={setUseKiosk}
+            />
     </div>
     );
 }
