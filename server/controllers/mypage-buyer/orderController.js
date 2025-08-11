@@ -20,10 +20,6 @@ const getMyOrders = async (req, res) => {
               include: [
                 {
                   model: ProductImg, 
-                  // ⚠ Product↔ProductImg alias 확인 필요:
-                  // 보통 Product.hasMany(ProductImg, { as: 'ProductImgs' })
-                  // 라면 아래 줄을 켜야 함:
-                  // as: 'ProductImgs',
                   attributes: ['img_url'],
                 }
               ]
@@ -98,18 +94,19 @@ const getMyOrderDetail = async (req, res) => {
             {
               model: Product,
               as: 'Product',
+              attributes:['product_id','title'],
               include: [
                 {
                   model: Seller,
                   as:'seller',
-                  attributes: ['seller_id'],
-                  include: [
-                    {
-                      model: DirectStore,
-                      as:'direct_store',
-                      attributes: ['name'] // 스토어 이름
-                    },
-                  ]
+                  attributes: ['name'],
+                  // include: [
+                  //   {
+                  //     model: DirectStore,
+                  //     as:'direct_store',
+                  //     attributes: ['name'] // 스토어 이름
+                  //   },
+                  // ]
                 },
                 {
                   model: ProductImg, 
@@ -156,7 +153,7 @@ const getMyOrderDetail = async (req, res) => {
         delivered_at: order.DeliveryDetail?.delivered_at || null,
         deliveryHistory: []
       },
-      orderItems: order.OrderProducts.map(item => {
+      orderItems: (order.OrderProducts || []).map(item => {
         const p = item.Product;
         const firstImgUrl =
           (p?.ProductImgs && p.ProductImgs[0]?.img_url) ??
@@ -166,7 +163,7 @@ const getMyOrderDetail = async (req, res) => {
           order_product_id: item.order_product_id,
           product_id: p?.product_id ?? null,
           product_name: p?.title ?? null,
-          product_img: firstImgUrl,
+          product_img: firstImgUrl ?? '~',
           order_product_quantity: item.order_product_quantity,
           order_product_price: item.order_product_price,
           sellerName: p?.Seller?.Store?.name ?? null
