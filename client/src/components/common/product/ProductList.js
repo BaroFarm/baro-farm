@@ -17,6 +17,8 @@ export default function ProductList({
     limit = 20,
     onTotalPagesChange,
 }) {
+    const BASE = process.env.REACT_APP_API_BASE_URL;
+
     const [products, setProducts] = useState([]);
 
     
@@ -56,18 +58,32 @@ export default function ProductList({
                 };
                 
                 // 👇 엔드포인트 분기 처리
-                const endpoint =
+                // const endpoint =
+                //     type === "subscription"
+                //     ? `${process.env.REACT_APP_API_BASE_URL}/api/products/subscription`
+                //     : category
+                //     ? `${process.env.REACT_APP_API_BASE_URL}/api/products/category`
+                //     : `${process.env.REACT_APP_API_BASE_URL}/api/products`;
+                const path =
                     type === "subscription"
-                    ? `${process.env.REACT_APP_API_BASE_URL}/api/products/subscription`
-                    : category
-                    ? `${process.env.REACT_APP_API_BASE_URL}/api/products/category`
-                    : `${process.env.REACT_APP_API_BASE_URL}/api/products`;
+                        ? "/api/products/subscription"
+                        : "/api/products"; // all
+                
+                const url = new URL(path, BASE);
+                
+                // const response = await axios.get(endpoint, {
+                //         headers,
+                //         params,
+                //     }
+                // );
 
-                const response = await axios.get(endpoint, {
-                        headers,
-                        params,
-                    }
-                );
+                Object.entries(params).forEach(([k, v]) => {
+  if (v !== undefined && v !== null && v !== "") {
+    url.searchParams.set(k, v);
+  }
+});
+
+const response = await axios.get(url.toString(), { headers });
 
             if (response.data.status === "success") {
                 // 필요한 데이터 가공 (별점이 없으면 0으로)
