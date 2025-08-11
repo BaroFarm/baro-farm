@@ -16,5 +16,17 @@ router.use('/', wishlistRoutes);
 const reviewRoutes = require('./reviewRoutes'); // 리뷰 내역 조회
 router.use('/reviews', reviewRoutes);
 
+const voucherRoutes = require('./voucherRoutes'); // 보유 금액권 목록 조회
+router.use('/vouchers', voucherRoutes);
+
+const couponRoutes = require('./couponRoutes'); // 다운로드 가능한 쿠폰 조회, 보유 쿠폰 조회, 쿠폰 다운로드
+router.use('/coupons', couponRoutes);
+
+const inquiryRoutes = require('./inquiryRoutes'); // 문의 내역 조회
+router.use('/inquiries', inquiryRoutes);
+
+const storeCommunicationRoutes = require('./storeCommunicationRoutes');
+router.use('/store-communication', storeCommunicationRoutes);
+
 module.exports = router;
 
