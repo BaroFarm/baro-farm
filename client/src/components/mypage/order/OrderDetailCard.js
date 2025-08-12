@@ -37,9 +37,16 @@ export default function OrderDetailPage({ order }) {
 
   const receiver = deliveryInfo?.receiver_name; // ✅ 오타 수정
   const phone = deliveryInfo?.receiver_phone;
-  const address = deliveryInfo?.deliveryAddress;
+    // ✅ 주소 객체(현재 규격) + 과거 규격 폴백
+  const address =
+    deliveryInfo?.deliveryAddress ?? // 권장: 백엔드에서 이렇게 내려줌
+    deliveryInfo?.address ??          // 혹시 예전 키로 내려오는 경우 대비
+    null;
   const deliveryStatusText = DELIVERY_LABEL[deliveryInfo?.delivery_status] || '배송 상태 확인 중';
   const paymentStatusText = paymentStatusLabel(paymentInfo);
+  const addrText = address?.full ||
+  [address?.street, address?.detail].filter(Boolean).join(', ') ||
+  '';
 
   const firstItem = orderItems[0];
 
@@ -92,7 +99,8 @@ export default function OrderDetailPage({ order }) {
           <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>배송지</div>
           <div>{receiver}</div>
           <div>{phone}</div>
-          <div>{address ? `${address.street || ''}${address.detail ? `, ${address.detail}` : ''}` : ''}</div>
+          {/* <div>{address ? `${address.street || ''}${address.detail ? `, ${address.detail}` : ''}` : ''}</div> */}
+          <div>{addrText}</div>
         </div>
 
         {/* 결제 정보 */}
