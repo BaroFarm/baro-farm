@@ -3,7 +3,7 @@ const router = express.Router();
 const { authMiddleware } = require('../middlewares/authMiddleware');
 const productController = require('../controllers/main/productController');
 const reviewController = require('../controllers/main/reviewController'); 
-const { getSeasonalProducts } = require('../controllers/main/SeasonalController');
+const { getSeasonalProducts } = require('../controllers/main/seasonalController');
 
 // 상품 목록
 router.get('/',  productController.getProducts);
