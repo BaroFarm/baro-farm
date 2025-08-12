@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AIbotButton from '../common/buttons/AIbotButton';
 import default_Profile from '../../assets/default_profile.jpg';
 
 export default function MyProfile() {
   const [profile, setProfile] = useState(null);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -73,6 +75,7 @@ export default function MyProfile() {
           <div style={{ fontWeight: 'bold', fontSize: 18 }}>
             {profile.nickname}
             <button
+              onClick={() => navigate('/my/profile/edit', { state: { profile } })} // ⬅️ 수정 페이지로 이동(초기값 전달)
               style={{
                 marginLeft: 20, background: 'none', border: 'none',
                 padding: '6px 12px', cursor: 'pointer', fontSize: 14

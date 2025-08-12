@@ -11,6 +11,7 @@ import BuyerMyPage from './pages/BuyerMyPage';
 import OrderListPage from './components/mypage/order/OrderListPage'
 import OrderDetail from './components/mypage/order/OrderDetail';
 import RefundHistoryPage from './components/mypage/refund/RefundHistoryPage';
+import ProfileEdit from './components/mypage/ProfileEdit';
 
 function App() {
 
@@ -33,6 +34,7 @@ function App() {
             <Route path="/my/orders" element={<OrderListPage />} />
             <Route path="/my/orders/:orderId" element={<OrderDetail />} />
             <Route path="my/refunds" element={<RefundHistoryPage />} />
+            <Route path="/my/profile/edit" element={<ProfileEdit />} />
           </Route>
         </Routes>
       </div>
