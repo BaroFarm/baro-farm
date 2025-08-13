@@ -19,7 +19,7 @@ export default function RefundItemCard({ refunds, onSelect }) {
   });
 
   const renderCard = (refund) => (
-    <button
+    <button type="button"
       key={refund.refund_id}
       onClick={() => onSelect?.(refund)}
       style={{

@@ -49,6 +49,13 @@ export default function RefundHistoryPage() {
   const [error, setError] = useState(null);
   const limit = 10;
 
+  // ✅ 카드 클릭 시 환불 상세로 이동
+      const openRefundDetail = (r) => {
+        console.log('[OPEN REFUND]', r.refund_id, r.product_name);  // 디버그
+        if (!r?.refund_id) return;       // product_id가 없으면 동작 안 함
+        navigate(`/my/cancel/${r.refund_id}`);
+      };
+
   useEffect(() => {
     const fetchRefunds = async () => {
       setLoading(true);
@@ -113,11 +120,6 @@ export default function RefundHistoryPage() {
     fetchRefunds();
   }, [currentPage]);
 
-  const handleSelect = (refund) => {
-    // 상세 라우트: /my/cancel/:refundId
-    navigate(`/my/cancel/${refund.refund_id}`);
-  };
-
   return (
     <div style={{ padding: '48px' }}>
       <div
@@ -150,7 +152,7 @@ export default function RefundHistoryPage() {
         <>
           <SearchBar />
           {/* RefundItemCard가 props 이름으로 refunds를 받는지 확인하세요! */}
-          <RefundItemCard refunds={refunds} onSelect={handleSelect}/>
+          <RefundItemCard refunds={refunds} onSelect={openRefundDetail} />
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}

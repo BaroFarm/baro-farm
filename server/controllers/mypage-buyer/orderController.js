@@ -1,11 +1,5 @@
 const { Op } = require('sequelize');
 const { Order, OrderProduct, Product, DeliveryDetail, Payment, Seller, DirectStore, ProductImg } = require('../../models');
-console.log('Order:', Object.keys(Order.associations));
-console.log('OrderProduct:', Object.keys(OrderProduct.associations));
-console.log('Product:', Object.keys(Product.associations));
-console.log('ProductImg:', Object.keys(ProductImg.associations));
-console.log('DeliveryDetail:', Object.keys(DeliveryDetail.associations || {}));
-console.log('Payment:', Object.keys(Payment.associations));
 
 // 주문/배송 내역 조회
 const getMyOrders = async (req, res) => {
@@ -61,7 +55,7 @@ const getMyOrders = async (req, res) => {
       order_date: order.order_date ?? null, 
       order_price: order.order_price ?? null, 
       order_state: order.order_state ?? null, 
-      delivery_status: deliveryMap[order.order_id]?.delivery_status ?? null,
+      delivery_status: deliveryMap[order.order_id]?.delivery_status ?? '배송준비',
       receiver_name: order.receiver_name ?? null, 
       street: order.street ?? null, 
       // itemsPreview: order.OrderProducts.map(item => {
@@ -116,6 +110,8 @@ const getMyOrderDetail = async (req, res) => {
         {
           model: OrderProduct,
           as: 'items',
+          where: { order_id },
+          required: false,
           include: [
             {
               model: Product,
@@ -178,7 +174,7 @@ const getMyOrderDetail = async (req, res) => {
       order_price: order.order_price,
       order_state: order.order_state,
       deliveryInfo: {
-        delivery_status: delivery?.delivery_status ?? null,
+        delivery_status: delivery?.delivery_status ?? '배송준비',
         tracking_number: delivery?.tracking_number ?? null,
         courier: delivery?.courier ?? null,
         shipping_fee :  order.order_shipping_fee ?? 0, // 배송비 추가

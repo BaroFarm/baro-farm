@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+// src/components/mypage/order/OrderDetail.jsx
+import React, { useEffect, useMemo, useState } from 'react';
+import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import SearchBar from './SearchBar';
 import OrderDetailCard from './OrderDetailCard';
 
-// 임시 mock
+// ── 임시 mock (404 등 폴백) ─────────────────────────────────────────────
 const mockOrder = {
   order_id: 1,
   order_date: '2025-07-13T14:30:00Z',
@@ -56,26 +57,46 @@ const mockOrder = {
   },
 };
 
-// 'ORD-YYYYMMDD-####' → '####' 로 정규화
+// 'ORD-YYYYMMDD-####' → 숫자 ID로 정규화
 const toApiOrderId = (raw) => {
   if (/^\d+$/.test(raw)) return raw;
   const m = /^ORD-\d{8}-(\d+)$/.exec(raw);
-  return m ? m[1] : raw; // 그래도 숫자 못 뽑으면 원본 유지(404 시 mock 폴백)
+  return m ? m[1] : raw;
 };
 
 export default function OrderDetail() {
   const navigate = useNavigate();
   const { orderId } = useParams();
+  const location = useLocation();
+  const state = location.state || {};
+  const [searchParams] = useSearchParams();
+
   const [order, setOrder] = useState(null);
   const [error, setError] = useState(null);
   const [usedMock, setUsedMock] = useState(false);
 
+  // 상세 API에서 쓸 orderId
   const apiOrderId = useMemo(() => toApiOrderId(orderId), [orderId]);
 
+  // ✅ 리스트 카드에서 넘겨준 포커스 정보 (state 우선, 없으면 ?pid= / ?opid=)
+  const focusProductId =
+    location.state?.focusProductId || searchParams.get('pid') || null;
+  const focusOrderProductId =
+    location.state?.focusOrderProductId || searchParams.get('opid') || null;
+
+  // ✅ 스냅샷이 있으면 먼저 그걸 화면에 띄워서 체감속도↑ (API로 나중에 덮어씀)
+  useEffect(() => {
+    if (state.orderSnapshot) {
+      setOrder(state.orderSnapshot);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // mount 시 한 번만
+
+  // 실제 상세 API 호출
   useEffect(() => {
     const controller = new AbortController();
 
-    const fetchOrderDetail = async () => {
+    (async () => {
       try {
         const token = localStorage.getItem('accessToken');
         if (!token) {
@@ -85,9 +106,9 @@ export default function OrderDetail() {
         }
 
         const base = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/$/, '');
-        const url = `${base}/api/my/orders/${encodeURIComponent(apiOrderId)}`;
+        if (!base) throw new Error('REACT_APP_API_BASE_URL 미설정');
 
-        const res = await fetch(url, {
+        const res = await fetch(`${base}/api/my/orders/${encodeURIComponent(apiOrderId)}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -108,6 +129,7 @@ export default function OrderDetail() {
           console.warn('🔔 주문 내역이 없어 mock 데이터로 대체합니다.');
           setOrder(mockOrder);
           setUsedMock(true);
+          setError(null);
           return;
         }
 
@@ -116,16 +138,16 @@ export default function OrderDetail() {
         const json = await res.json();
         if (json.status !== 'success') throw new Error('API status != success');
 
-        setOrder(json.data); // ✅ 서버 응답 그대로 사용 (상태 매핑 꼬임 방지)
+        setOrder(json.data);      // ✅ 서버 포맷 그대로 사용
         setUsedMock(false);
         setError(null);
       } catch (err) {
         if (err.name === 'AbortError') return;
+        console.error(err);
         setError(err.message || '네트워크 오류');
       }
-    };
+    })();
 
-    fetchOrderDetail();
     return () => controller.abort();
   }, [apiOrderId, navigate]);
 
@@ -153,7 +175,13 @@ export default function OrderDetail() {
       )}
 
       <SearchBar />
-      <OrderDetailCard order={order} />
+
+      {/* ✅ 클릭한 상품을 상단 대표로 보여주도록 포커스 정보 전달 */}
+      <OrderDetailCard
+        order={order}
+        focusProductId={state?.focusProductId}
+        focusOrderProductId={state?.focusOrderProductId}
+      />
     </div>
   );
 }
