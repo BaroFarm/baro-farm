@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { Order, OrderProduct, Product, DeliveryDetail, Payment, Seller, DirectStore, ProductImg } = require('../../models');
+const { Order, OrderProduct, Product, DeliveryDetail, Payment, Seller, DirectStore, ProductImg, Address } = require('../../models');
 
 // 주문/배송 내역 조회
 const getMyOrders = async (req, res) => {
@@ -160,9 +160,20 @@ const getMyOrderDetail = async (req, res) => {
         message: '해당 주문을 찾을 수 없습니다.'
       });
     }
+
+    // ✅ 주소 단건 조회 (연관설정 없어도 OK)
+    let addr = null;
+    if (Address && order.address_id) {
+      addr = await Address.findOne({
+        where: { address_id: order.address_id },
+        attributes: ['zip_code', 'street', 'detail'],
+      });
+    }
+
     // 2) 배송 상세 별도 조회(왜? Order에는 DeliveryDetail alias가 없음)
     const delivery = await DeliveryDetail.findOne({
       where: { order_id: order.order_id },
+      order: [['delivery_id', 'DESC']],
     });
 
     const items = order.items || [];
@@ -180,11 +191,14 @@ const getMyOrderDetail = async (req, res) => {
         shipping_fee :  order.order_shipping_fee ?? 0, // 배송비 추가
         receiver_name: order.receiver_name ?? null,
         receiver_phone: order.receiver_phone ?? null,
-        deliveryAddress: {
-          zipCode: order.zip_code ?? null,
-          street: order.street ?? null,
-          detail: order.detail ?? null,
-        },
+        deliveryAddress: addr
+          ? {
+              zipCode: addr.zip_code,
+              street: addr.street,
+              detail: addr.detail,
+              full: [addr.zip_code, addr.street, addr.detail].filter(Boolean).join(' '),
+            }
+          : null,
         delivered_at: delivery?.delivered_at ?? null,
         deliveryHistory: []
       },
