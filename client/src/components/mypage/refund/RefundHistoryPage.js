@@ -56,7 +56,7 @@ export default function RefundHistoryPage(){
     const [refunds, setRefunds] = useState([]);
     const limit = 10;
 
-    const useMockData = true; // 👉 나중에 false로 바꾸면 바로 API 연동됨
+    const useMockData = false; // 👉 나중에 false로 바꾸면 바로 API 연동됨
 
     useEffect(() => {
         const fetchRefunds = async () => {

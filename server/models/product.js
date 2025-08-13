@@ -105,6 +105,7 @@ module.exports = (sequelize, DataTypes) => {
 
     // ProductImg 관계
     Product.hasMany(models.ProductImg, {
+      as: 'images',
       foreignKey: 'product_id',
       sourceKey: 'product_id',
     });
