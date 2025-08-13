@@ -39,6 +39,7 @@ module.exports = (sequelize, DataTypes) => {
 
   Refund.associate = (models) => {
     Refund.belongsTo(models.Payment, {
+      as: 'payment',
       foreignKey: 'payment_id',
       targetKey: 'payment_id'
     });
