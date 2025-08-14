@@ -27,7 +27,7 @@ export default function ProductSummary({ product, subscriptionOnly = false }) {
   }, [product, pid, name]);
 
   const priceNum = Number(product?.price ?? 0);
-  const rating = Number(product?.average_rating ?? product?.rating ?? 0);
+  const rating = Number(product?.avg_rating ?? product?.rating ?? 0);
 
   const handleAddToWishlist = async () => {
     const accessToken = localStorage.getItem('accessToken');
