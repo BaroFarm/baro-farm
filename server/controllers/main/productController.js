@@ -1,5 +1,21 @@
-const { Product, Seller, Category, DirectStore } = require('../../models');
+const { Product, Seller, Category, DirectStore, ProductImg } = require('../../models');
 const { Op } = require('sequelize');
+
+const toAbs = (req, p) =>
+  /^https?:\/\//i.test(p) ? p : `${req.protocol}://${req.get('host')}${p.startsWith('/') ? '' : '/'}${p}`;
+
+const imageIncludeOne = {
+  model: ProductImg,
+  as: 'images',
+  attributes: ['img_url', 'img_order'],
+  separate: true,              // 목록 성능/중복 방지
+  limit: 1,                    // 대표 1장
+  order: [
+    ['img_order', 'ASC'],      // 대표 0 먼저
+    ['img_id', 'ASC'],
+    ['created_at', 'ASC'],
+  ],
+};
 
 exports.getProducts = async (req, res) => {
   try {
@@ -34,7 +50,8 @@ exports.getProducts = async (req, res) => {
       where,
       order,
       include: [
-        { model: Category, as: 'category', attributes: ['category_name'] }
+        { model: Category, as: 'category', attributes: ['category_name'] },
+        imageIncludeOne,
       ],
       offset,
       limit,
@@ -58,13 +75,17 @@ exports.getProducts = async (req, res) => {
         const name = p.get('name') ?? p.title ?? '상품';
         const cat = p.category?.category_name || '';
         const keyword = cat ? `${name},${cat}` : name; // 검색 정확도 ↑
+        // ✅ 로컬 이미지 우선
+        const local = p.images?.[0]?.img_url || null;
+        const img = local ? toAbs(req, local) : toAbs(req, '/images/mock/no-image-240.png');
+        
         return {
           product_id: p.product_id,
           name,
           price: p.price,
           category: p.category?.category_name || null,
           // 상품마다 안정적으로 다른 이미지 + 새로고침에도 유지
-          image_url: `https://source.unsplash.com/400x300/?${encodeURIComponent(keyword)}&sig=${p.product_id}`,
+          image_url: img,
           is_local: true,
           is_subscription_available: false,
           average_rating: 4.7
@@ -95,7 +116,13 @@ exports.getProductDetail = async (req, res) => {
       include: [
         { model: Category, as: 'category', attributes: ['category_id', 'category_name'] },
         { model: Seller, as: 'seller', attributes: ['seller_id', 'name', 'contact'] },
-        { model: DirectStore, as: 'direct_store', attributes: ['direct_store_id', 'name'] }
+        { model: DirectStore, as: 'direct_store', attributes: ['direct_store_id', 'name'] },
+        {
+          model: ProductImg,
+          as: 'images',
+          attributes: ['img_url', 'img_order'],
+          order: [['img_order','ASC'], ['img_id','ASC'], ['created_at','ASC']]
+        }
       ]
     });
 
@@ -106,6 +133,8 @@ exports.getProductDetail = async (req, res) => {
         message: '해당 상품을 찾을 수 없습니다.'
       });
     }
+    const first = product.images?.[0]?.img_url || null;
+    const imageUrl = first ? toAbs(req, first) : toAbs(req, '/images/mock/no-image-240.png');
 
     const keyword = product.title ?? product.category?.category_name ?? 'local food';
 
@@ -118,7 +147,8 @@ exports.getProductDetail = async (req, res) => {
         weight: product.weight,
         status: product.status,
         description: product.description,
-        image_url: `https://source.unsplash.com/400x300/?${encodeURIComponent(keyword)}&sig=${product.product_id}`,
+        image_url: imageUrl, 
+        images: product.images?.map(i => toAbs(req, i.img_url)) || [],
         is_returnable: product.returnable,
         is_subscription: product.is_subscription_available ?? false,
         is_video: product.is_video,

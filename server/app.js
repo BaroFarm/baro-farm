@@ -1,3 +1,4 @@
+
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
@@ -16,6 +17,7 @@ app.set('port', process.env.PORT || 3002);
 app.use(cors());
 app.use(morgan('dev'));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/images', express.static(path.resolve(__dirname, '../client/public/images')));
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(cookieParser(process.env.COOKIE_SECRET));
@@ -28,6 +30,8 @@ app.use(session({
         secure: false,
     },
 }));
+// 확인용 로그(일시적으로 찍어보세요)
+console.log('STATIC /images →', path.resolve(__dirname, 'public', 'images'));
 
 app.use('/api', indexRouter); // 모든 api 경로 앞에 /api 붙도록 수정
 

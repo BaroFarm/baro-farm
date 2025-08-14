@@ -2,7 +2,6 @@
 
 // 1) Mockaroo JSON 불러오기 (배열 형태여야 함)
 const raw = require('../mock/mock-products.json');
-const picked = raw.slice(0, 10);
 
 // 2) 유틸
 const parseDate = (v) => {
@@ -37,7 +36,7 @@ module.exports = {
   async up (queryInterface) {
     const now = new Date();
 
-    const rows = picked.map((r, i) => {
+    const rows = raw.map((r, i) => {
       // 안전 처리
       const title = truncate(r.title ?? '상품', 255);
       const weight = pickWeight(r.weight);
