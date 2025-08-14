@@ -40,10 +40,10 @@ function ProductImageUploadPage() {
   // 백엔드 메타 등록 (문서 스펙 준수)
   const registerImageToServer = async ({ productId, img_id, img_url, img_order }) => {
     const fd = new FormData();
-    fd.append('img_id', img_id);                      // string
-    fd.append('product_id', Number(productId));       // int
-    fd.append('img_url', img_url);                    // string (문서의 int 표기는 오타)
-    if (img_order != null) fd.append('img_order', Number(img_order)); // int
+    fd.append('img_id', String(img_id));                      // string
+    fd.append('product_id',String(productId));       // int
+    fd.append('img_url', String(img_url));                    // string (문서의 int 표기는 오타)
+    if (img_order != null) fd.append('img_order',  String(img_order)); // int
     fd.append('created_at', new Date().toISOString()); // ISO datetime
 
     const endpoint = `${API_BASE}/s-products/${productId}/images`;

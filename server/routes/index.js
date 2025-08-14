@@ -1,17 +1,12 @@
-// routes/index.js
 const express = require('express');
 const router = express.Router();
 
-// ✅ 인증 관련 라우트
-try {
-  const authRoutes = require('./authRoutes');
-  router.use('/auth', authRoutes);
-} catch (e) {
-  console.warn('⚠ authRoutes 불러오기 실패:', e.message);
-}
-
-// ✅ 상품 관련 라우트
 const sProductsRouter = require('./s-products');
-router.use('/s-products', sProductsRouter);
+// 다른 라우터가 있으면 여기에 추가: const authRoutes = require('./auth'); 등
 
-module.exports = router;
+router.get('/health', (req, res) => res.json({ ok: true }));
+
+router.use('/s-products', sProductsRouter);
+// router.use('/auth', authRoutes);  // ← authRoutes가 "유효한 라우터"를 export할 때만 사용
+
+module.exports = router; // ✅ 반드시 router를 export

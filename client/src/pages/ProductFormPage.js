@@ -6,6 +6,7 @@ const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3002/ap
 
 function ProductFormPage() {
   const navigate = useNavigate();
+  const [submitting, setSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -30,15 +31,43 @@ function ProductFormPage() {
     setFormData((prev) => ({ ...prev, returnable: value }));
   };
 
+  // 간단 검증
+  const toInt = (v) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : NaN;
+  };
+
+  const validate = () => {
+    const errors = [];
+    if (!formData.title.trim()) errors.push('상품명');
+    if (!Number.isFinite(toInt(formData.weight))) errors.push('용량');
+    if (!Number.isFinite(toInt(formData.category_id))) errors.push('카테고리');
+    if (!Number.isFinite(toInt(formData.price))) errors.push('가격');
+    if (!Number.isFinite(toInt(formData.direct_store_id))) errors.push('직매장');
+    if (typeof formData.returnable !== 'boolean') errors.push('반품 가능 여부');
+
+    if (errors.length) {
+      alert(`다음 항목을 확인해주세요: ${errors.join(', ')}`);
+      return false;
+    }
+    return true;
+  };
+
   // 제출
   const handleSubmit = async () => {
+    if (submitting) return;            // 중복 클릭 방지
+    if (!validate()) return;
+
     try {
+      setSubmitting(true);
+
       const payload = {
-        ...formData,
-        weight: Number(formData.weight),
-        category_id: Number(formData.category_id),
-        price: Number(formData.price),
-        direct_store_id: Number(formData.direct_store_id)
+        title: formData.title.trim(),
+        weight: toInt(formData.weight),
+        category_id: toInt(formData.category_id),
+        price: toInt(formData.price),
+        direct_store_id: toInt(formData.direct_store_id),
+        returnable: Boolean(formData.returnable),
       };
 
       const res = await axios.post(`${API_BASE}/s-products/basic`, payload, {
@@ -47,11 +76,23 @@ function ProductFormPage() {
 
       console.log("상품 등록 성공:", res.data);
 
+      const productId = res?.data?.product_id;
+      if (!productId) {
+        alert('상품 등록은 성공했지만 product_id가 응답에 없습니다. 백엔드 응답을 확인해주세요.');
+        return;
+      }
+
+      // 새로고침 대비 저장(Optional)
+      localStorage.setItem('current_product_id', String(productId));
+
       // 다음 단계로 product_id 전달
-      navigate("/product/image-upload", { state: { productId: res.data.product_id } });
+      navigate("/product/image-upload", { state: { productId } });
     } catch (error) {
       console.error("상품 등록 실패:", error.response?.data || error.message);
-      alert("상품 등록 실패");
+      const msg = error?.response?.data?.message || '상품 등록 실패';
+      alert(msg);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -68,6 +109,7 @@ function ProductFormPage() {
             onChange={handleChange}
             style={styles.input}
             placeholder="상품명을 입력하세요."
+            required
           />
         </label>
 
@@ -78,6 +120,7 @@ function ProductFormPage() {
             value={formData.category_id}
             onChange={handleChange}
             style={styles.select}
+            required
           >
             <option value="" disabled>카테고리를 선택하세요.</option>
             <option value="1">채소</option>
@@ -93,6 +136,7 @@ function ProductFormPage() {
             value={formData.weight}
             onChange={handleChange}
             style={styles.select}
+            required
           >
             <option value="" disabled>용량을 선택하세요.</option>
             <option value="500">500g</option>
@@ -104,11 +148,14 @@ function ProductFormPage() {
         <label style={styles.label}>
           가격
           <input
+            type="number"
             name="price"
             value={formData.price}
             onChange={handleChange}
             style={styles.input}
             placeholder="가격을 입력하세요."
+            min="0"
+            required
           />
         </label>
 
@@ -119,6 +166,7 @@ function ProductFormPage() {
             value={formData.direct_store_id}
             onChange={handleChange}
             style={styles.select}
+            required
           >
             <option value="" disabled>직매장을 선택하세요.</option>
             <option value="10">서울 직매장</option>
@@ -134,7 +182,7 @@ function ProductFormPage() {
               <input
                 type="radio"
                 name="returnable"
-                checked={formData.returnable}
+                checked={formData.returnable === true}
                 onChange={() => handleReturnable(true)}
               />
               <span style={styles.radioLabel}>반품 가능</span>
@@ -143,7 +191,7 @@ function ProductFormPage() {
               <input
                 type="radio"
                 name="returnable"
-                checked={!formData.returnable}
+                checked={formData.returnable === false}
                 onChange={() => handleReturnable(false)}
               />
               <span style={styles.radioLabel}>반품 불가능</span>
@@ -153,8 +201,12 @@ function ProductFormPage() {
       </div>
 
       <div style={styles.buttonWrapper}>
-        <button style={styles.nextButton} onClick={handleSubmit}>
-          다음 단계로 이동 &gt; <span style={{ marginLeft: '6px' }}>➔</span>
+        <button
+          style={{ ...styles.nextButton, opacity: submitting ? 0.6 : 1 }}
+          onClick={handleSubmit}
+          disabled={submitting}
+        >
+          {submitting ? '등록 중…' : <>다음 단계로 이동 &gt; <span style={{ marginLeft: '6px' }}>➔</span></>}
         </button>
       </div>
     </div>
