@@ -67,11 +67,14 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       allowNull: false,
     },
+    figma_export_url: {
+      type: DataTypes.STRING(1024),
+      allowNull: true,
+    },
     regular_delivery: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: false,
-    },
+    }
   }, {
     tableName: 'product',
     timestamps: false,
@@ -102,6 +105,7 @@ module.exports = (sequelize, DataTypes) => {
 
     // ProductImg 관계
     Product.hasMany(models.ProductImg, {
+      as: 'images',
       foreignKey: 'product_id',
       sourceKey: 'product_id',
     });

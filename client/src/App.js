@@ -10,6 +10,12 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import SignupBuyerPage from './pages/SignupBuyerPage';
 import SignupSellerPage from './pages/SignupSellerPage';
+import BuyerMyPage from './pages/BuyerMyPage';
+import OrderListPage from './components/mypage/order/OrderListPage'
+import OrderDetail from './components/mypage/order/OrderDetail';
+import RefundHistoryPage from './components/mypage/refund/RefundHistoryPage';
+import ProfileEdit from './components/mypage/ProfileEdit';
+import RefundDetailPage from './pages/RefundDetailPage';
 
 function App() {
 
@@ -31,6 +37,12 @@ function App() {
             <Route path="/shop/products/subscription" element={<SubscriptionPage />} />
             <Route path="/shop/subscription/apply/:productId" element={<SubscriptionApplyPage />} />
             <Route path="/shop/product/:productId" element={<ProductDetailPage />} />
+            <Route path="/mypage/buyer" element={<BuyerMyPage />} />
+            <Route path="/my/orders" element={<OrderListPage />} />
+            <Route path="/my/orders/:orderId" element={<OrderDetail />} />
+            <Route path="my/refunds" element={<RefundHistoryPage />} />
+            <Route path="/my/profile/edit" element={<ProfileEdit />} />
+            <Route path="/my/cancel/:refundId" element={<RefundDetailPage />} />
           </Route>
         </Routes>
       </div>
