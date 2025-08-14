@@ -1,10 +1,59 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; 
+import axios from 'axios';
+
+const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3002/api';
 
 function ProductFormPage() {
-  const [isReturnable, setIsReturnable] = useState(false);
   const navigate = useNavigate();
 
+  const [formData, setFormData] = useState({
+    title: "",
+    category_id: "",
+    weight: "",
+    price: "",
+    direct_store_id: "",
+    returnable: false
+  });
+
+  // 입력 변경 핸들러
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value
+    }));
+  };
+
+  // 반품 가능 여부 전용
+  const handleReturnable = (value) => {
+    setFormData((prev) => ({ ...prev, returnable: value }));
+  };
+
+  // 제출
+  const handleSubmit = async () => {
+    try {
+      const payload = {
+        ...formData,
+        weight: Number(formData.weight),
+        category_id: Number(formData.category_id),
+        price: Number(formData.price),
+        direct_store_id: Number(formData.direct_store_id)
+      };
+
+      const res = await axios.post(`${API_BASE}/s-products/basic`, payload, {
+        withCredentials: true
+      });
+
+      console.log("상품 등록 성공:", res.data);
+
+      // 다음 단계로 product_id 전달
+      navigate("/product/image-upload", { state: { productId: res.data.product_id } });
+    } catch (error) {
+      console.error("상품 등록 실패:", error.response?.data || error.message);
+      alert("상품 등록 실패");
+    }
+  };
 
   return (
     <div style={styles.pageWrapper}>
@@ -13,41 +62,68 @@ function ProductFormPage() {
       <div style={styles.card}>
         <label style={styles.label}>
           상품명
-          <input style={styles.input} placeholder="상품명을 입력하세요." />
+          <input
+            name="title"
+            value={formData.title}
+            onChange={handleChange}
+            style={styles.input}
+            placeholder="상품명을 입력하세요."
+          />
         </label>
 
         <label style={styles.label}>
           카테고리
-          <select style={styles.select}>
-            <option disabled selected>카테고리를 선택하세요.</option>
-            <option>채소</option>
-            <option>과일</option>
-            <option>곡물</option>
+          <select
+            name="category_id"
+            value={formData.category_id}
+            onChange={handleChange}
+            style={styles.select}
+          >
+            <option value="" disabled>카테고리를 선택하세요.</option>
+            <option value="1">채소</option>
+            <option value="2">과일</option>
+            <option value="3">곡물</option>
           </select>
         </label>
 
         <label style={styles.label}>
           용량
-          <select style={styles.select}>
-            <option disabled selected>용량을 선택하세요.</option>
-            <option>500g</option>
-            <option>1kg</option>
-            <option>2kg</option>
+          <select
+            name="weight"
+            value={formData.weight}
+            onChange={handleChange}
+            style={styles.select}
+          >
+            <option value="" disabled>용량을 선택하세요.</option>
+            <option value="500">500g</option>
+            <option value="1000">1kg</option>
+            <option value="2000">2kg</option>
           </select>
         </label>
 
         <label style={styles.label}>
           가격
-          <input style={styles.input} placeholder="가격을 입력하세요." />
+          <input
+            name="price"
+            value={formData.price}
+            onChange={handleChange}
+            style={styles.input}
+            placeholder="가격을 입력하세요."
+          />
         </label>
 
         <label style={styles.label}>
           직매장
-          <select style={styles.select}>
-            <option disabled selected>직매장을 선택하세요.</option>
-            <option>서울 직매장</option>
-            <option>경기 직매장</option>
-            <option>부산 직매장</option>
+          <select
+            name="direct_store_id"
+            value={formData.direct_store_id}
+            onChange={handleChange}
+            style={styles.select}
+          >
+            <option value="" disabled>직매장을 선택하세요.</option>
+            <option value="10">서울 직매장</option>
+            <option value="11">경기 직매장</option>
+            <option value="12">부산 직매장</option>
           </select>
         </label>
 
@@ -58,9 +134,8 @@ function ProductFormPage() {
               <input
                 type="radio"
                 name="returnable"
-                value="yes"
-                checked={isReturnable}
-                onChange={() => setIsReturnable(true)}
+                checked={formData.returnable}
+                onChange={() => handleReturnable(true)}
               />
               <span style={styles.radioLabel}>반품 가능</span>
             </label>
@@ -68,30 +143,19 @@ function ProductFormPage() {
               <input
                 type="radio"
                 name="returnable"
-                value="no"
-                checked={!isReturnable}
-                onChange={() => setIsReturnable(false)}
+                checked={!formData.returnable}
+                onChange={() => handleReturnable(false)}
               />
               <span style={styles.radioLabel}>반품 불가능</span>
             </label>
           </div>
         </div>
-
-        {isReturnable && (
-          <label style={styles.label}>
-            반품 가능 조건
-            <input style={styles.input} placeholder="반품 가능 조건을 입력하세요." />
-          </label>
-        )}
       </div>
 
-      <p style={styles.notice}>※ 반품 가능에 체크하면 아래 조건 입력창 뜨도록</p>
-
       <div style={styles.buttonWrapper}>
-
-        <button style={styles.nextButton} onClick={() => navigate('/product/image-upload')}>
-  다음 단계로 이동 &gt; <span style={{ marginLeft: '6px' }}>➔</span>
-</button>
+        <button style={styles.nextButton} onClick={handleSubmit}>
+          다음 단계로 이동 &gt; <span style={{ marginLeft: '6px' }}>➔</span>
+        </button>
       </div>
     </div>
   );
@@ -148,13 +212,6 @@ const styles = {
   radioLabel: {
     marginLeft: '6px',
     fontSize: '14px',
-  },
-  notice: {
-    color: 'red',
-    fontSize: '13px',
-    margin: '12px auto 0',
-    maxWidth: '600px',
-    paddingLeft: '6px',
   },
   buttonWrapper: {
     display: 'flex',

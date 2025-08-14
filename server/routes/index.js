@@ -1,14 +1,17 @@
+// routes/index.js
 const express = require('express');
-const jwt = require('jsonwebtoken');
 const router = express.Router();
 
-const authRoutes = require('./authRoutes'); 
+// ✅ 인증 관련 라우트
+try {
+  const authRoutes = require('./authRoutes');
+  router.use('/auth', authRoutes);
+} catch (e) {
+  console.warn('⚠ authRoutes 불러오기 실패:', e.message);
+}
 
-router.use('/auth', authRoutes);
-
-
-router.get('/', (req, res) => {
-    res.send('Hello, Express');
-});
+// ✅ 상품 관련 라우트
+const sProductsRouter = require('./s-products');
+router.use('/s-products', sProductsRouter);
 
 module.exports = router;
