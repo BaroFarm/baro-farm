@@ -1,6 +1,6 @@
 const dummyQnA = [
     {
-    product_id: 1,
+    product_id: 3284,
     inquiry_id: 4,
     title: "비밀글입니다.",
     content: null,
@@ -12,7 +12,7 @@ const dummyQnA = [
     replies: []
     },
     {
-    product_id: 1,
+    product_id: 3284,
     inquiry_id: 3,
     title: "상품 재입고 문의",
     content: "이 상품 재입고 예정이 있나요?",

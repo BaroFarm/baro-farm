@@ -1,4 +1,4 @@
-const { Product, Seller, Category, DirectStore, ProductImg } = require('../../models');
+const { sequelize, Product, Seller, Category, DirectStore, ProductImg } = require('../../models');
 const { Op } = require('sequelize');
 
 const toAbs = (req, p) =>
@@ -20,12 +20,11 @@ const imageIncludeOne = {
 exports.getProducts = async (req, res) => {
   try {
     // 쿼리 파라미터 추출 및 보정
-    const sort = (req.query.sort ?? 'latest').toString();
+        const sort = (req.query.sort ?? 'latest').toString();
     const page = Math.max(1, parseInt(req.query.page ?? 1, 10));
     const limit = Math.max(1, Math.min(100, parseInt(req.query.limit ?? 20, 10)));
     const category = req.query.category?.toString().trim();
 
-    // 정렬 값 검증
     const validSorts = ['latest', 'popular', 'price_asc', 'price_desc'];
     if (!validSorts.includes(sort)) {
       return res.status(400).json({
@@ -33,36 +32,114 @@ exports.getProducts = async (req, res) => {
       });
     }
 
-    const order =
-      sort === 'price_asc' ? [['price', 'ASC']] :
-      sort === 'price_desc' ? [['price', 'DESC']] :
-      sort === 'popular' ? [['price', 'DESC']] : // TODO: 판매량/조회수로 교체
-      [['created_at', 'DESC']];
-
-    // 필터
-    const where = {};
-    if (category) where['$category.category_name$'] = { [Op.like]: `%${category}%` };
-
     const offset = (page - 1) * limit;
 
-    // 조회
-    const { count, rows } = await Product.findAndCountAll({
-      where,
-      order,
-      include: [
-        { model: Category, as: 'category', attributes: ['category_name'] },
-        imageIncludeOne,
-      ],
-      offset,
-      limit,
-      attributes: ['product_id', ['title', 'name'], 'price', 'created_at'],
-      subQuery: false,
-      distinct: true
+    // 최종 정렬(중복 제거 후에 적용)
+    const finalOrderSql =
+      sort === 'price_asc'  ? 'r.price ASC' :
+      sort === 'price_desc' ? 'r.price DESC' :
+      sort === 'popular'    ? 'r.review_count DESC, r.created_at DESC' :
+                              'r.created_at DESC'; // latest
+
+    // 카테고리 필터
+    const whereClauses = [];
+    const repl = { offset, limit };
+    if (category) {
+      whereClauses.push('c.category_name LIKE :categoryLike');
+      repl.categoryLike = `%${category}%`;
+    }
+    const whereSql = whereClauses.length ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
+    // 동일(제목+셀러) 그룹에서 대표 1개(rn=1)만 남기는 CTE
+    // 주의: 윈도우 ORDER BY 안에서는 별칭(has_image 등) 사용 불가 → 표현식을 그대로 넣음
+    const cte = `
+      WITH base AS (
+        SELECT
+          p.product_id, p.category_id, p.seller_id, p.direct_store_id,
+          p.title, p.status, p.weight, p.price, p.description, p.intro,
+          p.figma_export_url, p.is_video, p.video_url, p.created_at, p.updated_at,
+          c.category_name,
+          /* 리뷰 수 */
+          (SELECT COUNT(*) FROM review r WHERE r.product_id = p.product_id) AS review_count,
+          /* 이미지 보유 여부 */
+          CASE WHEN EXISTS (SELECT 1 FROM product_img i WHERE i.product_id = p.product_id) THEN 1 ELSE 0 END AS has_image
+        FROM product p
+        LEFT JOIN category c ON c.category_id = p.category_id
+        ${whereSql}
+      ),
+      ranked AS (
+        SELECT
+          b.*,
+          ROW_NUMBER() OVER (
+            PARTITION BY LOWER(REPLACE(COALESCE(b.title,''),' ','')), COALESCE(b.seller_id,0)
+            ORDER BY
+              ((COALESCE(b.review_count,0) > 0)) DESC,                  -- 리뷰 있는 상품 우선
+              (CASE WHEN b.has_image = 1 THEN 1 ELSE 0 END) DESC,       -- 이미지 있는 상품 우선
+              (CASE WHEN b.status = '판매중' THEN 1 ELSE 0 END) DESC,    -- 판매중 우선
+              COALESCE(b.updated_at, b.created_at) DESC,
+              b.product_id DESC
+          ) AS rn
+        FROM base b
+      )
+    `;
+
+    // 총 개수(중복 제거 후)
+    const totalSql = `
+      ${cte}
+      SELECT COUNT(*) AS total
+      FROM ranked
+      WHERE rn = 1
+    `;
+    const [totalRow] = await sequelize.query(totalSql, {
+      replacements: repl,
+      type: sequelize.QueryTypes.SELECT
+    });
+    const total = Number(totalRow?.total ?? 0);
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+
+    // 페이지 데이터
+    const pageSql = `
+      ${cte}
+      SELECT
+        r.product_id,
+        r.title AS name,
+        r.price,
+        r.category_name,
+        r.created_at,
+        r.review_count,
+        /* 대표 이미지 1장 */
+        (
+          SELECT img_url
+          FROM product_img i
+          WHERE i.product_id = r.product_id
+          ORDER BY i.img_order ASC, i.img_id ASC
+          LIMIT 1
+        ) AS image_rel
+      FROM ranked r
+      WHERE r.rn = 1
+      ORDER BY ${finalOrderSql}
+      LIMIT :offset, :limit
+    `;
+    const rows = await sequelize.query(pageSql, {
+      replacements: repl,
+      type: sequelize.QueryTypes.SELECT
     });
 
-    // 0건이어도 success + 빈 배열로 반환(프론트 안전)
-    const total = typeof count === 'number' ? count : (Array.isArray(count) ? count.length : 0);
-    const totalPages = Math.max(1, Math.ceil(total / limit));
+    // 응답 매핑 (이미지 절대경로화)
+    const products = rows.map(p => {
+      const img = p.image_rel ? toAbs(req, p.image_rel) : toAbs(req, '/images/mock/no-image-240.png');
+      return {
+        product_id: p.product_id,
+        name: p.name ?? '상품',
+        price: p.price,
+        category: p.category_name || null,
+        image_url: img,
+        is_local: true,
+        is_subscription_available: false,
+        average_rating: 0,          // 필요하면 review_count로 가중치 로직 추가 가능
+        review_count: p.review_count
+      };
+    });
 
     return res.status(200).json({
       status: 'success',
@@ -71,26 +148,7 @@ exports.getProducts = async (req, res) => {
         total_pages: totalPages,
         total_products: total
       },
-      products: rows.map(p => {
-        const name = p.get('name') ?? p.title ?? '상품';
-        const cat = p.category?.category_name || '';
-        const keyword = cat ? `${name},${cat}` : name; // 검색 정확도 ↑
-        // ✅ 로컬 이미지 우선
-        const local = p.images?.[0]?.img_url || null;
-        const img = local ? toAbs(req, local) : toAbs(req, '/images/mock/no-image-240.png');
-        
-        return {
-          product_id: p.product_id,
-          name,
-          price: p.price,
-          category: p.category?.category_name || null,
-          // 상품마다 안정적으로 다른 이미지 + 새로고침에도 유지
-          image_url: img,
-          is_local: true,
-          is_subscription_available: false,
-          average_rating: 4.7
-        };
-      })
+      products
     });
   } catch (error) {
     console.error('상품 목록 조회 오류:', error);

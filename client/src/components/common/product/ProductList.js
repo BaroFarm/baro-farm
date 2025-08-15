@@ -73,7 +73,7 @@ export default function ProductList({
         Object.entries(params).forEach(([k, v]) => {
           if (v !== undefined && v !== null && v !== "") url.searchParams.set(k, v);
         });
-
+        url.searchParams.set('_',Date.now());
         const res = await axios.get(url.toString(), { headers });
         if (canceled) return;
 

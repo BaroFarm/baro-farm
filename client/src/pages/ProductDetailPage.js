@@ -90,9 +90,12 @@ export default function ProductDetail() {
     (async () => {
       setLoading(true);
       try {
-        const res = await fetch(
-          `${process.env.REACT_APP_API_BASE_URL}/api/products/${productId}`
-        );
+        // const res = await fetch(
+        //   `${process.env.REACT_APP_API_BASE_URL}/api/products/${productId}`
+        // );
+        const u = new URL(`/api/products/${productId}`, process.env.REACT_APP_API_BASE_URL);
+        u.searchParams.set('_', Date.now());
+        const res = await fetch(u.toString(), { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } });
 
 
         if (!res.ok) {
