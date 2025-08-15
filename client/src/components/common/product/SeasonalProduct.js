@@ -1,90 +1,18 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+// SeasonalProduct.jsx
+import React from "react";
 import ProductSlider from "./ProductSlider";
-import {mockSeasonalProducts} from '../../../data/mockSeasonalProducts';
+import { mockSeasonalProducts } from "../../../data/mockSeasonalProducts";
 
-//비회원인 경우 userId
-function generateNewGuestId() {
-  return "guest_" + Date.now() + "_" + Math.floor(Math.random() * 10000);
-}
-
+// API가 준비되기 전까지는 목데이터만 표시
 export default function SeasonalProduct() {
-    const [products, setProducts] = useState([]);
+  const products = (mockSeasonalProducts || []).map(item => ({
+    id: item.id,
+    name: item.title,                  // UI 필드명으로 매핑
+    price: item.price,
+    image: item.image_url,
+    rating: item.average_rating ?? 0,  // 목에 없으면 0
+    isSubscription: item.is_subscription_available ?? false,
+  }));
 
-     // 게스트 아이디를 localStorage에서 불러오거나 새로 생성
-    const guestUserIdRef = React.useRef(null);
-
-    if (!guestUserIdRef.current) {
-        let id = localStorage.getItem("guestUserId");
-        if (!id) {
-            id = generateNewGuestId();
-            localStorage.setItem("guestUserId", id);
-        }
-        guestUserIdRef.current = id;
-    }
-    
-    useEffect(() => {
-        const fetchProducts = async () => {
-            console.log("fetchProducts 실행");
-            try {
-                const accessToken = localStorage.getItem("accessToken");
-
-                const headers = {
-                    "Content-Type": "application/json",
-                    ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
-                };
-
-                const params = accessToken ? {} : { user_id: guestUserIdRef.current };
-
-                const response = await axios.get(
-                    `${process.env.REACT_APP_API_URL}/api/products/seasonal`,
-                    {
-                        headers,
-                        params,
-                    }
-                );
-
-            if (response.data.status === "success") {
-                // 필요한 데이터 가공 (별점이 없으면 0으로)
-                const productsWithRating = response.data.data.map((item) => ({
-                    id: item.id,
-                    name: item.title,
-                    price: item.price,
-                    image: item.image_url,
-                    rating: item.rating || 0,
-                    isSubscription: item.is_subscription_available,
-                }));
-
-                setProducts(productsWithRating);
-            } else {
-                alert("상품 정보를 불러올 수 없습니다.");
-            }
-        } catch (error) {
-            console.error("상품 불러오기 실패", error);
-            //alert("상품 정보를 불러올 수 없습니다.");
-            // 임시: 백엔드 연결 안됐을 때 더미 데이터로 테스트
-            
-            // ✅ mock 데이터 fallback
-                const mockData = mockSeasonalProducts.map((item) => ({
-                    id: item.id,
-                    name: item.title,
-                    price: item.price,
-                    image: item.image_url,
-                    rating: item.rating || 0,
-                    isSubscription: item.is_subscription_available,
-                }));
-
-                setProducts(mockData);
-                console.log("mockData 사용")
-            }
-        };
-
-        fetchProducts();
-    }, []);
-
-    return (
-        
-        <ProductSlider products={products} title="제철 상품" />
-                
-    );
+  return <ProductSlider products={products} title="제철 상품" />;
 }

@@ -38,7 +38,7 @@ export default function ProductGrid({ products = [], title = "", forceFrom}) {
             >
                 {visibleProducts.map((p) => (
                     <div key={p.id ?? p.product_id} onClick={() => goDetail(p)} style={{ cursor: 'pointer' }}>
-                    <ProductCard product={p} />
+                        <ProductCard product={p} /> {/* ← 여기서는 key 제거 */}
                     </div>
                 ))}
             </div>

@@ -21,6 +21,7 @@ const normalizeImg = (u) => {
 
 export default function ProductCard({ product, onClick }) {
   const navigate = useNavigate();
+  console.log("[Card] render", product?.id, product?.name, product?.image);
 
   const pid = String(
     product?.id ??

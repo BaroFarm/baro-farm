@@ -1,142 +1,146 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import ProductGrid from "./ProductGrid";
-import {mockProducts} from "../../../data/mockProducts";
+import { mockProducts } from "../../../data/mockProducts";
 
-//비회원인 경우 userId
 function generateNewGuestId() {
   return "guest_" + Date.now() + "_" + Math.floor(Math.random() * 10000);
 }
+function dedupeById(list) {
+  return Array.from(new Map(list.map(p => [p.id, p])).values());
+}
 
+// ✅ 외부 products를 받으면 그걸 그대로 렌더, 없으면(=undefined)만 fetch
 export default function ProductList({
-    type="all", //all 또는 subscription
-    category,
-    region,
-    sort = "latest",
-    page = 1,
-    limit = 20,
-    onTotalPagesChange,
+  products: externalProducts,           // ← 추가: 외부 데이터
+  type = "all",
+  category,
+  region,
+  sort = "latest",
+  page = 1,
+  limit = 20,
+  onTotalPagesChange,
 }) {
-    const BASE = process.env.REACT_APP_API_BASE_URL;
+  const BASE = process.env.REACT_APP_API_BASE_URL;
+  const [products, setProducts] = useState(externalProducts ?? []);
+  const [loading, setLoading]   = useState(!externalProducts); // 외부 있으면 로딩 X
+  const [error, setError]       = useState(null);
+  const isSubList = type === "subscription";
 
-    const [products, setProducts] = useState([]);
-
-    
-    const isSubList = type === "subscription"; // ← 정기배송 목록인지 판별
-
-     // 게스트 아이디를 localStorage에서 불러오거나 새로 생성
-    const guestUserIdRef = React.useRef(null);
-    
-
-    if (!guestUserIdRef.current) {
-        let id = localStorage.getItem("guestUserId");
-        if (!id) {
-            id = generateNewGuestId();
-            localStorage.setItem("guestUserId", id);
-        }
-        guestUserIdRef.current = id;
+  // 외부 products가 바뀌면 그대로 반영하고 fetch 스킵
+  useEffect(() => {
+    if (externalProducts) {
+      setProducts(externalProducts);
+      setLoading(false);
+      setError(null);
     }
-    
-    useEffect(() => {
-        const fetchProducts = async () => {
-            console.log("fetchProducts 실행");
-            try {
-                const accessToken = localStorage.getItem("accessToken");
+  }, [externalProducts]);
 
-                const headers = {
-                    "Content-Type": "application/json",
-                    ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
-                };
-
-                const params = {
-                    ...(category ? { category } : {}), // 선택적 파라미터
-                    ...(category && region && { region }),  // ✅ category가 있을 때만 지역 필터 추가
-                    sort,
-                    page,
-                    limit,
-                    ...(accessToken ? {} : { user_id: guestUserIdRef.current }),
-                };
-                
-                // 👇 엔드포인트 분기 처리
-                // const endpoint =
-                //     type === "subscription"
-                //     ? `${process.env.REACT_APP_API_BASE_URL}/api/products/subscription`
-                //     : category
-                //     ? `${process.env.REACT_APP_API_BASE_URL}/api/products/category`
-                //     : `${process.env.REACT_APP_API_BASE_URL}/api/products`;
-                const path =
-                    type === "subscription"
-                        ? "/api/products/subscription"
-                        : "/api/products"; // all
-                
-                const url = new URL(path, BASE);
-                
-                // const response = await axios.get(endpoint, {
-                //         headers,
-                //         params,
-                //     }
-                // );
-
-                Object.entries(params).forEach(([k, v]) => {
-  if (v !== undefined && v !== null && v !== "") {
-    url.searchParams.set(k, v);
+  // 외부가 없을 때만 fetch
+  const guestUserIdRef = useRef(null);
+  if (!guestUserIdRef.current) {
+    let id = localStorage.getItem("guestUserId");
+    if (!id) {
+      id = generateNewGuestId();
+      localStorage.setItem("guestUserId", id);
+    }
+    guestUserIdRef.current = id;
   }
-});
 
-const response = await axios.get(url.toString(), { headers });
+  useEffect(() => {
+    if (externalProducts) return; // ✅ 외부 데이터가 있으면 fetch 하지 않음
+    let canceled = false;
 
-            if (response.data.status === "success") {
-                // 필요한 데이터 가공 (별점이 없으면 0으로)
-                const total = response.data.pagination.total_pages;
-                onTotalPagesChange(total);
-                
-                const productsWithRating = response.data.products.map((item) => ({
-                    id: item.product_id,
-                    name: item.name || item.title,
-                    price: item.price,
-                    image: item.image_url,
-                    rating: item.average_rating || 0,
-                    isSubscription: item.is_subscription_available,
-                }));
-
-                setProducts(productsWithRating);
-            } else {
-                alert("상품 정보를 불러올 수 없습니다.");
-            }
-        } catch (error) {
-            console.error("상품 불러오기 실패", error);
-            //alert("상품 정보를 불러올 수 없습니다.");
-            // 임시: 백엔드 연결 안됐을 때 더미 데이터로 테스트
-        
-            let filteredMock = mockProducts;
-
-  if (type === "subscription") {
-    filteredMock = mockProducts.filter(item => item.is_subscription_available);
-  } else if (type === "category" && category) {
-    filteredMock = mockProducts.filter(item => item.category === category);
-  }
-  // else "all"인 경우는 그대로 사용
-
-  const productsWithRating = filteredMock.map((item) => ({
-    id: item.product_id,
-    name: item.name,
-    price: item.price,
-    image: item.image_url,
-    rating: item.average_rating || 0,
-    isSubscription: item.is_subscription_available,
-  }));
-
-  setProducts(productsWithRating);
-  console.log("💥 setProducts 호출:", productsWithRating);
-            }
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const accessToken = localStorage.getItem("accessToken");
+        const headers = {
+          "Content-Type": "application/json",
+          ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
         };
 
-        fetchProducts();
-    }, [type, category, region, sort, page, limit, onTotalPagesChange]);
+        const params = {
+          ...(category ? { category } : {}),
+          ...(category && region && { region }),
+          sort, page, limit,
+          ...(accessToken ? {} : { user_id: guestUserIdRef.current }),
+        };
 
-    return (
-        
-        <ProductGrid products={products} title="로컬푸드 목록 " forceFrom={ isSubList ? "sub" : undefined }  />
-                
-    );
+        const path = isSubList ? "/api/products/subscription" : "/api/products";
+        const url = new URL(path, BASE);
+        Object.entries(params).forEach(([k, v]) => {
+          if (v !== undefined && v !== null && v !== "") url.searchParams.set(k, v);
+        });
+
+        const res = await axios.get(url.toString(), { headers });
+        if (canceled) return;
+
+        const status = res?.data?.status ?? "success";
+        const pagination = res?.data?.pagination ?? res?.data?.data?.pagination;
+        const rawList =
+          res?.data?.products ??
+          res?.data?.data?.products ??
+          res?.data?.data ??
+          res?.data?.items ??
+          [];
+
+        if (status !== "success") throw new Error("API status != success");
+        onTotalPagesChange?.(pagination?.total_pages ?? 1);
+
+        const mapped = (rawList || []).map(item => ({
+          id: item.product_id ?? item.id,
+          name: item.name || item.title,
+          price: item.price,
+          image: item.image_url ?? item.image,
+          rating: item.average_rating ?? item.rating ?? 0,
+          isSubscription: item.is_subscription_available ?? item.isSubscription ?? false,
+        }));
+
+        setProducts(dedupeById(mapped));
+      } catch (e) {
+        console.error("[ProductList] fetch error → fallback to mock:", e);
+        let data = mockProducts;
+        if (isSubList) data = data.filter(i => i.is_subscription_available);
+        else if (type === "category" && category) data = data.filter(i => i.category === category);
+
+        const mapped = data.map(item => ({
+          id: item.product_id ?? item.id,
+          name: item.name,
+          price: item.price,
+          image: item.image_url ?? item.image,
+          rating: item.average_rating ?? item.rating ?? 0,
+          isSubscription: item.is_subscription_available ?? item.isSubscription ?? false,
+        }));
+        setProducts(dedupeById(mapped));
+        setError("실서버 대신 임시 데이터를 표시합니다.");
+      } finally {
+        if (!canceled) setLoading(false);
+      }
+    };
+
+    load();
+    return () => { canceled = true; };
+  }, [externalProducts, type, category, region, sort, page, limit, isSubList, BASE, onTotalPagesChange]);
+
+  if (loading) return <div style={{ padding: 16 }}>상품 불러오는 중…</div>;
+
+  return (
+    <>
+      {error && (
+        <div style={{ padding: 12, marginBottom: 8, background: "#fff3cd", border: "1px solid #ffeeba" }}>
+          {error}
+        </div>
+      )}
+      <ProductGrid
+        products={products}
+        title="로컬푸드 목록"
+        forceFrom={isSubList ? "sub" : undefined}
+      />
+      {products.length === 0 && (
+        <div style={{ padding: 16, color: "#666" }}>표시할 상품이 없어요.</div>
+      )}
+    </>
+  );
 }
