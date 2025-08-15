@@ -9,6 +9,8 @@ export default function ProductQnA({ productId }) {
   const [pageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
 
+  const [source, setSource] = useState(''); // 'api' | 'dummy' | ''
+
   // 더미를 현재 상품 ID로 스탬핑(없으면 inquiry_id/답글 id도 부여)
   const stampedDummy = useMemo(() => {
     const base = dummyQnA.filter(q => String(q.product_id) === String(productId));
@@ -52,6 +54,7 @@ export default function ProductQnA({ productId }) {
           console.warn(`QnA API 실패(${res.status}) → dummy 사용`);
           setQnaList(stampedDummy);
           setTotalPages(1);
+          setSource('dummy');
           return;
         }
 
@@ -62,16 +65,19 @@ export default function ProductQnA({ productId }) {
           json?.data?.items ??
           json?.result ??
           json?.items ??
+          json?.rows ??
           json?.data ??
           [];
 
-        if (!Array.isArray(items) || items.length === 0) {
-          console.log('QnA API 비어있음 → dummy 사용');
+        if (!Array.isArray(items)) {
+          // console.log('QnA API 비어있음 → dummy 사용');
           setQnaList(stampedDummy);
           setTotalPages(1);
+          setSource('dummy');
         } else {
           setQnaList(items);
           setTotalPages(json?.data?.totalPages ?? json?.pagination?.total_pages ?? 1);
+          setSource('api');
         }
       } catch (e) {
         console.error('QnA 네트워크 에러 → dummy 사용', e);

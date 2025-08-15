@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+// src/components/productDetail/ProductSummary.jsx
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AddCartModal from '../modal/AddCartModal';
 import BuyNowModal from '../modal/BuyNowModal';
@@ -12,6 +13,54 @@ export default function ProductSummary({ product, subscriptionOnly = false }) {
   // ✅ 안전 가드
   const pid = String(product?.id ?? product?.product_id ?? '');
   const name = (product?.name ?? product?.title ?? '상품').toString();
+
+  // ✅ 서버가 준 값이 있으면 초기값으로
+  const initialScore = Math.max(0, Math.min(5, Number(product?.rating ?? product?.average_rating ?? 0)));
+  const initialCount = Number(product?.rating_count ?? 0);
+
+  const [ratingState, setRatingState] = useState({
+    score: initialScore,
+    count: initialCount,
+  });
+
+  // ✅ 별점 보완: summary 실패 → 리뷰목록으로 계산
+  useEffect(() => {
+    let alive = true;
+    if (!pid) return;
+
+    // 서버가 이미 평균/개수를 줬다면 굳이 다시 안 불러도 됨
+    if (initialScore > 0 && initialCount > 0) return;
+
+    const BASE = process.env.REACT_APP_API_BASE_URL || '';
+
+    (async () => {
+      // 목록으로 직접 계산
+      try {
+        const rr = await fetch(`${BASE}/api/products/${pid}/reviews?ts=${Date.now()}`, { cache: 'no-store' });
+        if (!rr.ok) return;
+        const js = await rr.json();
+        const list = js?.reviews ?? js?.data?.reviews ?? js?.data ?? [];
+        const nums = (Array.isArray(list) ? list : [])
+          .map(r => Number(r.rating))
+          .filter(n => !Number.isNaN(n) && n >= 0);
+
+        const cnt = nums.length;
+        const avg = cnt ? nums.reduce((a, b) => a + b, 0) / cnt : 0;
+
+        if (alive) {
+          setRatingState({
+            score: Math.max(0, Math.min(5, Math.round(avg * 10) / 10)),
+            count: cnt,
+          });
+        }
+      } catch {
+        // 실패 시 그대로 유지
+      }
+    })();
+
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pid]);
 
   // ✅ 이미지 URL 통합 + 폴백
   const imageSrc = useMemo(() => {
@@ -27,8 +76,6 @@ export default function ProductSummary({ product, subscriptionOnly = false }) {
   }, [product, pid, name]);
 
   const priceNum = Number(product?.price ?? 0);
-  const score = Math.max(0, Math.min(5, Number(product?.rating ?? product?.average_rating ?? 0)));
-  const count = Number(product?.rating_count ?? 0);
 
   const handleAddToWishlist = async () => {
     const accessToken = localStorage.getItem('accessToken');
@@ -62,7 +109,6 @@ export default function ProductSummary({ product, subscriptionOnly = false }) {
       return;
     }
     try {
-      // ⚠️ 원래 코드에 product.seller.store_id 가 있었는데 구조가 다를 수 있어 안전하게
       const storeId = product?.store?.id ?? product?.direct_store?.direct_store_id;
       if (!storeId) return alert('매장 정보를 찾을 수 없습니다.');
 
@@ -133,7 +179,10 @@ export default function ProductSummary({ product, subscriptionOnly = false }) {
             {priceNum ? `${priceNum.toLocaleString()}원` : '가격 정보 없음'}
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <StarRating value={score} rating={score} defaultValue={score} size={20} />
+            <StarRating value={ratingState.score} size={20} />
+            {ratingState.count > 0 && (
+              <span style={{ fontSize: 14, color: '#666' }}>({ratingState.count})</span>
+            )}
           </div>
         </div>
 
@@ -142,7 +191,10 @@ export default function ProductSummary({ product, subscriptionOnly = false }) {
 
         {/* 버튼들 */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' }}>
-          <button onClick={handleAddToWishlist} style={{ ...roundStyle, display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <button
+            onClick={handleAddToWishlist}
+            style={{ ...roundStyle, display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
             <img src="/logoWithoutText.svg" alt="찜" style={{ width: '20px', height: '20px' }} />
             찜하기
           </button>
