@@ -26,8 +26,8 @@ export default function ProductReviewItem({ review }) {
                         gap: '8px',
                         alignItems: 'center',
                     }}>
-                        <p style={{ fontWeight: 'bold', lineHeight: '1.2'}}>{review.user_id}</p>
-                        <p><StarRating value={review.rating} size={20} /></p>
+                        <div style={{ fontWeight: 'bold', lineHeight: '1.2'}}>{review.user_id}</div>
+                        <div><StarRating value={review.rating} size={20} /></div>
                     </div>
                     <p style={{ fontSize: '13px', color: '#999', margin: 0, lineHeight: '1.2', textAlign: 'left'}}>
                         {review.date}</p>
