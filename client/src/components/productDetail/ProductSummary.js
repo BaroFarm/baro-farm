@@ -27,7 +27,8 @@ export default function ProductSummary({ product, subscriptionOnly = false }) {
   }, [product, pid, name]);
 
   const priceNum = Number(product?.price ?? 0);
-  const rating = Number(product?.avg_rating ?? product?.rating ?? 0);
+  const score = Math.max(0, Math.min(5, Number(product?.rating ?? product?.average_rating ?? 0)));
+  const count = Number(product?.rating_count ?? 0);
 
   const handleAddToWishlist = async () => {
     const accessToken = localStorage.getItem('accessToken');
@@ -132,7 +133,7 @@ export default function ProductSummary({ product, subscriptionOnly = false }) {
             {priceNum ? `${priceNum.toLocaleString()}원` : '가격 정보 없음'}
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <StarRating value={rating} size={20} />
+            <StarRating value={score} rating={score} defaultValue={score} size={20} />
           </div>
         </div>
 

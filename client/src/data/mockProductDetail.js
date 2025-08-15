@@ -29,7 +29,7 @@ const dummyProduct = {
     figma_export_url: "https://figma.baro.com/export/abcd1234",
     page_status: "공개"
   },
-  rating: 4.8,
+  average_rating: 4.8,
   review_count: 128
 };
 

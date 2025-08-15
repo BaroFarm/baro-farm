@@ -101,18 +101,28 @@ exports.getProducts = async (req, res) => {
 };
 
 exports.getProductDetail = async (req, res) => {
-  const productId = parseInt(req.params.product_id, 10);
-  if (isNaN(productId) || productId <= 0) {
+  // :product_id 또는 :productId 모두 허용
+  const pidRaw = req.params.product_id ?? req.params.productId;
+  const productId = Number(pidRaw);
+  if (!Number.isInteger(productId) || productId <= 0) {
     return res.status(400).json({
       status: 'error',
       code: 'INVALID_ID',
-      message: '유효하지 않은 상품 ID입니다. 숫자 형식이어야 합니다.'
+      message: '유효하지 않은 상품 ID입니다. 숫자 형식이어야 합니다.',
     });
   }
 
   try {
     const product = await Product.findOne({
       where: { product_id: productId },
+      attributes: [
+        // ⛔ image_url 제거 (테이블에 없음)
+        'product_id', 'title', 'price', 'weight', 'status', 'description',
+        'returnable', 'regular_delivery',
+        'is_video', 'video_url',
+        'figma_export_url',
+        'created_at', 'updated_at',
+      ],
       include: [
         { model: Category, as: 'category', attributes: ['category_id', 'category_name'] },
         { model: Seller, as: 'seller', attributes: ['seller_id', 'name', 'contact'] },
@@ -120,23 +130,40 @@ exports.getProductDetail = async (req, res) => {
         {
           model: ProductImg,
           as: 'images',
-          attributes: ['img_url', 'img_order'],
-          order: [['img_order','ASC'], ['img_id','ASC'], ['created_at','ASC']]
-        }
-      ]
+          attributes: ['img_url', 'img_order', 'img_id', 'created_at'],
+        },
+      ],
+      // ✅ include 내부 order 대신 최상위 order로 이미지 정렬 보장
+      order: [
+        [{ model: ProductImg, as: 'images' }, 'img_order', 'ASC'],
+        [{ model: ProductImg, as: 'images' }, 'img_id', 'ASC'],
+      ],
     });
 
     if (!product) {
       return res.status(404).json({
         status: 'error',
         code: 'NOT_FOUND',
-        message: '해당 상품을 찾을 수 없습니다.'
+        message: '해당 상품을 찾을 수 없습니다.',
       });
     }
+
+    // 대표 이미지(없으면 placeholder)
     const first = product.images?.[0]?.img_url || null;
     const imageUrl = first ? toAbs(req, first) : toAbs(req, '/images/mock/no-image-240.png');
 
-    const keyword = product.title ?? product.category?.category_name ?? 'local food';
+    // 전체 이미지 목록 {url, order}
+    const images = (product.images || []).map(i => ({
+      url: toAbs(req, i.img_url),
+      order: i.img_order ?? 0,
+    }));
+
+    // 비디오/상세 경로 절대화
+    const video_url = product.video_url ? toAbs(req, product.video_url) : null;
+
+    const detail_page = product.figma_export_url
+      ? { figma_export_url: toAbs(req, product.figma_export_url), page_status: '공개' }
+      : { figma_export_url: `https://figma.baro.com/export/${product.product_id}`, page_status: '공개' }; // 없으면 임시 fallback
 
     return res.status(200).json({
       status: 'success',
@@ -147,14 +174,19 @@ exports.getProductDetail = async (req, res) => {
         weight: product.weight,
         status: product.status,
         description: product.description,
-        image_url: imageUrl, 
-        images: product.images?.map(i => toAbs(req, i.img_url)) || [],
-        is_returnable: product.returnable,
-        is_subscription: product.is_subscription_available ?? false,
-        is_video: product.is_video,
-        video_url: product.video_url,
+
+        image_url: imageUrl,   // ✅ 여기서 만든 대표 이미지
+        images,                // ✅ 배열로 내려줌
+
+        is_returnable: !!product.returnable,
+        is_subscription: !!(product.regular_delivery ?? false),
+
+        is_video: !!product.is_video,
+        video_url,
+
         created_at: product.created_at,
         updated_at: product.updated_at,
+
         category: product.category
           ? { id: product.category.category_id, name: product.category.category_name }
           : null,
@@ -164,18 +196,16 @@ exports.getProductDetail = async (req, res) => {
         store: product.direct_store
           ? { id: product.direct_store.direct_store_id, name: product.direct_store.name }
           : null,
-        detail_page: {
-          figma_export_url: `https://figma.baro.com/export/${product.product_id}`,
-          page_status: '공개'
-        }
-      }
+
+        detail_page,
+      },
     });
   } catch (err) {
     console.error('상품 상세 조회 오류:', err);
     return res.status(500).json({
       status: 'error',
       code: 'SERVER_ERROR',
-      message: '서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+      message: '서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
     });
   }
 };
