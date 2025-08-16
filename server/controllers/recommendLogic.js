@@ -145,7 +145,7 @@ async function getContentBasedRecommendedProducts(userId, limit = 20) {
         const orderCounts = await OrderProduct.findAll({
             include: [{
                 model: Product,
-                as:'product',
+                as:'Product',
                 where: { category_id: categoryId, product_id: { [Op.notIn]: Array.from(alreadyRecommended) } }
             }],
             attributes: [[sequelize.col('OrderProduct.product_id'), 'product_id']],
