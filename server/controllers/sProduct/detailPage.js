@@ -21,6 +21,9 @@ exports.getFigmaSpec = async (req, res) => {
         if (!Number.isInteger(id) || id <= 0) {
           return res.status(400).json({ status: 'error', message: '유효한 product id가 필요합니다.' });
         }
+
+        // HTML/PNG는 공개, JSON만 셀러 제한
+        const allowPublic = isPNG || isHTML;
   
       // 상품 + 이미지
         const product = await Product.findOne({
@@ -28,35 +31,32 @@ exports.getFigmaSpec = async (req, res) => {
       //   include: [{ model: ProductImg, as: 'ProductImgs', order: [['img_order', 'ASC']] }],
       // });
       // PNG는 seller 제한 없이 product_id만, JSON은 seller 제한
-      where: isPNG ? { product_id: id } : { product_id: id, seller_id: sellerId },
-      include: [{ model: ProductImg, as: 'ProductImgs', attributes: ['img_url','img_order','img_id','created_at'] }],
+      where: allowPublic ? { product_id: id } : { product_id: id, seller_id: sellerId },
+      include: [{ model: ProductImg, as: 'images', attributes: ['img_url','img_order','img_id','created_at'] }],
      // include 내부 order 대신 최상위 order 로 보장
-      order: [[{ model: ProductImg, as: 'ProductImgs' }, 'img_order', 'ASC'],
-              [{ model: ProductImg, as: 'ProductImgs' }, 'img_id', 'ASC']],
+      order: [[{ model: ProductImg, as: 'images' }, 'img_order', 'ASC'],
+              [{ model: ProductImg, as: 'images' }, 'img_id', 'ASC']],
       });
       if (!product) {
         return res.status(404).json({ status: 'error', message: '상품 없음 또는 권한이 없습니다.' });
       }
+
+      // 절대 URL 보정 (puppeteer & 클라이언트 둘 다 안전)
+    const serverOrigin = `${req.protocol}://${req.get('host')}`;
+    const toAbs = (u = '') => {
+      if (!u) return '';
+      if (/^https?:\/\//i.test(u)) return u;
+      if (u.startsWith('/')) return serverOrigin + u;
+      return `${serverOrigin}/${u}`;
+    };
   
-      const images = (product.ProductImgs || []).map(i => i.img_url).filter(Boolean);
+      const images = (product.images || []).map(i => i.img_url).filter(Boolean);
       const hero = images[0] || 'https://picsum.photos/640/480';
+      const heroAbs = toAbs(hero);
+
       const title = product.title || '상품명 없음';
       const subtitle = product.intro || '';
       const body = product.description || '상품 설명이 없습니다.';
-  
-      // ✅ HTML도 PNG처럼 공개로 처리하고 싶으면 isPNG와 동일 분기로 둡니다.
-      if (isHTML) {
-        res.set('Cache-Control', 'public, max-age=60');
-        res.type('html').send(html);
-        return;
-      }
-      // png
-      //if ((req.query.format || '').toLowerCase() === 'png') {
-      // PNG 응답 (고객 화면에서 <img src>로 바로 사용)
-      if (isPNG) {
-        if (product.figma_export_url) {
-          return res.redirect(302, product.figma_export_url);
-        }
   
         // 즉석 렌더 (puppeteer)
         const width = 500;
@@ -112,7 +112,21 @@ exports.getFigmaSpec = async (req, res) => {
             <div class="body">${body}</div>
           </div>
         </body>
-        </html>`;
+        </html>`
+        .trim();
+
+              // ✅ HTML도 PNG처럼 공개로 처리하고 싶으면 isPNG와 동일 분기로 둡니다.
+      if (isHTML) {
+        res.set('Cache-Control', 'public, max-age=60');
+        return res.type('html').send(html);
+      }
+      // png
+      //if ((req.query.format || '').toLowerCase() === 'png') {
+      // PNG 응답 (고객 화면에서 <img src>로 바로 사용)
+      if (isPNG) {
+        if (product.figma_export_url) {
+          return res.redirect(302, product.figma_export_url);
+        }
   
       //   const browser = await puppeteer.launch({
       //     args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -145,8 +159,8 @@ exports.getFigmaSpec = async (req, res) => {
         const png = await page.screenshot({ type: 'png', clip });
        // 캐시 헤더(선택)
         res.set('Cache-Control', 'public, max-age=300'); // 5분
-        res.set('Content-Type', 'image/png');
-        return res.send(png);
+        //res.set('Content-Type', 'image/png');
+        return res.type('png').send(png);
       } finally {
         if (browser) await browser.close();
       }
@@ -168,7 +182,7 @@ exports.getFigmaSpec = async (req, res) => {
           spacing: { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 }
         },
         sections: [
-          { type: "hero", title, subtitle, image: hero },
+          { type: "hero", title, subtitle, image: heroAbs },
           { type: "text", body }
         ]
       };
