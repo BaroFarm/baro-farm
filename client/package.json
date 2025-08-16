@@ -11,6 +11,7 @@
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.10.0",
+    "dompurify": "^3.2.6",
     "framer-motion": "^6.5.1",
     "react": "^19.1.0",
     "react-daum-postcode": "^3.2.0",
