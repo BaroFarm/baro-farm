@@ -42,13 +42,13 @@ export default function Recommendations({
   // (ProductSlider에 스켈레톤이 없다면 그냥 즉시 렌더)
 
   return(
-    <>
+    <div style={{marginTop: '20px', marginBottom: '20px'}}>
       {error && !apiItems.length && fallbackToMock && (
         <div style={{ padding: 10, margin: "0 24px 8px", background: "#fff3cd", border: "1px solid #ffeeba" }}>
           추천 상품을 불러오지 못해 임시 데이터를 보여드려요.
         </div>
       )}
       <ProductSlider products={products} title={title} />
-    </>
+    </div>
   );
 }
