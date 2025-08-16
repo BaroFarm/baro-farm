@@ -1,5 +1,6 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {useParams} from 'react-router-dom';
+import useProducts from '../hooks/useProducts';
 import ShopNav from '../components/common/ShopNav';
 import PromoBanner from '../components/common/PromoBanner';
 import ProductList from '../components/common/product/ProductList';
@@ -8,11 +9,16 @@ import Pagination from '../components/common/pagination/Pagination';
 export default function CategoryPage() {
 // 현재 페이지 상태
     const [page, setPage] = useState(1); // 현재 페이지
-    const [totalPages, setTotalPages] = useState(1); //전체 페이지(API에서 받아오기)
-    
-    const { category } = useParams(); // URL에서 :category 추출
+   // const [totalPages, setTotalPages] = useState(1); //전체 페이지(API에서 받아오기)
+    const { category: categorySlug } = useParams(); 
+    const categoryName = categorySlug ? decodeURIComponent(categorySlug) : '전체 상품';
+    const decoded = categorySlug
+      ? decodeURIComponent(categorySlug).replace(/,/g, ', ') // ← 쉼표 뒤 공백 복원
+      : '';
+    //const { category } = useParams(); // URL에서 :category 추출
+
     // URL 파라미터가 없으면 전체 상품으로 표시
-    const categoryName = category ? decodeURIComponent(category) : "전체 상품";
+    //const categoryName = category ? decodeURIComponent(category) : "전체 상품";
 
     // const [region, setRegion] = useState("");
     // const regions = [   //예시) 나중에 백엔드 맞춰서 수정
@@ -26,6 +32,10 @@ export default function CategoryPage() {
     //     { label: "부천", value: "부천" },
     //     { label: "평택", value: "평택" },
     // ];
+
+    // 카테고리 변경 시 페이지 1로
+  useEffect(() => { setPage(1); }, [decoded]);
+  const { items: products, totalPages } = useProducts({ page, limit: 40, category: decoded });
 
     return (
         <div>
@@ -52,13 +62,14 @@ export default function CategoryPage() {
 
             <PromoBanner />
             <ProductList 
-                category={category}
+                products={products}
                 page={page}
-                onTotalPagesChange={setTotalPages}/>
+                //onTotalPagesChange={setTotalPages}
+            />
             <Pagination 
                 currentPage={page}
                 totalPages={totalPages}
-                onPageChange={(newPage) => setPage(newPage)} />
+                onPageChange={setPage} />
             
         </div>
     );

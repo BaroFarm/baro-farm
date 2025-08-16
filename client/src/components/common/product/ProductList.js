@@ -23,13 +23,13 @@ export default function ProductList({
 }) {
   const BASE = process.env.REACT_APP_API_BASE_URL;
   const [products, setProducts] = useState(externalProducts ?? []);
-  const [loading, setLoading]   = useState(!externalProducts); // 외부 있으면 로딩 X
+  const [loading, setLoading]   = useState(externalProducts === undefined); // 외부 있으면 로딩 X
   const [error, setError]       = useState(null);
   const isSubList = type === "subscription";
 
   // 외부 products가 바뀌면 그대로 반영하고 fetch 스킵
   useEffect(() => {
-    if (externalProducts) {
+    if (externalProducts!== undefined) {
       setProducts(externalProducts);
       setLoading(false);
       setError(null);
@@ -48,7 +48,7 @@ export default function ProductList({
   }
 
   useEffect(() => {
-    if (externalProducts) return; // ✅ 외부 데이터가 있으면 fetch 하지 않음
+    if (externalProducts!== undefined) return; // ✅ 외부 데이터가 있으면 fetch 하지 않음
     let canceled = false;
 
     const load = async () => {
@@ -63,7 +63,7 @@ export default function ProductList({
 
         const params = {
           ...(category ? { category } : {}),
-          ...(category && region && { region }),
+          ...(region ? { region } : {}),
           sort, page, limit,
           ...(accessToken ? {} : { user_id: guestUserIdRef.current }),
         };
@@ -96,6 +96,7 @@ export default function ProductList({
           image: item.image_url ?? item.image,
           rating: item.average_rating ?? item.rating ?? 0,
           isSubscription: item.is_subscription_available ?? item.isSubscription ?? false,
+          category: item.category ?? item.category_name, // 있으면 보존
         }));
 
         setProducts(dedupeById(mapped));
@@ -103,7 +104,7 @@ export default function ProductList({
         console.error("[ProductList] fetch error → fallback to mock:", e);
         let data = mockProducts;
         if (isSubList) data = data.filter(i => i.is_subscription_available);
-        else if (type === "category" && category) data = data.filter(i => i.category === category);
+        else if (type === "category" && category) data = data.filter(i => (i.category || "").includes(category));
 
         const mapped = data.map(item => ({
           id: item.product_id ?? item.id,
