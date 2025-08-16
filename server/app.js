@@ -32,6 +32,7 @@ app.use(session({
 }));
 // 확인용 로그(일시적으로 찍어보세요)
 console.log('STATIC /images →', path.resolve(__dirname, 'public', 'images'));
+app.use('/videos', express.static(path.join(__dirname, 'public', 'videos')));
 
 app.use('/api', indexRouter); // 모든 api 경로 앞에 /api 붙도록 수정
 
