@@ -12,26 +12,27 @@ exports.getFigmaSpec = async (req, res) => {
       // }
       // const sellerId = req.user.seller_id;
        // PNG는 공개 허용(고객 상세화면용). JSON(spec)은 셀러만.
-   const isPNG = (req.query.format || '').toLowerCase() === 'png';
-   const isSeller = !!(req.user && req.user.user_type === 'seller');
-   const sellerId = req.user?.seller_id;
+        const isPNG = (req.query.format || '').toLowerCase() === 'png';
+        const isHTML  = (req.query.format || '').toLowerCase() === 'html';
+        const isSeller = !!(req.user && req.user.user_type === 'seller');
+        const sellerId = req.user?.seller_id;
   
-      const id = Number(req.params.productId);
-      if (!Number.isInteger(id) || id <= 0) {
-        return res.status(400).json({ status: 'error', message: '유효한 product id가 필요합니다.' });
-      }
+        const id = Number(req.params.productId);
+        if (!Number.isInteger(id) || id <= 0) {
+          return res.status(400).json({ status: 'error', message: '유효한 product id가 필요합니다.' });
+        }
   
       // 상품 + 이미지
-      const product = await Product.findOne({
+        const product = await Product.findOne({
       //   where: { product_id: id, seller_id: sellerId },
       //   include: [{ model: ProductImg, as: 'ProductImgs', order: [['img_order', 'ASC']] }],
       // });
       // PNG는 seller 제한 없이 product_id만, JSON은 seller 제한
-     where: isPNG ? { product_id: id } : { product_id: id, seller_id: sellerId },
-     include: [{ model: ProductImg, as: 'ProductImgs', attributes: ['img_url','img_order','img_id','created_at'] }],
+      where: isPNG ? { product_id: id } : { product_id: id, seller_id: sellerId },
+      include: [{ model: ProductImg, as: 'ProductImgs', attributes: ['img_url','img_order','img_id','created_at'] }],
      // include 내부 order 대신 최상위 order 로 보장
-     order: [[{ model: ProductImg, as: 'ProductImgs' }, 'img_order', 'ASC'],
-             [{ model: ProductImg, as: 'ProductImgs' }, 'img_id', 'ASC']],
+      order: [[{ model: ProductImg, as: 'ProductImgs' }, 'img_order', 'ASC'],
+              [{ model: ProductImg, as: 'ProductImgs' }, 'img_id', 'ASC']],
       });
       if (!product) {
         return res.status(404).json({ status: 'error', message: '상품 없음 또는 권한이 없습니다.' });
@@ -43,6 +44,12 @@ exports.getFigmaSpec = async (req, res) => {
       const subtitle = product.intro || '';
       const body = product.description || '상품 설명이 없습니다.';
   
+      // ✅ HTML도 PNG처럼 공개로 처리하고 싶으면 isPNG와 동일 분기로 둡니다.
+      if (isHTML) {
+        res.set('Cache-Control', 'public, max-age=60');
+        res.type('html').send(html);
+        return;
+      }
       // png
       //if ((req.query.format || '').toLowerCase() === 'png') {
       // PNG 응답 (고객 화면에서 <img src>로 바로 사용)
@@ -126,29 +133,29 @@ exports.getFigmaSpec = async (req, res) => {
       //   return res.send(png);
       // }
       let browser;
-     try {
-       browser = await puppeteer.launch({ args: ['--no-sandbox','--disable-setuid-sandbox'] });
-       const page = await browser.newPage();
-       await page.setViewport({ width, height: 900 });
-       await page.setContent(html, { waitUntil: 'networkidle0' });
-       const clip = await page.$eval('#root', el => {
-         const r = el.getBoundingClientRect();
-         return { x: Math.floor(r.x), y: Math.floor(r.y), width: Math.ceil(r.width), height: Math.ceil(r.height) };
-       });
-       const png = await page.screenshot({ type: 'png', clip });
+      try {
+        browser = await puppeteer.launch({ args: ['--no-sandbox','--disable-setuid-sandbox'] });
+        const page = await browser.newPage();
+        await page.setViewport({ width, height: 900 });
+        await page.setContent(html, { waitUntil: 'networkidle0' });
+        const clip = await page.$eval('#root', el => {
+          const r = el.getBoundingClientRect();
+          return { x: Math.floor(r.x), y: Math.floor(r.y), width: Math.ceil(r.width), height: Math.ceil(r.height) };
+        });
+        const png = await page.screenshot({ type: 'png', clip });
        // 캐시 헤더(선택)
-       res.set('Cache-Control', 'public, max-age=300'); // 5분
-       res.set('Content-Type', 'image/png');
-       return res.send(png);
-     } finally {
-       if (browser) await browser.close();
-     }
+        res.set('Cache-Control', 'public, max-age=300'); // 5분
+        res.set('Content-Type', 'image/png');
+        return res.send(png);
+      } finally {
+        if (browser) await browser.close();
+      }
     }
 
    // JSON(spec)은 셀러만
-   if (!isSeller) {
-     return res.status(403).json({ error: "판매자만 스펙(JSON)을 조회할 수 있습니다." });
-   }
+    if (!isSeller) {
+      return res.status(403).json({ error: "판매자만 스펙(JSON)을 조회할 수 있습니다." });
+    }
   
       // JSON 응답 모드(기본)
       const spec = {
