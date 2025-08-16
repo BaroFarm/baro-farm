@@ -18,23 +18,58 @@ const imageIncludeOne = {
 };
 
 exports.getProducts = async (req, res) => {
-  try {
-    // 쿼리 파라미터 추출 및 보정
+    try {
+        // 쿼리 파라미터 추출 
+        //const { category, sort = 'latest', page = 1, limit = 20 } = req.query;
+        // 쿼리 파라미터 추출 및 보정
         const sort = (req.query.sort ?? 'latest').toString();
-    const page = Math.max(1, parseInt(req.query.page ?? 1, 10));
-    const limit = Math.max(1, Math.min(100, parseInt(req.query.limit ?? 20, 10)));
-    const category = req.query.category?.toString().trim();
+        const page = Math.max(1, parseInt(req.query.page ?? 1, 10));
+        const limit = Math.max(1, Math.min(100, parseInt(req.query.limit ?? 20, 10)));
+        const category = req.query.category?.toString().trim();
+        
+        // 정렬 방식 유효성 검사 
+        const validSorts = ['latest', 'popular', 'price_asc', 'price_desc'];
+        if (!validSorts.includes(sort)) {
+            return res.status(400).json({
+                error: {
+                code: 400,
+                message: "'sort' 값이 유효하지 않습니다. [latest, popular, price_asc, price_desc] 중 하나여야 합니다."
+                }
+            });
+        }
+        // regular_delivery 유효성 검사 
+        if (regular_delivery !== undefined && !['true','false','1','0'].includes(String(regular_delivery))) {
+        return res.status(400).json({
+            status: 'error',
+            code: 'INVALID_REGULAR_DELIVERY',
+            message: "regular_delivery 값은 true 또는 false 여야 합니다."
+        });
+      }
 
-    const validSorts = ['latest', 'popular', 'price_asc', 'price_desc'];
-    if (!validSorts.includes(sort)) {
-      return res.status(400).json({
-        error: { code: 400, message: "'sort' 값이 유효하지 않습니다. [latest, popular, price_asc, price_desc]" }
-      });
-    }
+        // 정렬 조건 정의 
+        const order = {
+            latest: [['created_at', 'DESC']],
+            popular: [['price', 'DESC']],   // 향후 판매량을 기준으로 대체 
+            price_asc: [['price', 'ASC']],
+            price_desc: [['price', 'DESC']]
+        }[sort];
 
-    const offset = (page - 1) * limit;
+        // 카테고리 필터링 조건 
+        const where = {};
+        if (category) {
+            where['$category.category_name$'] = { [Op.like]: `%${category}%` };
+        }
+        if (regular_delivery !== undefined) {
+            const bool = (regular_delivery === 'true' || regular_delivery === '1');
+            where.regular_delivery = bool;
+            where.status = '판매중';     // 정기배송 노출은 판매중만 
+        }
+        // 페이지네이션 계산 
+        const pageNum  = Math.max(parseInt(page, 10) || 1, 1);
+        const perPage  = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
+        const offset = (page - 1) * limit;
 
-    // 최종 정렬(중복 제거 후에 적용)
+        // 최종 정렬(중복 제거 후에 적용)
     const finalOrderSql =
       sort === 'price_asc'  ? 'r.price ASC' :
       sort === 'price_desc' ? 'r.price DESC' :
@@ -82,22 +117,46 @@ exports.getProducts = async (req, res) => {
         FROM base b
       )
     `;
-
-    // 총 개수(중복 제거 후)
-    const totalSql = `
-      ${cte}
-      SELECT COUNT(*) AS total
-      FROM ranked
-      WHERE rn = 1
-    `;
     const [totalRow] = await sequelize.query(totalSql, {
       replacements: repl,
       type: sequelize.QueryTypes.SELECT
     });
     const total = Number(totalRow?.total ?? 0);
-    const totalPages = Math.max(1, Math.ceil(total / limit));
 
-    // 페이지 데이터
+        // 상품 조회 쿼리 실행 
+        const { count, rows } = await Product.findAndCountAll({
+            where,
+            order,
+            include: [
+                {
+                    model: Category, as: 'category', attributes: ['category_name']
+                }
+            ],
+            offset: parseInt(offset),
+            //limit: parseInt(limit),
+            limit: perPage,
+            attributes: [
+                'product_id',
+                ['title', 'name'],
+                'price',
+                'created_at',
+                'regular_delivery'
+              ]
+        });
+
+        // 상품이 존재하지 않을 경우 404 Not Found 응답
+        if (rows.length === 0) {
+            return res.status(404).json({
+                error: {
+                    status: 'error',
+                    code: 'NOT_FOUND',
+                    message: '상품을 찾을 수 없습니다.'
+                }
+            });
+        }
+
+        const totalPages = Math.ceil(count / limit);
+        // 페이지 데이터
     const pageSql = `
       ${cte}
       SELECT
@@ -120,25 +179,31 @@ exports.getProducts = async (req, res) => {
       ORDER BY ${finalOrderSql}
       LIMIT :offset, :limit
     `;
-    const rows = await sequelize.query(pageSql, {
-      replacements: repl,
-      type: sequelize.QueryTypes.SELECT
-    });
+    // const rows = await sequelize.query(pageSql, {
+    //   replacements: repl,
+    //   type: sequelize.QueryTypes.SELECT
+    // });
 
-    // 응답 매핑 (이미지 절대경로화)
-    const products = rows.map(p => {
-      const img = p.image_rel ? toAbs(req, p.image_rel) : toAbs(req, '/images/mock/no-image-240.png');
-      return {
-        product_id: p.product_id,
-        name: p.name ?? '상품',
-        price: p.price,
-        category: p.category_name || null,
-        image_url: img,
-        is_local: true,
-        is_subscription_available: false,
-        average_rating: 0,          // 필요하면 review_count로 가중치 로직 추가 가능
-        review_count: p.review_count
-      };
+        // 성공 시 200 OK 응답 
+        res.status(200).json({
+            status: 'success',
+            pagination: {
+                current_page: pageNum,
+                total_pages: totalPages,
+                total_products: count
+        },
+        products: rows.map(p => ({
+            product_id: p.product_id,
+            name: p.name,
+            price: p.price,
+            category: p.category?.category_name || null,
+            image_url: `https://cdn.baro.com/images/product/${p.product_id}.jpg`,
+            is_local: true,
+            is_local: true,
+            is_subscription_available: !!p.regular_delivery,
+            average_rating: 4.7,
+            review_count: p.review_count
+        }))
     });
 
     return res.status(200).json({
@@ -150,25 +215,29 @@ exports.getProducts = async (req, res) => {
       },
       products
     });
-  } catch (error) {
-    console.error('상품 목록 조회 오류:', error);
-    return res.status(500).json({
-      error: { code: 500, message: '서버 내부 오류가 발생하였습니다.' }
-    });
-  }
+    // 서버 내부 오류 
+    } catch (error) {
+            console.error('상품 목록 조회 오류:', error);
+            res.status(500).json({
+            error: {
+                code: 500,
+                message: '서버 내부 오류가 발생하였습니다.'
+            }
+        });
+    }
 };
 
 exports.getProductDetail = async (req, res) => {
   // :product_id 또는 :productId 모두 허용
   const pidRaw = req.params.product_id ?? req.params.productId;
   const productId = Number(pidRaw);
-  if (!Number.isInteger(productId) || productId <= 0) {
-    return res.status(400).json({
-      status: 'error',
-      code: 'INVALID_ID',
-      message: '유효하지 않은 상품 ID입니다. 숫자 형식이어야 합니다.',
-    });
-  }
+  if (isNaN(productId) || productId <= 0) {
+        return res.status(400).json({
+        status: 'error',
+        code: 'INVALID_ID',
+        message: '유효하지 않은 상품 ID입니다. 숫자 형식이어야 합니다.'
+        });
+    }
 
   try {
     const product = await Product.findOne({
@@ -199,13 +268,12 @@ exports.getProductDetail = async (req, res) => {
     });
 
     if (!product) {
-      return res.status(404).json({
-        status: 'error',
-        code: 'NOT_FOUND',
-        message: '해당 상품을 찾을 수 없습니다.',
-      });
+        return res.status(404).json({
+            status: 'error',
+            code: 'NOT_FOUND',
+            message: '해당 상품을 찾을 수 없습니다.'
+        });
     }
-
     // 대표 이미지(없으면 placeholder)
     const first = product.images?.[0]?.img_url || null;
     const imageUrl = first ? toAbs(req, first) : toAbs(req, '/images/mock/no-image-240.png');
@@ -223,47 +291,43 @@ exports.getProductDetail = async (req, res) => {
       ? { figma_export_url: toAbs(req, product.figma_export_url), page_status: '공개' }
       : { figma_export_url: `https://figma.baro.com/export/${product.product_id}`, page_status: '공개' }; // 없으면 임시 fallback
 
-    return res.status(200).json({
-      status: 'success',
-      data: {
-        id: product.product_id,
-        title: product.title,
-        price: product.price,
-        weight: product.weight,
-        status: product.status,
-        description: product.description,
-
-        image_url: imageUrl,   // ✅ 여기서 만든 대표 이미지
-        images,                // ✅ 배열로 내려줌
-
-        is_returnable: !!product.returnable,
-        is_subscription: !!(product.regular_delivery ?? false),
-
-        is_video: !!product.is_video,
-        video_url,
-
-        created_at: product.created_at,
-        updated_at: product.updated_at,
-
-        category: product.category
-          ? { id: product.category.category_id, name: product.category.category_name }
-          : null,
-        seller: product.seller
-          ? { id: product.seller.seller_id, name: product.seller.name, contact: product.seller.contact }
-          : null,
-        store: product.direct_store
-          ? { id: product.direct_store.direct_store_id, name: product.direct_store.name }
-          : null,
-
-        detail_page,
-      },
-    });
-  } catch (err) {
-    console.error('상품 상세 조회 오류:', err);
-    return res.status(500).json({
-      status: 'error',
-      code: 'SERVER_ERROR',
-      message: '서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
-    });
-  }
+    res.status(200).json({
+        status: 'success',
+        data: {
+            id: product.product_id,
+            title: product.title,
+            price: product.price,
+            weight: product.weight,
+            status: product.status,
+            description: product.description,
+            image_url: `https://cdn.baro.com/images/product/${product.product_id}.jpg`,
+            is_returnable: product.returnable,
+            is_subscription: !!product.regular_delivery,
+            is_video: !!product.is_video,
+            video_url,
+            created_at: product.created_at,
+            updated_at: product.updated_at,
+                category: product.category
+            ? { id: product.category.category_id, name: product.category.category_name }
+            : null,
+            seller: product.seller
+            ? { id: product.seller.seller_id, name: product.seller.name, contact: product.seller.contact }
+            : null,
+            store: product.direct_store
+            ? { id: product.direct_store.direct_store_id, name: product.direct_store.name }
+            : null,
+            detail_page: {
+            figma_export_url: `https://figma.baro.com/export/${product.product_id}`,
+            page_status: '공개'
+            }
+        }
+        });
+    } catch (err) {
+        console.error('상품 상세 조회 오류:', err);
+        res.status(500).json({
+            status: 'error',
+            code: 'SERVER_ERROR',
+            message: '서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+        });
+    }
 };

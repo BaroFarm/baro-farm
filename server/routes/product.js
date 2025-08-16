@@ -3,9 +3,13 @@ const router = express.Router();
 const { authMiddleware } = require('../middlewares/authMiddleware');
 const productController = require('../controllers/main/productController');
 const reviewController = require('../controllers/main/reviewController'); 
+const { getSeasonalProducts } = require('../controllers/main/seasonalController');
 
 // 상품 목록
 router.get('/',  productController.getProducts);
+
+// 제철 상품 조회 
+router.get('/seasonal', getSeasonalProducts);
 
 // 상품 상세
 router.get('/:product_id', productController.getProductDetail);
