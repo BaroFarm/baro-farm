@@ -182,7 +182,7 @@ export default function ProductSummary({ product, subscriptionOnly = false }) {
         <h2 style={{ marginTop: 120, textAlign: 'left' }}>
           {name} {product?.weight ? `(${product.weight})` : ''}
         </h2>
-        <p style={{ textAlign: 'left' }}>{product?.description ?? ''}</p>
+        <p style={{ textAlign: 'left' }}>{product?.intro ?? product?.description ?? ''}</p>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '12px 0' }}>
           <p style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>

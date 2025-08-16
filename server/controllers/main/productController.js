@@ -175,7 +175,7 @@ exports.getProductDetail = async (req, res) => {
       where: { product_id: productId },
       attributes: [
         // ⛔ image_url 제거 (테이블에 없음)
-        'product_id', 'title', 'price', 'weight', 'status', 'description',
+        'product_id', 'title', 'price', 'weight', 'status', 'description','intro',
         'returnable', 'regular_delivery',
         'is_video', 'video_url',
         'figma_export_url',
@@ -232,6 +232,7 @@ exports.getProductDetail = async (req, res) => {
         weight: product.weight,
         status: product.status,
         description: product.description,
+        intro: product.intro ?? '',
 
         image_url: imageUrl,   // ✅ 여기서 만든 대표 이미지
         images,                // ✅ 배열로 내려줌
