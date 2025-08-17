@@ -25,8 +25,8 @@ export default function SubscriptionPage(){
         <Recommendations />
         <ProductList
             type="subscription"
-            category={selectedCategory}
-            region={selectedRegion}
+            category={selectedCategory === "전체" ? undefined : selectedCategory}
+            region={selectedRegion || undefined}
             sort={sort}
             page={page}
             limit={limit}
