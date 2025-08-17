@@ -6,6 +6,8 @@ import CategoryPage from "./pages/CategoryPage";
 import SubscriptionPage from "./pages/SubscriptionPage";
 import SubscriptionApplyPage from './pages/SubscriptionApplyPage';
 import ProductDetailPage from './pages/ProductDetailPage';
+import CartPage from './pages/CartPage';
+
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import SignupBuyerPage from './pages/SignupBuyerPage';
@@ -43,6 +45,7 @@ function App() {
             <Route path="my/refunds" element={<RefundHistoryPage />} />
             <Route path="/my/profile/edit" element={<ProfileEdit />} />
             <Route path="/my/cancel/:refundId" element={<RefundDetailPage />} />
+            <Route path="/cart" element={<CartPage />} />
           </Route>
         </Routes>
       </div>

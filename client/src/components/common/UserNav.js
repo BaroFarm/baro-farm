@@ -43,7 +43,8 @@ export default function SmallNavbar() {
             padding: 0,
             gap: '20px',
         }}>
-            <li><button style={buttonStyle} >장바구니</button></li>
+            <li><button style={{...buttonStyle, fontWeight: location.pathname === '/cart' ? 'bold' : 'normal', }}
+                        onClick={() => navigate('/cart')}>장바구니</button></li>
             <li><button style={buttonStyle} >마이페이지</button></li>
             <li>
             {isLoggedIn ? (
