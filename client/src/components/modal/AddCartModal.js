@@ -3,69 +3,85 @@ import {useNavigate} from 'react-router-dom';
 import CartSuccessModal from './CartSuccessModal';
 //https://dev-ini.tistory.com/90 참고
 
+const BASE = process.env.REACT_APP_API_BASE_URL || process.env.REACT_APP_API_URL || "";
+const u = (path) => (BASE ? `${BASE.replace(/\/$/, "")}${path}` : path);
+
 export default function AddCartModal({ openModal, setOpenModal, product }) {
     
     const [count, setCount] = useState(1);
     const [deliveryType, setDeliveryType] = useState('default');
     const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-
-    const price = product?.price || 0;
+    
+    const pid = Number(product?.product_id ?? product?.id) || 0;
+    const price = Number(product?.price ?? 0);
     const totalPrice = price * count;
 
-    const handleMinus = () => {
-        if (count > 1) setCount(prev => prev - 1);
-    };
+    if (!openModal && !showConfirmModal) return null;
 
-    const handlePlus = () => {
-        setCount(prev => prev + 1);
-    };
+    const handleMinus = () => setCount((c) => Math.max(1, c - 1));
+    const handlePlus  = () => setCount((c) => c + 1);
 
     //장바구니 담기 API 연결
     const handleAddToCart = async () => {
-    const accessToken = localStorage.getItem('accessToken');
-    if (!accessToken) {
-        alert("로그인이 필요합니다.");
-        navigate('/login');
-        return;
-    }
+        const accessToken = localStorage.getItem('accessToken');
+        if (!accessToken) {
+            alert("로그인이 필요합니다.");
+            navigate('/login');
+            return;
+        }
 
-    try {
-        const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/cart`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`
-        },
-        body: JSON.stringify({
-        product_id: product.product_id,
-        quantity: count,
-        delivery_type: deliveryType === 'default' ? 'smart' : deliveryType
-        })
-    });
+        try {
+            setLoading(true);
+            //const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/cart`, {
+            // 1차: 명세 경로 (/api/cart)
+            const res = await fetch(u('/api/cart'), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${accessToken}`
+            },
+            body: JSON.stringify({
+                product_id: pid,
+                quantity: count,
+                delivery_type: deliveryType === 'default' ? 'smart' : deliveryType
+                })
+            });
 
-    const data = await res.json();
+            const data = await res.json();
 
-    if (res.ok && data.status === 'success') {
-        alert(data.message || '장바구니에 추가되었습니다!');
-        // 모달 닫지 않고 → 확인창 띄우기
-        setShowConfirmModal(true);
-        setOpenModal(false);
-    } else {
-        alert(data.message || '장바구니 추가 실패');
-    }
-    } catch (error) {
-        console.error('장바구니 추가 오류:', error);
-        alert('서버 오류가 발생했습니다.');
-    }
+            if (res.ok && data.status === 'success') {
+                alert(data.message || '장바구니에 추가되었습니다!');
+                // 모달 닫지 않고 → 확인창 띄우기
+                setShowConfirmModal(true);
+                //setOpenModal(true);
+            } else {
+                alert(data.message || '장바구니 추가 실패');
+            }
+        } catch (error) {
+            console.error('장바구니 추가 오류:', error);
+            alert('서버 오류가 발생했습니다.');
+        } finally{
+            setLoading(false);
+        }
     };
 
 
     return (
     <>
-    {showConfirmModal && (
-        <CartSuccessModal onClose={() => setShowConfirmModal(false)} />
-    )}
+    {showConfirmModal ? (
+    <CartSuccessModal
+        onClose={() => {
+            setShowConfirmModal(false);
+            setOpenModal(false);        // 모달 최종 종료
+            // 필요하면 여기서 바로 이동
+            // navigate('/cart');
+        }}
+
+    />
+    ) : (
+
     <div style={styles.overlay}>
     <div style={styles.cartContainer}>
         
@@ -163,6 +179,7 @@ export default function AddCartModal({ openModal, setOpenModal, product }) {
                 </button>
         </div>
     </div>
+    )}
     </>
     );
 }
