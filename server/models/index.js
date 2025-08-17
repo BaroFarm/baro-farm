@@ -1,50 +1,43 @@
-// server/models/index.js
-const { Sequelize, DataTypes } = require('sequelize');
-const dotenv = require('dotenv');
+'use strict';
 
-dotenv.config();
+const fs = require('fs');
+const path = require('path');
+const Sequelize = require('sequelize');
+const process = require('process');
+const basename = path.basename(__filename);
+const env = process.env.NODE_ENV || 'development';
+const config = require(__dirname + '/../config/config.js')[env];
+const db = {};
 
-const DB_NAME = process.env.DB_NAME || 'database_development';
-const DB_USER = process.env.DB_USER || 'root';
-const DB_PASS = process.env.DB_PASS || '';
-const DB_HOST = process.env.DB_HOST || '127.0.0.1';
-const DB_DIALECT = process.env.DB_DIALECT || 'mysql';
+let sequelize;
+if (config.use_env_variable) {
+  sequelize = new Sequelize(process.env[config.use_env_variable], config);
+} else {
+  sequelize = new Sequelize(config.database, config.username, config.password, config);
+}
 
-const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASS, {
-  host: DB_HOST,
-  dialect: DB_DIALECT,
-  logging: false,
-  timezone: '+09:00',
-  define: {
-    timestamps: false, 
-    underscored: false,
-    freezeTableName: false,
-  },
+fs
+  .readdirSync(__dirname)
+  .filter(file => {
+    return (
+      file.indexOf('.') !== 0 &&
+      file !== basename &&
+      file.slice(-3) === '.js' &&
+      file.indexOf('.test.js') === -1
+    );
+  })
+  .forEach(file => {
+    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
+    db[model.name] = model;
+  });
+
+Object.keys(db).forEach(modelName => {
+  if (db[modelName].associate) {
+    db[modelName].associate(db);
+  }
 });
 
-// 🔹 모델 로드 (라우터 require 금지!)
-const ProductImage = require('./ProductImage')(sequelize, DataTypes);
+db.sequelize = sequelize;
+db.Sequelize = Sequelize;
 
-// 🔹 관계가 있다면 여기서만 설정 (예: Product ↔ ProductImage)
-// const Product = require('./Product')(sequelize, DataTypes);
-// Product.hasMany(ProductImage, { foreignKey: 'product_id', as: 'images' });
-// ProductImage.belongsTo(Product, { foreignKey: 'product_id', as: 'product' });
-
-async function init() {
-  try {
-    await sequelize.authenticate();
-    console.log('✅ DB connected');
-    // 개발 중 스키마 자동 동기화가 필요하면 사용:
-    // await sequelize.sync({ alter: false });
-  } catch (err) {
-    console.error('❌ DB connection failed:', err.message);
-  }
-}
-init();
-
-module.exports = {
-  sequelize,
-  Sequelize,
-  ProductImage,
-  // Product,
-};
+module.exports = db;

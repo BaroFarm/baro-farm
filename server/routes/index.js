@@ -1,12 +1,48 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const router = express.Router();
 
-const sProductsRouter = require('./s-products');
-// 다른 라우터가 있으면 여기에 추가: const authRoutes = require('./auth'); 등
+const authRoutes = require('./authRoutes'); // 사용자 인증
+const mypageRoutes = require('./mypage-buyer') // 마이페이지
+const recommendRoutes = require('./recommendRoutes'); // 상품 추천
 
-router.get('/health', (req, res) => res.json({ ok: true }));
+const sellerRoutes = require('./seller'); // 판매자 정보 조회 및 변경
+const storeInfoRoutes = require('./storeInfo'); // 스토어 정보 조회 및 변경
+const storeRoutes = require('./store'); // 스토어와 스토어 내 상품 관리
+const sProductsRoutes = require('./sProducts'); // 판매자 상품 등록
 
-router.use('/s-products', sProductsRouter);
-// router.use('/auth', authRoutes);  // ← authRoutes가 "유효한 라우터"를 export할 때만 사용
+const productInquiryRoutes = require('./productInquiryRoutes'); // 상품 문의 내역 조회
 
-module.exports = router; // ✅ 반드시 router를 export
+const categoryRoutes = require('./category');   // 카테고리 조회 
+const productRoutes = require('./product');     // 상품 조회 및 리뷰 
+const cartRoutes = require('./cart');           // 장바구니 관리  
+const wishlistRoutes = require('./wishlist');   // 찜하기 
+const favoriteRoutes = require('./favorites');  // 즐겨찾기 
+
+router.use('/auth', authRoutes);
+
+router.use('/my', mypageRoutes);
+
+router.use('/', recommendRoutes); 
+
+router.use('/seller', sellerRoutes);
+
+router.use('/store', storeInfoRoutes);
+
+router.use('/store', storeRoutes);
+
+router.use('/s-products', sProductsRoutes);
+
+router.use('/products', productInquiryRoutes);
+
+router.use('/categories', categoryRoutes);
+router.use('/products', productRoutes);
+router.use('/cart', cartRoutes);
+router.use('/wishlist', wishlistRoutes);
+router.use('/favorites', favoriteRoutes);
+
+router.get('/', (req, res) => {
+    res.send('Hello, Express');
+});
+
+module.exports = router;
