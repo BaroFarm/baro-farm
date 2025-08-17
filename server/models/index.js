@@ -16,6 +16,7 @@ const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASS, {
   logging: false,
   timezone: '+09:00',
   define: {
+    timestamps: false, 
     underscored: false,
     freezeTableName: false,
   },
