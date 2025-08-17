@@ -31,6 +31,7 @@ export default function ShopPage() {
       <ProductList
         products={allProducts}
         page={page}
+        type="all"
         //onTotalPagesChange={setTotalPages}
       />
 
