@@ -93,8 +93,18 @@ export default function ProductSummary({ product, subscriptionOnly = false }) {
         },
         body: JSON.stringify({ product_id: product?.product_id ?? product?.id }),
       });
-      const json = await res.json();
-      alert(res.status === 201 ? (json.message || '찜 목록에 추가되었습니다!') : (json.message || '찜하기 실패!'));
+      if (res.status === 201) {
+        const json = await res.json().catch(() => ({}));
+        alert(json.message || '찜 목록에 추가되었습니다!');
+        return;
+      }
+      if (res.status === 409) {
+        // 이미 존재
+        alert('이미 찜 목록에 추가되어 있습니다.');
+        return;
+      }
+      const json = await res.json().catch(() => ({}));
+      alert(json.message || '찜하기에 실패했습니다.');
     } catch (err) {
       console.error('찜하기 에러:', err);
       alert('서버 오류가 발생했습니다.');
@@ -172,7 +182,7 @@ export default function ProductSummary({ product, subscriptionOnly = false }) {
         <h2 style={{ marginTop: 120, textAlign: 'left' }}>
           {name} {product?.weight ? `(${product.weight})` : ''}
         </h2>
-        <p style={{ textAlign: 'left' }}>{product?.description ?? ''}</p>
+        <p style={{ textAlign: 'left' }}>{product?.intro ?? product?.description ?? ''}</p>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '12px 0' }}>
           <p style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>

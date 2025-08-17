@@ -3,6 +3,18 @@ const { Op } = require('sequelize');
 
 const toAbs = (req, p) =>
   /^https?:\/\//i.test(p) ? p : `${req.protocol}://${req.get('host')}${p.startsWith('/') ? '' : '/'}${p}`;
+const imageIncludeOne = {
+  model: ProductImg,
+  as: 'images',
+  attributes: ['img_url', 'img_order'],
+  separate: true,              // 목록 성능/중복 방지
+  limit: 1,                    // 대표 1장
+  order: [
+    ['img_order', 'ASC'],      // 대표 0 먼저
+    ['img_id', 'ASC'],
+    ['created_at', 'ASC'],
+  ],
+};
 
 /** --- 상품 목록 --- */
 exports.getProducts = async (req, res) => {
@@ -181,7 +193,8 @@ exports.getProductDetail = async (req, res) => {
     const product = await Product.findOne({
       where: { product_id: productId },
       attributes: [
-        'product_id', 'title', 'price', 'weight', 'status', 'description',
+        // ⛔ image_url 제거 (테이블에 없음)
+        'product_id', 'title', 'price', 'weight', 'status', 'description','intro',
         'returnable', 'regular_delivery',
         'is_video', 'video_url',
         'figma_export_url',
@@ -233,8 +246,11 @@ exports.getProductDetail = async (req, res) => {
         weight: product.weight,
         status: product.status,
         description: product.description,
-        image_url: imageUrl,
-        images,
+        intro: product.intro ?? '',
+
+        image_url: imageUrl,   // ✅ 여기서 만든 대표 이미지
+        images,                // ✅ 배열로 내려줌
+
         is_returnable: !!product.returnable,
         is_subscription: !!product.regular_delivery,
         is_video: !!product.is_video,
