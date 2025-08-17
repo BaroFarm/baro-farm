@@ -1,14 +1,46 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
-export default function CartItem({ item, isSelected, onToggleSelect, onDelete, onPurchase, onQuantityChange }) {
-    //const [quantity, setQuantity] = useState(item.quantity || 1);
+const BASE = (process.env.REACT_APP_API_BASE_URL || "").replace(/\/$/, "");
+// 모듈 레벨 간단 캐시: 같은 product_id는 한 번만 조회
+const imgCache = new Map(); // product_id -> image_url|null
 
-    // const handleIncrease = () => setQuantity(prev => prev + 1);
-    // const handleDecrease = () => {
-    //     if (quantity > 1) {
-    //         setQuantity(prev => prev - 1);
-    //     }
-    // };
+export default function CartItem({ item, isSelected, onToggleSelect, onDelete, onPurchase, onQuantityChange }) {    
+    const [img, setImg] = useState(item.image_url || null);
+    // 이미지가 없으면 상품상세에서 한 장 끌어와서 보강
+    useEffect(() => {
+        let alive = true;
+        const pid = item?.product_id;
+        if (!pid || img) return; // id 없거나 이미 있으면 스킵
+
+        // 캐시 우선
+        if (imgCache.has(pid)) {
+            if (alive) setImg(imgCache.get(pid));
+            return;
+        }
+
+        (async () => {
+            try {
+                const res = await fetch(`${BASE}/api/products/${pid}?ts=${Date.now()}`, { cache: 'no-store' });
+                if (!res.ok) {
+                    imgCache.set(pid, null);
+                    return;
+                }
+                const js = await res.json();
+                const url =
+                    js?.data?.images?.[0]?.url ||
+                    js?.data?.image_url ||
+                        null;
+
+                imgCache.set(pid, url);
+                if (alive) setImg(url);
+            } catch {
+                imgCache.set(pid, null);
+            }
+        })();
+
+        return () => { alive = false; };
+    }, [item?.product_id, img]);
+
     const handleIncrease = () => {
         const newQty = item.quantity + 1;
         onQuantityChange(item.cart_item_id, newQty);
@@ -29,7 +61,14 @@ export default function CartItem({ item, isSelected, onToggleSelect, onDelete, o
                 checked={isSelected}
                 onChange={() => onToggleSelect(item.cart_item_id)}
             />
-            <img src={item.image_url || '/default.png'} alt="상품 이미지" style={imageStyle} />
+            <img 
+                src={img || '/images/mock/no-image-240.png'} 
+                alt="상품 이미지" style={imageStyle}
+                onError={(e) => {
+                    // 진짜 폴백: 에러 나면 기본 이미지로
+                    e.currentTarget.src = '/images/mock/no-image-240.png';
+                }}
+            />
             
             <div style={infoStyle}>
                 <div>{item.product_name}</div>
@@ -41,7 +80,7 @@ export default function CartItem({ item, isSelected, onToggleSelect, onDelete, o
                 <button onClick={handleIncrease}>+</button>
             </div>
 
-            <div>{item.delivery_type === 'smart' ? '스마트 배송' : '일반 배송'}</div>
+            <div>{item.delivery_type === 'smart' ? '스마트 배송' : '바로 찾음'}</div>
             
             <div style={buttonGroupStyle}>
                 <button onClick={() => onDelete(item.cart_item_id)} style={buttonStyle}>삭제</button>
@@ -75,7 +114,7 @@ const imageStyle = {
     width: '80px',
     height: '60px',
     objectFit: 'cover',
-    border: '1px solid green',
+    // border: '1px solid green',
 };
 
 
