@@ -4,6 +4,9 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 
 import Header from './components/Header';
 import NavBar from './components/NavBar';
+import ErrorBoundary from './components/ErrorBoundary';
+
+// 페이지 임포트
 import MainPage from './pages/MainPage';
 import ProductRegister from './pages/ProductRegisterPage';
 import ProductFormPage from './pages/ProductFormPage';
@@ -23,30 +26,25 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import SalesPreferenceAnalytics from './pages/SalesPreferenceAnalytics';
 import PreferenceOverviewPage from './pages/PreferenceOverviewPage';
 
+// 구매자 관련
 import BuyerDirectStoreChannelPage from './pages/buyer/BuyerDirectStoreChannelPage';
-
-
-
-// 구매자 테스트/금액권
 import BuyerTestPage from './pages/buyer/BuyerTestPage';
 import BuyerVouchersPage from './pages/buyer/BuyerVouchersPage';
-
-// 에러바운더리
-import ErrorBoundary from './components/ErrorBoundary';
-
-//쿠폰
 import CouponPage from './pages/buyer/CouponPage';
-
 import DirectStoreInquiryPage from './pages/buyer/DirectStoreInquiryPage';
 
+// 테스트 로그인/회원가입
+import TestLoginAndRegister from './pages/TestLoginAndRegister';
+
+// 더미 데이터
 const dummyOrderList = [
-  { smartDelivery: "Y", orderNo: 1023, buyer: "Bob Lee", product: "Product A", status: "\uc811\uc218", date: "2024-04-24" },
-  { smartDelivery: "Y", orderNo: 1022, buyer: "Jane Kim", product: "Product B", status: "\ubc30\uc1a1 \uc900\ube44\uc911", date: "2024-04-23" },
-  { smartDelivery: "N", orderNo: 1021, buyer: "John Park", product: "Product C", status: "\uc811\uc218", date: "2024-04-22" },
-  { smartDelivery: "Y", orderNo: 1020, buyer: "Alice Na", product: "\ube75\uc1a1", status: "\ubc30\uc1a1", date: "2024-04-21" },
+  { smartDelivery: "Y", orderNo: 1023, buyer: "Bob Lee", product: "Product A", status: "접수", date: "2024-04-24" },
+  { smartDelivery: "Y", orderNo: 1022, buyer: "Jane Kim", product: "Product B", status: "배송 준비중", date: "2024-04-23" },
+  { smartDelivery: "N", orderNo: 1021, buyer: "John Park", product: "Product C", status: "접수", date: "2024-04-22" },
+  { smartDelivery: "Y", orderNo: 1020, buyer: "Alice Na", product: "버섯", status: "배송", date: "2024-04-21" },
 ];
 
-// 쿼리파라미터로 레이아웃(헤더/내브) 숨기기: ?mini=1
+// 레이아웃 + mini 옵션
 function LayoutWithOptionalChrome() {
   const { search } = useLocation();
   const mini = new URLSearchParams(search).get('mini') === '1';
@@ -57,10 +55,10 @@ function LayoutWithOptionalChrome() {
       {!mini && <NavBar />}
 
       <Routes>
-        {/* 핑 테스트: 라우팅 동작 점검용 */}
+        {/* 핑 테스트 */}
         <Route path="/ping" element={<div style={{ padding: 20, fontWeight: 700 }}>PING OK</div>} />
 
-        {/* 메인/판매자 흐름 기존 라우트 */}
+        {/* 메인/판매자 흐름 */}
         <Route path="/" element={<MainPage />} />
         <Route path="/product/register" element={<ProductRegister />} />
         <Route path="/product/form" element={<ProductFormPage />} />
@@ -72,6 +70,7 @@ function LayoutWithOptionalChrome() {
         <Route path="/product/video-preview" element={<ProductVideoPreview />} />
         <Route path="/product/final" element={<ProductFinalPage />} />
         <Route path="/product/complete" element={<ProductCompletePage />} />
+
         <Route path="/order" element={<OrderManagementPage orderList={dummyOrderList} />} />
         <Route path="/mypage" element={<MyPage />} />
         <Route path="/mypage/member-info" element={<MemberInfoPage />} />
@@ -80,11 +79,9 @@ function LayoutWithOptionalChrome() {
         <Route path="/analytics" element={<SalesPreferenceAnalytics />} />
         <Route path="/analytics/preference/overview" element={<PreferenceOverviewPage />} />
 
-        {/* 구매자 테스트/금액권 */}
+        {/* 구매자 페이지 */}
         <Route path="/buyer-test" element={<BuyerTestPage />} />
-
         <Route path="/buyer/direct-store/chat" element={<BuyerDirectStoreChannelPage />} />
-        {/* 에러바운더리로 감싸서 흰 화면 방지 + 오류 표시 */}
         <Route
           path="/buyer/vouchers"
           element={
@@ -93,11 +90,10 @@ function LayoutWithOptionalChrome() {
             </ErrorBoundary>
           }
         />
-
         <Route path="/buyer/coupons" element={<CouponPage />} />
         <Route path="/buyer/direct-store/inquiry" element={<DirectStoreInquiryPage />} />
 
-        {/* 스탠드얼론 라우트: 공통 레이아웃 완전 제거하고 페이지만 띄우는 경로 */}
+        {/* 스탠드얼론 */}
         <Route
           path="/__standalone/vouchers"
           element={
@@ -106,9 +102,10 @@ function LayoutWithOptionalChrome() {
             </div>
           }
         />
-      </Routes>
 
-      
+        {/* 테스트 로그인/회원가입 */}
+        <Route path="/test" element={<TestLoginAndRegister />} />
+      </Routes>
     </div>
   );
 }

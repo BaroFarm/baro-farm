@@ -1,21 +1,11 @@
 // src/api/products.js
-import axios from "axios";
+import API from "./index"; // axios 인스턴스 (토큰 자동 첨부)
 
 const API_BASE = process.env.REACT_APP_API_BASE_URL || "http://localhost:3002/api";
 
-// 공통 헤더(선택): 로컬스토리지에 토큰이 있으면 Bearer 자동 부착
-function getAuthHeaders() {
-  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
-
-/** AI 상세 설명 생성
- *  - 기존: (productId, keywords)
- *  - 추가 지원: (productId, { keywords, prompt }) 형태도 허용 (기존 코드와 100% 호환)
- *  - 반환 값은 기존처럼 res.data 그대로 반환 (하위 코드 안 깨짐)
- */
+/** AI 상세 설명 생성 */
 export async function generateAIDescription(productId, keywordsOrOpts) {
-  const url = `${API_BASE}/s-products/${productId}/description/ai-gen`;
+  const url = `/s-products/${productId}/description/ai-gen`;
 
   // ✅ 바디 스키마 호환 처리
   let body = { product_id: productId };
@@ -30,19 +20,11 @@ export async function generateAIDescription(productId, keywordsOrOpts) {
   console.log("📡 [AI-GEN] POST", url, body);
 
   try {
-    const res = await axios.post(url, body, {
-      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
-      withCredentials: true, // ✅ 기존 유지
+    const res = await API.post(url, body, {
+      headers: { "Content-Type": "application/json" },
+      withCredentials: true,
     });
     console.log("✅ [AI-GEN] res:", res.data);
-
-    // ✅ 하위 호환: 기존처럼 res.data 그대로 반환
-    // (필요시 이 주석 해제해서 문자열만 뽑아쓰는 것도 가능)
-    // const d = res.data;
-    // if (d?.data?.description) return d; // 서버가 { data: { description } } 형태일 때
-    // if (d?.generatedDescription) return d;
-    // return d;
-
     return res.data;
   } catch (err) {
     if (err.response) {
@@ -51,10 +33,6 @@ export async function generateAIDescription(productId, keywordsOrOpts) {
       console.log("headers:", err.response.headers);
       console.log("data:", err.response.data);
       console.groupEnd();
-    } else if (err.request) {
-      console.error("❌ [AI-GEN] 요청은 갔지만 응답 없음:", err.request);
-    } else {
-      console.error("❌ [AI-GEN] 요청 설정 중 에러:", err.message);
     }
 
     const status = err.response?.status;
@@ -68,8 +46,7 @@ export async function generateAIDescription(productId, keywordsOrOpts) {
       (status === 500 && "AI 설명 생성 실패") ||
       "요청 처리 중 오류가 발생했습니다.";
 
-    // 백엔드에서 OpenAI 설정 누락 시 전달해주는 메시지를 사용자 친화적으로 변환
-    if (serverMsg?.includes("AI 설정이 올바르지 않습니다") || serverMsg?.includes("OPENAI_API_KEY")) {
+    if (serverMsg?.includes("OPENAI_API_KEY")) {
       friendly = "서버 AI 설정(OPENAI_API_KEY)이 없습니다. 백엔드에 문의해주세요.";
     }
 
@@ -80,36 +57,33 @@ export async function generateAIDescription(productId, keywordsOrOpts) {
   }
 }
 
-/** ✅ 추가: 이미지 업로드 (multer 필드명 'images') */
+/** ✅ 이미지 업로드 (multer 필드명 'images') */
 export async function uploadProductImages(productId, files, fieldName = "images") {
   const formData = new FormData();
-  files.forEach((f) => formData.append(fieldName, f)); // 순서 = img_order
+  files.forEach((f) => formData.append(fieldName, f));
 
-  const { data } = await axios.post(
-    `${API_BASE}/s-products/${productId}/images`,
+  const { data } = await API.post(
+    `/s-products/${productId}/images`,
     formData,
-    {
-      headers: { ...getAuthHeaders() }, // Content-Type은 브라우저가 자동 지정
-      withCredentials: true,
-    }
+    { headers: { "Content-Type": "multipart/form-data" } }
   );
   return data; // { message, urls? }
 }
 
-/** 생성된 AI 설명 저장 (ai-save) — 기존 동작 유지 */
+/** 생성된 AI 설명 저장 (ai-save) */
 export async function saveAIDescription(productId, description) {
-  const url = `${API_BASE}/s-products/${productId}/description/ai-save`;
+  const url = `/s-products/${productId}/description/ai-save`;
   const body = { product_id: productId, description };
 
   console.log("📡 [AI-SAVE] POST", url, body);
 
   try {
-    const res = await axios.post(url, body, {
-      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
-      withCredentials: true, // ✅ 기존 유지
+    const res = await API.post(url, body, {
+      headers: { "Content-Type": "application/json" },
+      withCredentials: true,
     });
     console.log("✅ [AI-SAVE] res:", res.data);
-    return res.data; // { message: "AI 설명이 저장되었습니다." }
+    return res.data;
   } catch (err) {
     if (err.response) {
       console.group("❌ [AI-SAVE] HTTP ERROR");
@@ -117,10 +91,6 @@ export async function saveAIDescription(productId, description) {
       console.log("headers:", err.response.headers);
       console.log("data:", err.response.data);
       console.groupEnd();
-    } else if (err.request) {
-      console.error("❌ [AI-SAVE] 요청은 갔지만 응답 없음:", err.request);
-    } else {
-      console.error("❌ [AI-SAVE] 요청 설정 중 에러:", err.message);
     }
 
     const status = err.response?.status;
@@ -141,20 +111,20 @@ export async function saveAIDescription(productId, description) {
   }
 }
 
-/** 상세 설명 직접 작성 저장 (manual) — 기존 동작 유지 */
+/** 상세 설명 직접 작성 저장 (manual) */
 export async function saveManualDescription(productId, description) {
-  const url = `${API_BASE}/s-products/${productId}/description/manual`;
+  const url = `/s-products/${productId}/description/manual`;
   const body = { product_id: productId, description };
 
   console.log("📡 [MANUAL] POST", url, body);
 
   try {
-    const res = await axios.post(url, body, {
-      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
-      withCredentials: true, // ✅ 기존 유지
+    const res = await API.post(url, body, {
+      headers: { "Content-Type": "application/json" },
+      withCredentials: true,
     });
     console.log("✅ [MANUAL] res:", res.data);
-    return res.data; // { message: "설명이 성공적으로 저장되었습니다." }
+    return res.data;
   } catch (err) {
     if (err.response) {
       console.group("❌ [MANUAL] HTTP ERROR");
@@ -162,10 +132,6 @@ export async function saveManualDescription(productId, description) {
       console.log("headers:", err.response.headers);
       console.log("data:", err.response.data);
       console.groupEnd();
-    } else if (err.request) {
-      console.error("❌ [MANUAL] 요청은 갔지만 응답 없음:", err.request);
-    } else {
-      console.error("❌ [MANUAL] 요청 설정 중 에러:", err.message);
     }
 
     const status = err.response?.status;

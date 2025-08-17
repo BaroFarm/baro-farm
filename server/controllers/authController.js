@@ -109,7 +109,7 @@ exports.login = async (req, res) => {
 
         const user_id = user_type === 'buyer' ? user.customer_id : user.seller_id; // 회원 유형에 따른 회원 아이디 저장
 
-        const expiresInSeconds = 60 * 60; // 토큰 유효 시간 (초 단위)
+        const expiresInSeconds = "7d"; // 토큰 유효 시간 (초 단위)
         const token = jwt.sign(
             {
                 id: user_id,
@@ -117,7 +117,7 @@ exports.login = async (req, res) => {
                 user_type: user.user_type
             }, 
             process.env.JWT_SECRET, 
-            { expiresIn:expiresInSeconds }
+            { expiresIn:'100y' }
         );
         
         res.status(200).json({

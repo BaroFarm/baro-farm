@@ -1,0 +1,3 @@
+// src/config/token.js
+// 발급받은 토큰을 여기에 넣습니다.
+export const TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJzZWxsZXIudGVzdEBiYXJvLWZhcm0uY29tIiwidXNlcl90eXBlIjoic2VsbGVyIiwiaWF0IjoxNzU1NDIyNDk1LCJleHAiOjE3NTU0MjYwOTV9.lD4DUzegaflSONn0pfsJfNf8tTnYZpm3hVtYihoFyzo";
