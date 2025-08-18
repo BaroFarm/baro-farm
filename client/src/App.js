@@ -18,6 +18,7 @@ import OrderDetail from './components/mypage/order/OrderDetail';
 import RefundHistoryPage from './components/mypage/refund/RefundHistoryPage';
 import ProfileEdit from './components/mypage/ProfileEdit';
 import RefundDetailPage from './pages/RefundDetailPage';
+import PaymentPage from './pages/PaymentPage';
 
 function App() {
 
@@ -25,12 +26,11 @@ function App() {
     <Router>
       <div className="App">
         <Routes>
-          {/* 로그인 페이지: Header 안 보이게 */}
+          {/* Header 안 보이게 */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/signup/buyer" element={<SignupBuyerPage />} />
           <Route path="/signup/seller" element={<SignupSellerPage />} />
-
 
           {/* 나머지 페이지는 Layout으로 감싸기 */}
           <Route element={<Layout />}>
@@ -46,6 +46,8 @@ function App() {
             <Route path="/my/profile/edit" element={<ProfileEdit />} />
             <Route path="/my/cancel/:refundId" element={<RefundDetailPage />} />
             <Route path="/cart" element={<CartPage />} />
+            <Route path="/payments" element={<PaymentPage />} />
+
           </Route>
         </Routes>
       </div>
