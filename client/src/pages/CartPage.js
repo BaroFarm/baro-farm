@@ -7,6 +7,7 @@ import QuickPickUp from '../components/cart/QuickPickUp';
 import CartSummary from '../components/cart/CartSummary';
 import PickupModal from '../components/cart/PickupModal';
 import '../components/cart/PickupModal.css';
+import DeliveryChangeModal from '../components/modal/DeliveryChangeModal';
 
 export default function CartPage() {
   // 1) BASE 문자열은 변하지 않으니, 한 번만 계산
@@ -25,6 +26,8 @@ export default function CartPage() {
   const [selectedPickup, setSelectedPickup] = useState([]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // CartPage 내부 추가 상태
+  const [isChangeModalOpen, setIsChangeModalOpen] = useState(false);
   const [selectedFarm, setSelectedFarm] = useState(null);
   const [selectedAddress, setSelectedAddress] = useState('');
   const [pickupDate, setPickupDate] = useState('');
@@ -136,9 +139,14 @@ export default function CartPage() {
   const handleChangeDeliveryMethod = () => {
     const ids = selectedTab === '스마트 배송' ? selectedSmart : selectedPickup;
     if (!ids.length) return alert('변경할 상품을 선택해주세요.');
-    alert('배송 방법 변경 모달 열기(추후 연동)');
+    setIsChangeModalOpen(true);
   };
-
+  const selectedIds = selectedTab === '스마트 배송' ? selectedSmart : selectedPickup;
+  // 모달에 넘길 선택된 아이템 실제 객체
+  const selectedLinesForChange = useMemo(
+    () => cartItems.filter(i => selectedIds.includes(i.cart_item_id)),
+    [cartItems, selectedIds]
+  );
   // 합계 계산(선택 있으면 선택만, 없으면 탭 전체)
   const smartAll = cartItems.filter(i => i.delivery_type === 'smart');
   const smartSel = smartAll.filter(i => selectedSmart.includes(i.cart_item_id));
@@ -159,6 +167,28 @@ export default function CartPage() {
     const json = await res.json();
     return (json?.data ?? []).sort((a,b) => (a.distanceKm ?? 999) - (b.distanceKm ?? 999));
   };
+
+  const searchAddressForModal = async ({ region, road }) => {
+  if (!region?.trim() || !road?.trim()) throw new Error('시/도와 도로명을 입력해주세요.');
+  const params = new URLSearchParams({ city: region.trim(), road: road.trim(), page: '1', limit: '10' });
+  const res = await fetch(api(`/api/address/search?${params.toString()}`), {
+    headers: { 'Content-Type': 'application/json' },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.error?.message || data?.message || '주소 검색 실패');
+
+  // 컨트롤러 응답 -> 모달 리스트 형태로 가볍게 매핑
+  // results: [{ postcode, road, jibun }]
+  return (data?.results ?? []).map((r, i) => ({
+    id: `${r.postcode}-${i}`,
+    name: r.road,           // 카드 타이틀로 표시
+    distanceKm: undefined,  // 주소 검색이라 거리 없음
+    kiosk: false,
+    hours: '',
+    tel: '',
+    _raw: r,                // 필요 시 원본 참조
+  }));
+};
 
   return (
     <div>
@@ -224,9 +254,11 @@ export default function CartPage() {
             <PickupModal
               isOpen={isModalOpen}
               onClose={() => setIsModalOpen(false)}
-              onSearch={searchFarms}
-              onSelect={(store) => {
-                setSelectedFarm({ id: store.id, name: store.name, imageUrl: store.imageUrl, kioskAvailable: !!store.kiosk });
+              onSearch={searchAddressForModal}
+              onSelect={(item) => {
+              // 주소 선택 시 원하는 곳에 반영
+                setSelectedAddress(item.name);        // 도로명
+              // 필요한 경우: item._raw.postcode, item._raw.jibun 활용
                 setIsModalOpen(false);
               }}
             />
@@ -245,6 +277,30 @@ export default function CartPage() {
             />
           </>
         )}
+        <DeliveryChangeModal
+          isOpen={isChangeModalOpen}
+          onClose={() => setIsChangeModalOpen(false)}
+          items={selectedLinesForChange}
+          initialMethod={selectedTab === '스마트 배송' ? 'smart' : 'pickup'}
+          // 변경 불가 시 설명을 붙이고 싶으면 blocked={true}
+          onConfirm={async (method, alsoPutToPickup) => {
+           // TODO: 여기에 서버 API 연동(일괄 변경)이면 호출
+            // 일단 로컬 상태만 반영하는 예시:
+          setCartItems(prev =>
+            prev.map(i =>
+              (selectedTab === '스마트 배송' ? selectedSmart : selectedPickup).includes(i.cart_item_id)
+                ? { ...i, delivery_type: method }
+                : i
+            )
+          );
+          setSelectedSmart([]);
+          setSelectedPickup([]);
+          setIsChangeModalOpen(false);
+
+          // 필요하면 서버에서 최신 상태 다시 가져오기
+          // await refreshCart().catch(()=>{});
+          }}
+        />
       </div>
     </div>
   );
