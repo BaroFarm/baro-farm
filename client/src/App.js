@@ -27,6 +27,8 @@ import ProductFormPage from './seller/ProductFormPage';
 import ProductImageUploadPage from './seller/ProductImageUploadPage';
 import ProductAIDetailPage from './seller/ProductAIDetailPage';
 import ProductAIDescriptionResult from './seller/ProductAIDescriptionResult';
+import ProductSummaryPreview from './seller/ProductSummaryPreview';
+import ProductAICustomInput from './seller/ProductAICustomInput';
 
 function App() {
 
@@ -65,7 +67,8 @@ function App() {
             <Route path="/product/image-upload" element={<ProductImageUploadPage />} />
             <Route path="/seller/products/:productId/description/ai-gen" element={<ProductAIDetailPage />} />
             <Route path="/seller/products/:productId/description/result" element={<ProductAIDescriptionResult />} />
-
+            <Route path="/product/ai-custom-input" element={<ProductAICustomInput />} />
+            <Route path="/product/summary-preview" element={<ProductSummaryPreview />} />
           </Route>
         </Routes>
       </div>
