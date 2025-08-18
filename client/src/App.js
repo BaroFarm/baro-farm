@@ -20,6 +20,11 @@ import ProfileEdit from './components/mypage/ProfileEdit';
 import RefundDetailPage from './pages/RefundDetailPage';
 import PaymentPage from './pages/PaymentPage';
 
+//판매자 관련
+import SellerLayout from './components/layout/SellerLayout';
+import Navbar from './seller/NavBar';
+import ProductRegisterPage from './seller/ProductRegisterPage';
+
 function App() {
 
   return (
@@ -48,6 +53,11 @@ function App() {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/payments" element={<PaymentPage />} />
 
+          </Route>
+
+          {/* 판매자 레이아웃(NavBar) ↓ */}
+          <Route element={<SellerLayout />}>
+            <Route path="/product/register" element={<ProductRegisterPage />} />
           </Route>
         </Routes>
       </div>

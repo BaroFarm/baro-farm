@@ -1,12 +1,32 @@
 // src/components/NavBar.jsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { HiOutlineChatBubbleLeft } from 'react-icons/hi2';
 import ChatbotModal from '../ai_chatbot/ChatbotModal'; 
 
 function NavBar() {
-
   const [openChat, setOpenChat] = useState(false);
+  const [role, setRole] = useState('buyer'); // ← 기본 buyer
+
+  // 로그인 정보에서 역할 감지 (localStorage → 프로필 API 순)
+  useEffect(() => {
+    const cached = (localStorage.getItem('user_type') || '').toLowerCase();
+    if (cached) setRole(cached === 'seller' ? 'seller' : 'buyer');
+
+    const token = localStorage.getItem('accessToken');
+    const BASE = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/$/, '');
+    if (!token || !BASE) return;
+
+    fetch(`${BASE}/api/my/profile`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => (r.ok ? r.json() : null))
+      .then(js => {
+        const t = String(js?.data?.user_type || '').toLowerCase();
+        if (t) setRole(t === 'seller' ? 'seller' : 'buyer');
+      })
+      .catch(() => {});
+  }, []);
 
   const navItems = [
     { label: '카테고리', to: '/category' },
@@ -15,6 +35,11 @@ function NavBar() {
     { label: '나의 가게', to: '/shop' },
     { label: '매출/선호도 분석', to: '/analytics' }
   ];
+
+  // 메시지 전송 콜백 (백엔드 붙이면 여기서 API 호출)
+  const handleSend = (text) => {
+    console.log('[AI CHAT SEND]', { role, text });
+  };
 
   return (
     <nav style={styles.nav}>
@@ -25,14 +50,21 @@ function NavBar() {
         </React.Fragment>
       ))}
 
-      <button style={styles.chatbotButton}
-        onClick={() => setOpenChat(true)}>
+      <button
+        style={styles.chatbotButton}
+        onClick={() => setOpenChat(true)}
+      >
         <HiOutlineChatBubbleLeft size={18} style={{ marginRight: '6px' }} />
         <span>AI 챗봇</span>
       </button>
 
       {/* 모달 */}
-      <ChatbotModal open={openChat} onClose={() => setOpenChat(false)} />
+      <ChatbotModal
+        open={openChat}
+        onClose={() => setOpenChat(false)}
+        onSend={handleSend}
+        role={role}                 
+      />
     </nav>
   );
 }
@@ -71,6 +103,7 @@ const styles = {
     color: '#1d1d1f',
     cursor: 'pointer',
     boxShadow: 'none',
+    marginLeft: 'auto', // 필요하면 오른쪽 정렬
   },
 };
 
