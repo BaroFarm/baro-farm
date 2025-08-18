@@ -22,8 +22,8 @@ import PaymentPage from './pages/PaymentPage';
 
 //판매자 관련
 import SellerLayout from './components/layout/SellerLayout';
-import Navbar from './seller/NavBar';
 import ProductRegisterPage from './seller/ProductRegisterPage';
+import ProductFormPage from './seller/ProductFormPage';
 
 function App() {
 
@@ -58,6 +58,7 @@ function App() {
           {/* 판매자 레이아웃(NavBar) ↓ */}
           <Route element={<SellerLayout />}>
             <Route path="/product/register" element={<ProductRegisterPage />} />
+            <Route path="/product/form" element={<ProductFormPage />} />
           </Route>
         </Routes>
       </div>
