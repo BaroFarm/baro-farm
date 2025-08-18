@@ -1,6 +1,6 @@
+// src/pages/ProductAIDetailPage.js
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { generateAIDescription } from "../api/products";
 
 export default function ProductAIDetailPage() {
   const { productId } = useParams();
@@ -12,51 +12,65 @@ export default function ProductAIDetailPage() {
   const [desc, setDesc] = useState("");
   const [error, setError] = useState(null);
 
-  // 서버 응답 다양한 스키마를 안전하게 뽑아주는 헬퍼
-  const pickDescription = (res) => {
-    if (!res) return "";
-    if (typeof res === "string") return res;
-    if (res.data?.description) return res.data.description;
-    if (res.generatedDescription) return res.generatedDescription;
-    if (res.description) return res.description;
-    // 마지막 대비: 객체를 문자열로
-    return JSON.stringify(res);
+  // 응답에서 설명 텍스트 뽑기 (스키마 방어)
+  const pickDescription = (resJson) => {
+    if (!resJson) return "";
+    if (typeof resJson === "string") return resJson;
+    if (resJson.generatedDescription) return resJson.generatedDescription;
+    if (resJson.data?.generatedDescription) return resJson.data.generatedDescription;
+    if (resJson.description) return resJson.description;
+    return JSON.stringify(resJson);
   };
 
   const onGenerate = async () => {
     setError(null);
     if (!productId) return setError("상품 ID가 필요합니다.");
 
-    // 키워드 전처리
     const keywords = keywordsText
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean);
 
-    // 서버가 빈 배열을 싫어하는 경우 대비해서 options 구성
-    const options = {};
-    if (keywords.length) options.keywords = keywords;
-    if (prompt.trim()) options.prompt = prompt.trim();
-
     try {
       setLoading(true);
-      const result = await generateAIDescription(productId, options);
-      const text = pickDescription(result);
-      setDesc(text || "");
-    } catch (e) {
-      const status = e?.status || e?.response?.status;
-      const msg =
-        e?.message ||
-        e?.response?.data?.message ||
-        (status === 401 ? "로그인이 필요합니다. 다시 로그인해주세요." : "AI 생성 실패");
 
-      // 선택: 401이면 로그인으로 유도
-      if (status === 401) {
-        // 필요 시 경로 수정
-        setTimeout(() => navigate("/mypage?login=1"), 500);
+      const BASE = (process.env.REACT_APP_API_BASE_URL || "").replace(/\/$/, "");
+      const token = localStorage.getItem("accessToken");
+
+      const res = await fetch(`${BASE}/api/s-products/${productId}/description/ai-gen`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          product_id: Number(productId),
+          ...(keywords.length ? { keywords } : {}),
+          ...(prompt.trim() ? { prompt: prompt.trim() } : {}),
+        }),
+      });
+
+      if (res.status === 401) {
+        setError("로그인이 필요합니다. 다시 로그인해주세요.");
+        setTimeout(() => navigate("/login"), 600);
+        return;
+      }
+      if (!res.ok) {
+        const errText = await res.text().catch(() => "");
+        throw new Error(errText || `요청 실패 (${res.status})`);
       }
 
-      setError(msg);
+      const json = await res.json();
+      const text = pickDescription(json) || "";
+      setDesc(text);
+
+      // 🔸 로컬 캐시 + 결과 페이지로 이동
+      localStorage.setItem(`last_ai_desc_${productId}`, text);
+      navigate(`/seller/products/${productId}/description/result`, {
+        state: { productId: Number(productId), description: text },
+      });
+    } catch (e) {
+      setError(e.message || "AI 생성 실패");
     } finally {
       setLoading(false);
     }
@@ -94,7 +108,7 @@ export default function ProductAIDetailPage() {
       </div>
 
       {error && <p style={{ color: "#c00", marginTop: 8 }}>{error}</p>}
-
+      {/* desc는 즉시 이동하므로 남겨도 되고 제거해도 됨 */}
       {desc && (
         <div style={{ marginTop: 16, padding: 12, border: "1px solid #ddd", borderRadius: 8, whiteSpace: "pre-wrap" }}>
           {desc}

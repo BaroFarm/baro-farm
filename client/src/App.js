@@ -24,6 +24,9 @@ import PaymentPage from './pages/PaymentPage';
 import SellerLayout from './components/layout/SellerLayout';
 import ProductRegisterPage from './seller/ProductRegisterPage';
 import ProductFormPage from './seller/ProductFormPage';
+import ProductImageUploadPage from './seller/ProductImageUploadPage';
+import ProductAIDetailPage from './seller/ProductAIDetailPage';
+import ProductAIDescriptionResult from './seller/ProductAIDescriptionResult';
 
 function App() {
 
@@ -59,6 +62,10 @@ function App() {
           <Route element={<SellerLayout />}>
             <Route path="/product/register" element={<ProductRegisterPage />} />
             <Route path="/product/form" element={<ProductFormPage />} />
+            <Route path="/product/image-upload" element={<ProductImageUploadPage />} />
+            <Route path="/seller/products/:productId/description/ai-gen" element={<ProductAIDetailPage />} />
+            <Route path="/seller/products/:productId/description/result" element={<ProductAIDescriptionResult />} />
+
           </Route>
         </Routes>
       </div>

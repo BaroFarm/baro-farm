@@ -1,42 +1,38 @@
 // src/pages/ProductAIDescriptionResult.jsx
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { saveAIDescription } from "../api/products";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 function ProductAIDescriptionResult() {
   const { state } = useLocation() || {};
+  const { productId: pidFromUrl } = useParams();
   const navigate = useNavigate();
 
+  // productId 우선순위: location.state → URL → localStorage
   const productId =
-    state?.productId ||
-    Number(localStorage.getItem("current_product_id") || 0) ||
-    null;
+    state?.productId ??
+    (pidFromUrl ? Number(pidFromUrl) : null) ??
+    (Number(localStorage.getItem("current_product_id")) || null);
 
+  // 설명 우선순위: location.state → localStorage 캐시 → 플레이스홀더
   const aiDescription =
-    state?.description ||
-    (productId ? localStorage.getItem(`last_ai_desc_${productId}`) : "") ||
+    state?.description ??
+    (productId ? localStorage.getItem(`last_ai_desc_${productId}`) : "") ??
     "AI가 생성한 상세 설명이 여기에 표시됩니다.";
 
-  const handleUseDescription = async () => {
+  const handleUseDescription = () => {
     if (!productId) return alert("상품 ID가 없습니다.");
     if (!aiDescription || aiDescription.startsWith("AI가 생성한")) {
       return alert("사용할 설명이 없습니다.");
     }
-
-    try {
-      await saveAIDescription(productId, aiDescription); // ← 저장
-      // 저장 성공 시 다음 단계로
-      navigate("/product/summary-preview", {
-        state: {
-          productId,
-          description: aiDescription,
-          summary: aiDescription, // 요약도 동일 전달
-        },
-      });
-    } catch (err) {
-      const msg = err?.response?.data?.message || "AI 설명 저장 중 오류 발생";
-      alert(msg);
-    }
+    // 다음 단계로 이동 (시연용: API 저장 없이 진행)
+    localStorage.setItem(`final_ai_desc_${productId}`, aiDescription);
+    navigate("/product/summary-preview", {
+      state: {
+        productId,
+        description: aiDescription,
+        summary: aiDescription, // 시연 편의상 동일 전달
+      },
+    });
   };
 
   const handleGoCustom = () =>
