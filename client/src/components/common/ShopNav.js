@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {useNavigate, useLocation} from 'react-router-dom';
 import BuyVoucherButton from './buttons/BuyVoucherButton';
 import AIbotButton from './buttons/AIbotButton';
+import ChatbotModal from '../../ai_chatbot/ChatbotModal';
 
 const categories = [
     '전체 상품', '쌀,잡곡', '채소,버섯', '과일,견과', '축산,축산가공',
@@ -9,6 +10,17 @@ const categories = [
 ];
 
 export default function ShopNav() {
+
+    const [botOpen, setBotOpen] = useState(false);
+
+    const handleSend = async (text) => {
+    // 시연용 더미 동작
+    console.log('[AI Chat] user:', text);
+    alert(`보낸 메시지: ${text}\n(서버 연동 전이라 더미 응답입니다)`);
+    // 서버 붙일 거면 여기서 fetch/axios 호출
+    // const r = await fetch('/api/ai/chat', { method:'POST', body: JSON.stringify({ text }) });
+    // const data = await r.json();
+    };
 
     const [selectedCategory, setSelectedCategory] = useState('전체 상품');
 
@@ -78,9 +90,16 @@ export default function ShopNav() {
       {/* 오른쪽: 버튼 두 개 */}
         <div style={{ display: 'flex', gap: '10px' }}>
             <BuyVoucherButton />
-            <AIbotButton />
+            <AIbotButton onClick={() => setBotOpen(true)} />
         </div>
+        {/* 모달 */}
+        <ChatbotModal
+            open={botOpen}
+            onClose={() => setBotOpen(false)}
+            onSend={handleSend}
+        />
     </nav>
+    
     );
 }
 
