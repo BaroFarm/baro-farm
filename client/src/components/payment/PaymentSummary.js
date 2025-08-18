@@ -29,7 +29,7 @@ export default function PaymentSummary({ cartItems, couponDiscount = 0, pointDis
         <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '8px' }}>
           <span style={{ minWidth: '180px' }}>배송비</span>
           <span style={{ textAlign: 'left', flex: 1 }}>
-            {deliveryFee === 0 ? "무료" : `${deliveryFee.toLocaleString()}원`}
+            {deliveryFee === 0 ? "0원" : `${deliveryFee.toLocaleString()}원`}
           </span>
         </div>
 
