@@ -163,7 +163,7 @@ export default function CartPage() {
   return (
     <div>
       <ShopNav />
-      <CartNav selectedTab={selectedTab} onSelectTab={setSelectedTab} />
+      <CartNav selectedTab={selectedTab} onSelectTab={setSelectedTab} cartItems={cartItems}/>
 
       <div style={{ padding: '24px' }}>
         <CartActionBar

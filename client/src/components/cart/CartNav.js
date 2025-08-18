@@ -1,28 +1,37 @@
 import React from 'react';
 
-const tabs = ['스마트 배송', '바로 찾음'];
+const tabs = [
+    { label: '스마트 배송', type: 'smart' },
+    { label: '바로 찾음', type: 'pickup' },
+];
 
-export default function CartNav({ selectedTab, onSelectTab }){
-    return(
+export default function CartNav({ selectedTab, onSelectTab, cartItems }) {
+    return (
         <nav style={navStyle}>
             <ul style={ulStyle}>
-                {tabs.map((label) => (
-                    <li key={label}>
-                        <button
-                            onClick={() => onSelectTab(label)}
-                            style={{
-                                ...buttonStyle,
-                                ...(selectedTab === label ? selectedButtonStyle : {}),
-                            }}
-                        >
-                            {label} (숫자)
-                        </button>
-                    </li>
-                ))}
+                {tabs.map(({ label, type }) => {
+                    // cartItems에서 해당 type의 개수 계산
+                    const count = cartItems.filter(item => item.delivery_type === type).length;
+
+                    return (
+                        <li key={label}>
+                            <button
+                                onClick={() => onSelectTab(label)}
+                                style={{
+                                    ...buttonStyle,
+                                    ...(selectedTab === label ? selectedButtonStyle : {}),
+                                }}
+                            >
+                                {label} ({count})
+                            </button>
+                        </li>
+                    );
+                })}
             </ul>
         </nav>
     );
 }
+
 const navStyle = {
     borderBottom: '1px solid #ccc',
     maxWidth: '1152px',
@@ -37,7 +46,6 @@ const ulStyle = {
     gap: '70px',
 };
 
-
 const buttonStyle = {
     width: '100%',
     padding: '16px 0',
@@ -51,6 +59,6 @@ const buttonStyle = {
 
 const selectedButtonStyle = {
     fontWeight: 'bold',
-    borderBottom: '3px solid #8DA291', // 선택된 탭 밑줄 강조
-    backgroundColor: 'white'
+    borderBottom: '3px solid #8DA291',
+    backgroundColor: 'white',
 };
