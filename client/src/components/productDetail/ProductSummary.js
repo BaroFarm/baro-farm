@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import AddCartModal from '../modal/AddCartModal';
 import BuyNowModal from '../modal/BuyNowModal';
 import StarRating from '../common/product/StarRating';
+import CouponCard from '../../seller/CouponCard';
 
 export default function ProductSummary({ product, subscriptionOnly = false }) {
   const navigate = useNavigate();
@@ -218,7 +219,7 @@ export default function ProductSummary({ product, subscriptionOnly = false }) {
         </div>
 
         {/* 쿠폰 영역 (나중에 추가) */}
-        <div style={{ border: '1px solid gray', height: '100px' }}>쿠폰 영역 (나중에 추가)</div>
+        <div style={{  height: '100px' }}><CouponCard /></div>
 
         {/* 버튼들 */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' }}>
