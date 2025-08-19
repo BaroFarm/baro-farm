@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useMemo} from 'react';
 import {useNavigate} from 'react-router-dom';
 import CartSuccessModal from './CartSuccessModal';
 //https://dev-ini.tistory.com/90 참고
@@ -17,6 +17,22 @@ export default function AddCartModal({ openModal, setOpenModal, product }) {
     const pid = Number(product?.product_id ?? product?.id) || 0;
     const price = Number(product?.price ?? 0);
     const totalPrice = price * count;
+
+    // 👉 이름(alt 텍스트용)
+    const name = (product?.name ?? product?.title ?? '상품').toString();
+
+    // 👉 ProductSummary와 동일한 폴백 체인
+    const imageSrc = useMemo(() => {
+        const url =
+            product?.image ??                   // normalizeProduct에서 세팅했을 수 있음
+            product?.image_url ??
+            product?.thumbnail ??
+            product?.main_image_url ??
+            product?.images?.[0]?.image_url ??
+            product?.images?.[0]?.url ??
+            `https://picsum.photos/seed/${encodeURIComponent(String(pid || name || 'default'))}/800/600`;
+        return url;
+    }, [product, pid, name]);
 
     if (!openModal && !showConfirmModal) return null;
 
@@ -88,8 +104,11 @@ export default function AddCartModal({ openModal, setOpenModal, product }) {
         <div style={{ display: 'flex', gap: '24px' }}>
                     {/* 이미지 */}
                     <img
-                        src={product?.image_url || '/placeholder.png'}
-                        alt={product?.title}
+                        src={imageSrc}
+                        alt={name}
+                        onError={(e) => {
+                            e.currentTarget.src = `https://picsum.photos/seed/${encodeURIComponent(String(pid || name || 'default'))}/800/600`;
+                        }}
                         style={{ width: 300, height: 300, objectFit: 'cover', background: '#eee', marginTop: '20px' }}
                     />
 
