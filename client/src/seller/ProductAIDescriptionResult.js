@@ -87,12 +87,45 @@ function ProductAIDescriptionResult() {
   return (
     <div style={{ padding: 24 }}>
       <h2>AI 생성 결과</h2>
-      <pre style={{ whiteSpace: "pre-wrap" }}>{aiDescription}</pre>
+      <div
+    style={{
+      marginTop: 12,
+      padding: 16,
+      border: "1px solid #ddd",
+      borderRadius: 8,
+      backgroundColor: "#f9f9f9",   // 박스 배경 살짝 회색
+      maxWidth: "100%",             // 화면 벗어나지 않게
+      overflowWrap: "break-word",   // 긴 단어 줄바꿈
+      whiteSpace: "pre-wrap"        // 줄바꿈 유지
+    }}
+  >
+    {aiDescription}
+  </div>
 
-      <div style={{ marginTop: 16, display: "flex", gap: 12 }}>
-        <button onClick={handleUseDescription}>위 설명 사용할게요</button>
-        <button onClick={handleGoCustom}>직접 작성할게요</button>
-      </div>
+  <div style={{ marginTop: 16, display: "flex", gap: 12, justifyContent: 'center' }}>
+    <button onClick={handleUseDescription}
+      style={{
+            display: "inline-block", 
+            backgroundColor: "#B6D19B",  // 원하는 버튼 색
+            padding: "8px 16px",
+            borderRadius: "6px",
+            cursor: "pointer",
+            marginTop: '16px',
+            border: 'none',
+            fontSize: '16px'}}
+    >위 설명 사용할게요</button>
+    <button onClick={handleGoCustom}
+      style={{
+            display: "inline-block", 
+            backgroundColor: "#B6D19B",  // 원하는 버튼 색
+            padding: "8px 16px",
+            borderRadius: "6px",
+            cursor: "pointer",
+            marginTop: '16px',
+            border: 'none',
+            fontSize: '16px'}}>
+              직접 작성할게요</button>
+  </div>
     </div>
   );
 }
