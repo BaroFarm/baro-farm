@@ -20,6 +20,19 @@ import ProfileEdit from './components/mypage/ProfileEdit';
 import RefundDetailPage from './pages/RefundDetailPage';
 import PaymentPage from './pages/PaymentPage';
 
+//판매자 관련
+import SellerLayout from './components/layout/SellerLayout';
+import ProductRegisterPage from './seller/ProductRegisterPage';
+import ProductFormPage from './seller/ProductFormPage';
+import ProductImageUploadPage from './seller/ProductImageUploadPage';
+import ProductAIDetailPage from './seller/ProductAIDetailPage';
+import ProductAIDescriptionResult from './seller/ProductAIDescriptionResult';
+import ProductSummaryPreview from './seller/ProductSummaryPreview';
+import ProductAICustomInput from './seller/ProductAICustomInput';
+import ProductVideoPreview from './seller/ProductVideoPreview';
+import ProductFinalPage from './seller/ProductFinalPage';
+import ProductCompletePage from './seller/ProductCompletePage';
+
 function App() {
 
   return (
@@ -48,6 +61,20 @@ function App() {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/payments" element={<PaymentPage />} />
 
+          </Route>
+
+          {/* 판매자 레이아웃(NavBar) ↓ */}
+          <Route element={<SellerLayout />}>
+            <Route path="/product/register" element={<ProductRegisterPage />} />
+            <Route path="/product/form" element={<ProductFormPage />} />
+            <Route path="/product/image-upload" element={<ProductImageUploadPage />} />
+            <Route path="/seller/products/:productId/description/ai-gen" element={<ProductAIDetailPage />} />
+            <Route path="/seller/products/:productId/description/result" element={<ProductAIDescriptionResult />} />
+            <Route path="/product/ai-custom-input" element={<ProductAICustomInput />} />
+            <Route path="/product/summary-preview" element={<ProductSummaryPreview />} />
+            <Route path="/product/video-preview" element={<ProductVideoPreview />} />
+            <Route path="/product/final" element={<ProductFinalPage />} />
+            <Route path="/product/complete" element={<ProductCompletePage />} />
           </Route>
         </Routes>
       </div>
