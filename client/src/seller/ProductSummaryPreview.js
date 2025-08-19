@@ -32,6 +32,7 @@ function ProductSummaryPreview() {
 
   const [summary, setSummary] = useState(initialSummary);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);     // 요약 저장 로딩
 
   // 요약이 없으면 서버에 요청해서 생성/조회
   useEffect(() => {
@@ -73,8 +74,52 @@ function ProductSummaryPreview() {
   const goPrev = () =>
     navigate("/product/ai-custom-input", { state: { productId, base: summary } });
 
-  const goNext = () =>
-    navigate("/product/video-preview", { state: { productId, summary } });
+  // ✅ 요약 저장 → 성공 시 다음 단계로 이동
+  const goNext = async () => {
+    if (!productId) return alert("상품 ID가 없습니다.");
+    if (!summary?.trim()) return alert("저장할 요약이 없습니다.");
+
+    try {
+      setSaving(true);
+
+      if (!BASE) throw new Error("REACT_APP_API_BASE_URL이 설정되지 않았습니다.");
+
+      const res = await fetch(
+        `${BASE}/api/s-products/${productId}/description/summary-save`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          // 명세엔 product_id만 필수지만, 서버가 요약 본문을 요구할 수도 있으니 같이 전송
+          body: JSON.stringify({
+            product_id: Number(productId),
+            summary, // 서버가 무시해도 무해
+          }),
+        }
+      );
+
+      if (res.status === 401) {
+        alert("로그인이 필요합니다. 다시 로그인해주세요.");
+        return navigate("/login");
+      }
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(text || `요약 저장 실패 (${res.status})`);
+      }
+
+      // 성공 캐시
+      localStorage.setItem(`final_ai_summary_${productId}`, summary);
+
+      // 다음 단계로 이동
+      navigate("/product/video-preview", { state: { productId, summary } });
+    } catch (e) {
+      alert(e.message || "요약 저장 중 오류가 발생했습니다.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div style={styles.wrapper}>
@@ -101,7 +146,7 @@ function ProductSummaryPreview() {
         <button
           style={styles.buttonGreen}
           onClick={goNext}
-          disabled={!summary || loading}
+          disabled={!summary || loading || saving}
         >
           다음 단계로 이동 &gt;
         </button>

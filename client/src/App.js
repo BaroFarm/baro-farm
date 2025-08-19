@@ -29,6 +29,7 @@ import ProductAIDetailPage from './seller/ProductAIDetailPage';
 import ProductAIDescriptionResult from './seller/ProductAIDescriptionResult';
 import ProductSummaryPreview from './seller/ProductSummaryPreview';
 import ProductAICustomInput from './seller/ProductAICustomInput';
+import ProductVideoPreview from './seller/ProductVideoPreview';
 
 function App() {
 
@@ -69,6 +70,7 @@ function App() {
             <Route path="/seller/products/:productId/description/result" element={<ProductAIDescriptionResult />} />
             <Route path="/product/ai-custom-input" element={<ProductAICustomInput />} />
             <Route path="/product/summary-preview" element={<ProductSummaryPreview />} />
+            <Route path="/product/video-preview" element={<ProductVideoPreview />} />
           </Route>
         </Routes>
       </div>
