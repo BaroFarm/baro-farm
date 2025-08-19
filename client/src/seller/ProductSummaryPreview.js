@@ -1,30 +1,48 @@
 // src/pages/ProductSummaryPreview.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+
+const pickNumber = (v) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : undefined;
+};
 
 function ProductSummaryPreview() {
   const { state } = useLocation() || {};
   const navigate = useNavigate();
 
+  // productId: state → localStorage
   const productId =
-    state?.productId ||
-    Number(localStorage.getItem("current_product_id") || 0) ||
-    null;
+    pickNumber(state?.productId) ??
+    pickNumber(localStorage.getItem("current_product_id"));
 
-  const [summary, setSummary] = useState(
-    state?.summary ||
-      state?.description ||
-      (productId ? localStorage.getItem(`last_ai_desc_${productId}`) : "") ||
+  const BASE = (process.env.REACT_APP_API_BASE_URL || "").replace(/\/$/, "");
+  const token = localStorage.getItem("accessToken");
+
+  // 초기 요약: ①state.summary ②요약 캐시 ③설명(state.description) ④설명 캐시 → ''
+  const initialSummary = useMemo(() => {
+    return (
+      state?.summary ??
+      (productId ? localStorage.getItem(`last_ai_summary_${productId}`) : "") ??
+      state?.description ??
+      (productId ? localStorage.getItem(`last_ai_desc_${productId}`) : "") ??
       ""
-  );
+    );
+  }, [productId, state?.summary, state?.description]);
+
+  const [summary, setSummary] = useState(initialSummary);
   const [loading, setLoading] = useState(false);
 
-  // 없으면 서버에서 요약 다시 가져오기
+  // 요약이 없으면 서버에 요청해서 생성/조회
   useEffect(() => {
-    if (!productId || summary) return;
+    if (!productId) return;
+    // 이미 요약을 가지고 있으면 호출 안 함
+    if (summary && summary.trim()) return;
 
-    const BASE = (process.env.REACT_APP_API_BASE_URL || "").replace(/\/$/, "");
-    const token = localStorage.getItem("accessToken");
+    if (!BASE) {
+      console.warn("REACT_APP_API_BASE_URL 미설정. 요약 생략.");
+      return;
+    }
 
     (async () => {
       try {
@@ -32,35 +50,31 @@ function ProductSummaryPreview() {
         const res = await fetch(
           `${BASE}/api/s-products/${productId}/description/summary`,
           {
-            method: "POST",
+            method: "GET",
             headers: {
               "Content-Type": "application/json",
               ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
-            body: JSON.stringify({ product_id: productId }),
           }
         );
         if (!res.ok) throw new Error(`요약 요청 실패 (${res.status})`);
         const json = await res.json().catch(() => ({}));
-        setSummary(json?.summary || json?.data?.summary || "");
+        const s = json?.summary || json?.data?.summary || "";
+        setSummary(s);
+        if (s) localStorage.setItem(`last_ai_summary_${productId}`, s);
       } catch (e) {
-        // 요약이 꼭 필요하지 않으면 조용히 패스
         console.warn(e);
       } finally {
         setLoading(false);
       }
     })();
-  }, [productId, summary]);
+  }, [productId, summary, BASE, token]);
 
   const goPrev = () =>
-    navigate("/product/ai-custom-input", {
-      state: { productId, base: summary },
-    });
+    navigate("/product/ai-custom-input", { state: { productId, base: summary } });
 
   const goNext = () =>
-    navigate("/product/video-preview", {
-      state: { productId, summary },
-    });
+    navigate("/product/video-preview", { state: { productId, summary } });
 
   return (
     <div style={styles.wrapper}>
@@ -69,7 +83,7 @@ function ProductSummaryPreview() {
 
       <div style={styles.labelRow}>
         <span>AI 요약</span>
-        <button style={styles.editButton} onClick={goPrev}>
+        <button style={styles.editButton} onClick={goPrev} disabled={loading}>
           요약 수정하기
         </button>
       </div>
@@ -81,13 +95,13 @@ function ProductSummaryPreview() {
       </div>
 
       <div style={styles.buttonGroup}>
-        <button style={styles.buttonWhite} onClick={goPrev}>
+        <button style={styles.buttonWhite} onClick={goPrev} disabled={loading}>
           &lt; 이전 단계로 이동
         </button>
         <button
           style={styles.buttonGreen}
           onClick={goNext}
-          disabled={!summary}
+          disabled={!summary || loading}
         >
           다음 단계로 이동 &gt;
         </button>

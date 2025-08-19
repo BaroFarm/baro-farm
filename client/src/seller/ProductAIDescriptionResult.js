@@ -58,12 +58,11 @@ function ProductAIDescriptionResult() {
       const resSum = await fetch(
         `${BASE}/api/s-products/${productId}/description/summary`,
         {
-          method: "POST",
+          method: "GET",
           headers: {
             "Content-Type": "application/json",
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
-          body: JSON.stringify({ product_id: Number(productId) }),
         }
       );
       if (!resSum.ok) {
@@ -74,7 +73,7 @@ function ProductAIDescriptionResult() {
       const summaryText = json?.summary ?? json?.data?.summary ?? "";
 
       // 3) 다음 단계로 이동
-      navigate("/product/summary-preview", {
+        navigate("/product/summary-preview", {
         state: { productId, description: aiDescription, summary: summaryText },
       });
     } catch (err) {
