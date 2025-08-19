@@ -77,7 +77,10 @@ export default function ProductAIDetailPage() {
   };
 
   return (
-    <div style={{ padding: 16, maxWidth: 760 }}>
+    <div style={{ padding: 16,
+      maxWidth: 960,   // 👉 폭을 넓혀줌 (필요하면 100%로 해도 됨)
+      margin: "0 auto",}} 
+    > 
       <h2>상품 설명 자동 생성</h2>
 
       <div style={{ marginTop: 12 }}>
@@ -101,8 +104,17 @@ export default function ProductAIDetailPage() {
         />
       </div>
 
-      <div style={{ marginTop: 12 }}>
-        <button onClick={onGenerate} disabled={loading}>
+      <div style={{ marginTop: 12,  }}>
+        <button onClick={onGenerate} disabled={loading}
+          style={{
+            display: "inline-block", 
+            backgroundColor: "#B6D19B",  // 원하는 버튼 색
+            padding: "8px 16px",
+            borderRadius: "6px",
+            cursor: "pointer",
+            marginTop: '16px',
+            border: 'none',
+            fontSize: '16px'}}>
           {loading ? "생성 중..." : "자동 AI 상세 설명 생성하기"}
         </button>
       </div>

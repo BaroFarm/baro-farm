@@ -49,6 +49,7 @@ function normalizeProduct(d, productId) {
     weight: d.weight ?? null,
     status: d.status ?? null,
     description: d.description ?? "",
+    intro: d.intro ?? d.short_description ?? "",
     category: d.category ?? null,
     seller: d.seller ?? null,
     store: d.store ?? null,

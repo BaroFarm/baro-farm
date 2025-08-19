@@ -98,6 +98,7 @@ export default function ProductImageUploadPage() {
 
   return (
     <div style={{ padding: 16 }}>
+      <div style={{fontSize: '18px', margin: '50px 0px'}}> 상품등록을 위해 이미지를 업로드 하세요</div>
       {!pidFromUrl && (
         <div style={{ marginBottom: 8 }}>
           <label>상품 ID: </label>
@@ -111,11 +112,31 @@ export default function ProductImageUploadPage() {
       )}
 
       <div>
-        <input type="file" accept="image/*" multiple onChange={onPickFiles} />
-        <p style={{ fontSize: 12, color: "#666" }}>
-          여러 장 선택 가능 · 위/아래 버튼으로 순서 조정 (이 순서가 <code>img_order</code>가 됩니다)
-        </p>
-      </div>
+  {/* label을 버튼처럼 스타일 */}
+  <label 
+    style={{ 
+      display: "inline-block", 
+      backgroundColor: "#B6D19B",  // 원하는 버튼 색
+      padding: "8px 16px",
+      borderRadius: "6px",
+      cursor: "pointer",
+      marginTop: '14px'
+    }}
+  >
+    파일 선택
+    {/* 실제 input은 숨김 */}
+    <input 
+      type="file" 
+      accept="image/*" 
+      multiple 
+      onChange={onPickFiles} 
+      style={{ display: "none" }} 
+    />
+  </label>
+  <p style={{ fontSize: 12, color: "#666" }}>
+    여러 장 선택 가능 · 위/아래 버튼으로 순서 조정 (이 순서가 <code>img_order</code>가 됩니다)
+  </p>
+</div>
 
       {!!files.length && (
         <ul style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginTop: 12 }}>
@@ -133,16 +154,31 @@ export default function ProductImageUploadPage() {
         </ul>
       )}
 
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12 }}>
-        <button onClick={onUpload} disabled={uploading || !files.length}>
+      <div style={{ display: "flex", 
+        alignItems: "center", 
+        justifyContent: "center",  // 가로 가운데 정렬
+        gap: 10, 
+        marginTop: 12  }}>
+        <button
+          onClick={onUpload}
+          disabled={uploading || !files.length}
+          style={{
+            backgroundColor: uploading || !files.length ? "#aaa" : "#B6D19B", // 비활성화일 땐 회색
+            padding: "8px 16px",
+            borderRadius: "6px",
+            cursor: uploading || !files.length ? "not-allowed" : "pointer",
+            border: "none"
+          }}
+        >
           {uploading ? "업로드 중..." : "이미지 업로드"}
-        </button>
-        {uploadedCount > 0 && (
-          <span style={{ color: "green", fontSize: 13 }}>
-            {uploadedCount}개 업로드 완료
-          </span>
-        )}
-      </div>
+      </button>
+
+  {uploadedCount > 0 && (
+    <span style={{ color: "green", fontSize: 13 }}>
+      {uploadedCount}개 업로드 완료
+    </span>
+  )}
+</div>
 
       {error && <p style={{ color: "#c00", marginTop: 8 }}>{error}</p>}
     </div>

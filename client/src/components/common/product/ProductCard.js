@@ -49,10 +49,27 @@ export default function ProductCard({ product, onClick }) {
 
   const imageSrc = normalizeImg(imageSrcRaw) || FALLBACK_IMG;
 
-  const rating = Math.max(
-    0,
-    Math.min(5, Number(product?.average_rating ?? product?.rating ?? product?.score ?? 0))
-  );
+  // const rating = Math.max(
+  //   0,
+  //   Math.min(5, Number(product?.average_rating ?? product?.rating ?? product?.score ?? 0))
+  // );
+
+  // 1) API 값 우선
+  const ratingRaw = Number(product?.average_rating ?? product?.rating ?? product?.score);
+
+  // 2) 없으면 임의 별점 생성 (항상 동일하게 보이도록)
+  function seededDemoRating(seedStr) {
+    const s = String(seedStr || '');
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+    const frac = Math.abs(Math.sin(h)) % 1; // 0~1
+    const v = 3.8 + frac * 1.1;            // 3.8 ~ 4.9
+    return Math.round(v * 2) / 2;           // 0.5 단위 반올림
+  }
+
+  const rating = Number.isFinite(ratingRaw) && ratingRaw > 0
+    ? Math.min(5, Math.max(0, ratingRaw))
+    : seededDemoRating(pid || name);
 
   const goDetail = () => {
     if (!pid) return;

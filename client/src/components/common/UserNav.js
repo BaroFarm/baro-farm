@@ -45,7 +45,8 @@ export default function SmallNavbar() {
         }}>
             <li><button style={{...buttonStyle, fontWeight: location.pathname === '/cart' ? 'bold' : 'normal', }}
                         onClick={() => navigate('/cart')}>장바구니</button></li>
-            <li><button style={buttonStyle} >마이페이지</button></li>
+            <li><button style={{...buttonStyle, fontWeight: location.pathname === '/mypage/buyer' ? 'bold' : 'normal', }} 
+                        onClick={() => navigate('/mypage/buyer')}>마이페이지</button></li>
             <li>
             {isLoggedIn ? (
                         <button style={buttonStyle} onClick={handleLogout}>로그아웃</button>
