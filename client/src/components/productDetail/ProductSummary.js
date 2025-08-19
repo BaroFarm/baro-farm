@@ -14,6 +14,16 @@ export default function ProductSummary({ product, subscriptionOnly = false }) {
   const pid = String(product?.id ?? product?.product_id ?? '');
   const name = (product?.name ?? product?.title ?? '상품').toString();
 
+  // 시연용 임시 별점(항상 3.8~4.9 사이, 0.5 단위, 같은 상품은 고정값)
+  function seededDemoRating(seedStr) {
+    const s = String(seedStr || '');
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+    const frac = Math.abs(Math.sin(h)) % 1; // 0~1
+    const v = 3.8 + frac * 1.1;            // 3.8 ~ 4.9
+    return Math.round(v * 2) / 2;           // 0.5 단위
+  }
+
   // ✅ 서버가 준 값이 있으면 초기값으로
   const initialScore = Math.max(0, Math.min(5, Number(product?.rating ?? product?.average_rating ?? 0)));
   const initialCount = Number(product?.rating_count ?? 0);
@@ -76,6 +86,13 @@ export default function ProductSummary({ product, subscriptionOnly = false }) {
   }, [product, pid, name]);
 
   const priceNum = Number(product?.price ?? 0);
+
+  // 표시용 별점: 실제 평균/리뷰 수가 있으면 그걸, 없으면 임시 별점
+  const displayScore =
+    (ratingState.count > 0 && ratingState.score > 0)
+      ? ratingState.score
+      : seededDemoRating(pid || name);
+  const displayCount = ratingState.count > 0 ? ratingState.count : null; // 개수는 없으면 숨김
 
   const handleAddToWishlist = async () => {
     const accessToken = localStorage.getItem('accessToken');
@@ -189,10 +206,14 @@ export default function ProductSummary({ product, subscriptionOnly = false }) {
             {priceNum ? `${priceNum.toLocaleString()}원` : '가격 정보 없음'}
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <StarRating value={ratingState.score} size={20} />
+            {/* <StarRating value={ratingState.score} size={20} />
             {ratingState.count > 0 && (
               <span style={{ fontSize: 14, color: '#666' }}>({ratingState.count})</span>
-            )}
+            )} */}
+            <StarRating value={displayScore} size={20} />
+              {displayCount != null && (
+                <span style={{ fontSize: 14, color: '#666' }}>({displayCount})</span>
+              )}
           </div>
         </div>
 
