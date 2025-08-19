@@ -3,7 +3,10 @@ const { Inquiry, Inquiry_reply, Customer, Product } = require('../models');
 
 const getProductInquiries = async (req, res) => {
     try {
-        const productId = Number(req.params.product_id);
+        // ✅ product_id | productId 둘 다 허용
+        const pidRaw = req.params.product_id ?? req.params.productId;
+        const productId = Number(pidRaw);
+        //const productId = Number(req.params.product_id);
         const page = parseInt(req.query.page) || 1;
         const pageSize = parseInt(req.query.pageSize) || 10;
         const offset = (page - 1) * pageSize;
@@ -27,9 +30,12 @@ const getProductInquiries = async (req, res) => {
         
         // 조건 : 해당 상품 + '상품 문의'
         const where = {
-            category: '상품 문의',
+            //category: '상품 문의',
             product_id: productId,
         };
+        //const categoryFilter = req.query.category || null;
+        if (req.query.category) where.category = req.query.category;
+
         
         // 이름 가운데 글자 * 처리
         const maskName = (name) => {

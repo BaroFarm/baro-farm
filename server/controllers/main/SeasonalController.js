@@ -1,5 +1,9 @@
 const { Op } = require('sequelize');
-const { Product } = require('../../models');
+const { Product, ProductImg } = require('../../models');
+
+// 공용 절대경로 보정기 (getProducts에서 쓰던 그대로)
+const toAbs = (req, p) =>
+    /^https?:\/\//i.test(p) ? p : `${req.protocol}://${req.get('host')}${p.startsWith('/') ? '' : '/'}${p}`;
 
 // 월별 제철 상품 목록 
 const SEASONAL_KEYWORDS = {
@@ -18,6 +22,7 @@ const SEASONAL_KEYWORDS = {
 };
 
 exports.getSeasonalProducts = async (req, res) => {
+    console.log("[seasonal] hit", { q: req.query, now: new Date().toISOString() });
     try {
         let { limit = 20 } = req.query;
         limit = parseInt(limit, 10);
@@ -51,7 +56,19 @@ exports.getSeasonalProducts = async (req, res) => {
         const products = await Product.findAll({
             where: { [Op.or]: titleLikeOr },
             limit,
-            attributes: ['product_id', 'title', 'price']
+            attributes: ['product_id', 'title', 'price'],
+            include: [
+                {
+                    model: ProductImg,
+                    as: 'images',
+                    attributes: ['img_url', 'img_order', 'img_id'],
+                    required: false,
+                    separate: true,       // 대표 한 장만
+                    limit: 1,
+                    order: [['img_order', 'ASC'], ['img_id', 'ASC']],
+                },
+            ],
+            order: [['product_id', 'DESC']], // 임의 정렬 (원하면 바꿔도 됨)
         });
 
         if (!products || products.length === 0) {
@@ -62,14 +79,19 @@ exports.getSeasonalProducts = async (req, res) => {
             });
         }
 
-        const data = products.map(p => ({
-            id: String(p.product_id),
-            title: p.title,
-            price: p.price,
-            image_url: `https://cdn.baro.com/images/product/${p.product_id}.jpg`,
-            is_subscription_available: false, // 임시 데이터 
-            average_rating: 4.7               // 임시 데이터  
-        }));
+        const data = products.map(p => {
+            //id: String(p.product_id),
+            const first = p.images?.[0]?.img_url || null;
+            const imageUrl = first ? toAbs(req, first) : toAbs(req, '/images/mock/no-image-240.png');
+            return{
+                id: p.product_id,                         // 숫자로 통일
+                title: p.title,
+                price: p.price,
+                image_url: imageUrl,                      // ✅ 하드코딩 CDN 제거
+                is_subscription_available: false,
+                average_rating: 4.7,
+            };             
+        });
 
         return res.status(200).json({
             status: 'success',

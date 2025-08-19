@@ -1,111 +1,31 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+// src/components/common/product/SeasonalProduct.jsx
+import React from "react";
 import ProductSlider from "./ProductSlider";
+import useSeasonalProducts from "../../../hooks/useSeasonalProducts";
+// (선택) 실패 시 임시 대체
+import { mockSeasonalProducts } from "../../../data/mockSeasonalProducts";
 
-//비회원인 경우 userId
-function generateNewGuestId() {
-  return "guest_" + Date.now() + "_" + Math.floor(Math.random() * 10000);
-}
+export default function SeasonalProduct({ limit = 20 }) {
+  const { items, loading, error } = useSeasonalProducts({ limit });
 
-export default function SeasonalProduct() {
-    const [products, setProducts] = useState([]);
+  const fallback = (mockSeasonalProducts || []).map((item) => ({
+    id: item.id,
+    name: item.title,
+    price: item.price,
+    image: item.image_url,
+    rating: item.average_rating ?? 0,
+    isSubscription: item.is_subscription_available ?? false,
+  }));
 
-     // 게스트 아이디를 localStorage에서 불러오거나 새로 생성
-    const guestUserIdRef = React.useRef(null);
+  const products = error ? fallback : items;
 
-    if (!guestUserIdRef.current) {
-        let id = localStorage.getItem("guestUserId");
-        if (!id) {
-            id = generateNewGuestId();
-            localStorage.setItem("guestUserId", id);
-        }
-        guestUserIdRef.current = id;
-    }
-    
-    useEffect(() => {
-        const fetchProducts = async () => {
-            console.log("fetchProducts 실행");
-            try {
-                const accessToken = localStorage.getItem("accessToken");
+  if (loading && !products?.length) {
+    return <ProductSlider loading title="제철 상품" products={[]} />;
+  }
 
-                const headers = {
-                    "Content-Type": "application/json",
-                    ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
-                };
-
-                const params = accessToken ? {} : { user_id: guestUserIdRef.current };
-
-                const response = await axios.get(
-                    `${process.env.REACT_APP_API_URL}/api/products/seasonal`,
-                    {
-                        headers,
-                        params,
-                    }
-                );
-
-            if (response.data.status === "success") {
-                // 필요한 데이터 가공 (별점이 없으면 0으로)
-                const productsWithRating = response.data.data.map((item) => ({
-                    ...item,
-                    name: item.title,
-                    rating: item.rating || 0,
-                    image: item.image_url,
-                }));
-
-                setProducts(productsWithRating);
-            } else {
-                alert("상품 정보를 불러올 수 없습니다.");
-            }
-        } catch (error) {
-            console.error("상품 불러오기 실패", error);
-            //alert("상품 정보를 불러올 수 없습니다.");
-            // 임시: 백엔드 연결 안됐을 때 더미 데이터로 테스트
-            setProducts([
-                {
-                    id: "101",
-                    name: "감자",
-                    image: "https://via.placeholder.com/200x150?text=감자",
-                    price: 3200,
-                    rating: 4.3,
-                },
-                {
-                id: "102",
-                name: "강원도 고구마",
-                image: "https://via.placeholder.com/200x150?text=고구마",
-                price: 5800,
-                rating: 4.7,
-                },
-                                {
-                    id: "103",
-                    name: "감자",
-                    image: "https://via.placeholder.com/200x150?text=감자",
-                    price: 3200,
-                    rating: 4.3,
-                },
-                                {
-                    id: "104",
-                    name: "감자",
-                    image: "https://via.placeholder.com/200x150?text=감자",
-                    price: 3200,
-                    rating: 4.3,
-                },
-                                {
-                    id: "105",
-                    name: "감자",
-                    image: "https://via.placeholder.com/200x150?text=감자",
-                    price: 3200,
-                    rating: 4.3,
-                },
-            ]);
-            }
-        };
-
-        fetchProducts();
-    }, []);
-
-    return (
-        
-        <ProductSlider products={products} title="제철 상품 추천" />
-                
-    );
+  return(
+    <div style={{marginTop: "20px"}}>
+      <ProductSlider products={products} title="제철 상품" />
+    </div>
+  );
 }

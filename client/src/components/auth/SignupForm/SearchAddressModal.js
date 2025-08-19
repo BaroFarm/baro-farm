@@ -7,12 +7,19 @@ import {
     ModalCloseButton,
     ModalBody,
     Spinner,
+
 } from "@chakra-ui/react";
 
 // lazy load
 const DaumPostcode = React.lazy(() => import("react-daum-postcode"));
 
-export default function SearchAddressModal({ isOpen, onClose, onCompletePost }) {
+export default function SearchAddressModal({ 
+    isOpen,
+    onClose, 
+    onCompletePost,
+
+}) {
+
     return (
         <Modal isOpen={isOpen} onClose={onClose} size={"sm"}>
         <ModalOverlay />
@@ -23,6 +30,7 @@ export default function SearchAddressModal({ isOpen, onClose, onCompletePost }) 
                 <Suspense fallback={<Spinner />}>
                     <DaumPostcode onComplete={onCompletePost} />
                 </Suspense>
+        
             </ModalBody>
         </ModalContent>
     </Modal>

@@ -1,25 +1,45 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import ProductCard from "./ProductCard";
 
-export default function ProductGrid({ products = [], title = "" }) {
+export default function ProductGrid({ products = [], title = "", forceFrom}) {
     const itemsPerPage = 40;
-
     const visibleProducts = products.slice(0, itemsPerPage);
+    const navigate = useNavigate();
+
+    const goDetail = (p) => {
+    const pid = String(p.id ?? p.product_id);
+    if (!pid) return;
+    if (forceFrom === 'sub') {
+        navigate(`/shop/product/${pid}?from=sub`, { state: { from: 'subscription' } });
+    } else {
+      navigate(`/shop/product/${pid}`); // ✅ 메인은 쿼리/state 안 붙임
+    }
+    };
 
     return (
-        <div className="w-full px-4">
-            <h2 className="text-xl font-bold mb-4" style={{ textAlign: "left" }}>
+        <div style={{ width: '100%', padding: '0' }}>
+            <h2
+                style={{
+                    fontSize: '20px',
+                    fontWeight: 'bold',
+                    marginBottom: '16px',
+                    textAlign: 'left',
+                }}
+            >
                 {title}
             </h2>
             <div
                 style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(5, minmax(220px, 1fr))",
-                gap: "20px",
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(5, 233px)',
+                    gap: '10px',
                 }}
             >
-                {visibleProducts.map((product) => (
-                    <ProductCard key={product.id} product={product} />
+                {visibleProducts.map((p) => (
+                    <div key={p.id ?? p.product_id} onClick={() => goDetail(p)} style={{ cursor: 'pointer' }}>
+                        <ProductCard product={p} /> {/* ← 여기서는 key 제거 */}
+                    </div>
                 ))}
             </div>
         </div>
