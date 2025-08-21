@@ -1,5 +1,6 @@
 const { Op } = require('sequelize');
-const { Order, OrderProduct, Product, DeliveryDetail, Payment, Seller, DirectStore, ProductImg, Address } = require('../../models');
+const { Order, OrderProduct, Product, DeliveryDetail, Payment, Seller, Store, ProductImg, Customer } = require('../../models');
+
 
 // 주문/배송 내역 조회
 const getMyOrders = async (req, res) => {
@@ -10,6 +11,7 @@ const getMyOrders = async (req, res) => {
       where: { customer_id: customerId },
       order: [['order_date', 'DESC']],
       include: [
+        { model: Customer },
         {
           model: OrderProduct,  // ← Order.hasMany(OrderProduct) 에 alias 없음
           as: 'items',
@@ -21,14 +23,13 @@ const getMyOrders = async (req, res) => {
               attributes: ['product_id', 'title'],
               include: [
                 {
-                  model: ProductImg, 
-                  as: 'images',
                   attributes: ['img_url'],
                   required: false,
                 }
               ]
             }
           ]
+        }
         },
         // {
         //   model: DeliveryDetail,
@@ -49,6 +50,16 @@ const getMyOrders = async (req, res) => {
       deliveryMap = Object.fromEntries(dels.map(d => [d.order_id, d]));
     }
 
+    const orderIds = orders.map(o => o.order_id);
+    let deliveryMap = {};
+    if (orderIds.length) {
+      const dels = await DeliveryDetail.findAll({
+        where: { order_id: { [Op.in]: orderIds } },
+        attributes: ['order_id', 'delivery_status'],
+      });
+      deliveryMap = Object.fromEntries(dels.map(d => [d.order_id, d]));
+    }
+
     // 응답 형식 맞춰 데이터 가공
     const formattedOrders = (orders || []).map(order => ({ 
       order_id: order.order_id ?? null, 
@@ -57,7 +68,7 @@ const getMyOrders = async (req, res) => {
       order_state: order.order_state ?? null, 
       delivery_status: deliveryMap[order.order_id]?.delivery_status ?? '배송준비',
       receiver_name: order.receiver_name ?? null, 
-      street: order.street ?? null, 
+      street: order.Customer?.street ?? null,
       // itemsPreview: order.OrderProducts.map(item => {
       //   const p = item.Product;
       //   // ProductImgs가 배열일 가능성 큼
@@ -93,47 +104,32 @@ const getMyOrders = async (req, res) => {
   }
 };
 
-
 // 주문/배송 내역 상세 조회
 const getMyOrderDetail = async (req, res) => {
   try {
     const customerId = req.user.customer_id;
     const { order_id } = req.params;
 
-    // 주문 조회 (주문상품, 상품, 판매자, 스토어, 배송, 결제 정보 포함)
     const order = await Order.findOne({
-      where: {
-        order_id,
-        customer_id: customerId
-      },
+      where: { order_id, customer_id: customerId },
       include: [
+        { model: Customer },
         {
           model: OrderProduct,
-          as: 'items',
           where: { order_id },
           required: false,
           include: [
             {
               model: Product,
-              as: 'Product',
-              attributes:['product_id','title', 'price'],
+              attributes: ['product_id', 'title', 'price'],
               include: [
                 {
                   model: Seller,
-                  as:'seller',
                   attributes: ['name'],
                   required: false,
-                  // include: [
-                  //   {
-                  //     model: DirectStore,
-                  //     as:'direct_store',
-                  //     attributes: ['name'] // 스토어 이름
-                  //   },
-                  // ]
                 },
                 {
-                  model: ProductImg, 
-                  as: 'images', 
+                  model: ProductImg,
                   attributes: ['img_url'],
                   required: false,
                 }
@@ -141,16 +137,7 @@ const getMyOrderDetail = async (req, res) => {
             }
           ]
         },
-        // {
-        //   model: DeliveryDetail,
-        //   as: 'delivery', // ← 중요
-        //   required: false,
-        // },
-        {
-          model: Payment,
-          as: 'Payment', // ← 중요
-          required: false,
-        }
+        { model: Payment, required: false },
       ]
     });
 
@@ -161,7 +148,8 @@ const getMyOrderDetail = async (req, res) => {
       });
     }
 
-    // ✅ 주소 단건 조회 (연관설정 없어도 OK)
+
+    // 주소 단건 조회 
     let addr = null;
     if (Address && order.address_id) {
       addr = await Address.findOne({
@@ -170,13 +158,13 @@ const getMyOrderDetail = async (req, res) => {
       });
     }
 
-    // 2) 배송 상세 별도 조회(왜? Order에는 DeliveryDetail alias가 없음)
     const delivery = await DeliveryDetail.findOne({
       where: { order_id: order.order_id },
       order: [['delivery_id', 'DESC']],
     });
 
-    const items = order.items || [];
+
+    const items = order.OrderProducts || [];
 
     // 응답 포맷
     const formattedOrder = {
@@ -184,7 +172,6 @@ const getMyOrderDetail = async (req, res) => {
       order_date: order.order_date,
       order_price: order.order_price,
       order_state: order.order_state,
-      deliveryInfo: {
         delivery_status: delivery?.delivery_status ?? '배송준비',
         tracking_number: delivery?.tracking_number ?? null,
         courier: delivery?.courier ?? null,
@@ -193,9 +180,9 @@ const getMyOrderDetail = async (req, res) => {
         receiver_phone: order.receiver_phone ?? null,
         deliveryAddress: addr
           ? {
-              zipCode: addr.zip_code,
-              street: addr.street,
-              detail: addr.detail,
+          zipCode: order.Customer?.zip_code,
+          street: order.Customer?.street,
+          detail: order.Customer?.detail,
               full: [addr.zip_code, addr.street, addr.detail].filter(Boolean).join(' '),
             }
           : null,
@@ -216,16 +203,16 @@ const getMyOrderDetail = async (req, res) => {
           order_product_id: item.order_product_id,
           product_id: p?.product_id ?? null,
           product_name: p?.title ?? null,
-          product_img: firstImgUrl ?? '~',
+          product_img: p?.ProductImgs?.[0]?.img_url ?? null,
           order_product_quantity: item.order_product_quantity,
           order_product_price: item.order_product_price,
-          sellerName: p?.seller?.name ?? null,
+          sellerName: p?.Seller?.name ?? null,
         };
       }),
       paymentInfo: {
         approved_at: order.Payment?.approved_at ?? null,
-        amount: order.Payment?.amount      ?? 0,
-        method: order.Payment?.method      ?? null,
+        amount: order.Payment?.amount ?? 0,
+        method: order.Payment?.method ?? null,
         discountAmount: 0,
         couponUsed: null
       }

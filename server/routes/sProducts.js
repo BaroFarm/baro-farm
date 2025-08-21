@@ -1,7 +1,7 @@
 // server/routes/s-products.js
 const express = require('express');
 const router = express.Router();
-const { authMiddleware, optionalAuth } = require('../middlewares/authMiddleware');
+const { authMiddleware } = require('../middlewares/authMiddleware');
 const controller = require('../controllers/sProduct');
 const upload = require('../middlewares/imgUpload');
 
