@@ -59,23 +59,45 @@ exports.generateAIDescription = async (req, res) => {
       return res.status(403).json({ message: '판매자만 접근할 수 있습니다.' });
     }
   
-    const productId = req.params.productId;
+    const productId = Number(req.params.productId);
     const { description } = req.body;
-  
-    if (!description) {
-      return res.status(400).json({ message: "설명을 전달받지 못했습니다." });
-    }
+
+    if (!Number.isFinite(productId)) {
+    return res.status(400).json({ message: '유효한 상품 ID가 아닙니다.' });
+  }
+  if (!description || !description.trim()) {
+    return res.status(400).json({ message: '설명을 전달받지 못했습니다.' });
+  }
   
     try {
-      const [updated] = await Product.update(
-        { description },
-        { where: { product_id: productId } }
-      );
+      // const [updated] = await Product.update(
+      //   { description },
+      //   { where: { product_id: productId } }
+      // );
+      // 1) 존재 + (선택) 소유자 검증
+      const product = await Product.findOne({
+        where: {
+          product_id: productId,
+          // 소유자 검증을 하려면 아래 주석 해제
+          // seller_id: req.user.seller_id,
+        },
+        attributes: ['product_id', 'description'],
+      });
   
-      if (updated === 0) {
-        return res.status(404).json({ message: "상품을 찾을 수 없습니다." });
+      // if (!updated) {
+      //   return res.status(404).json({ message: "상품을 찾을 수 없습니다." });
+      // }
+      if (!product) {
+        return res.status(404).json({ message: '상품을 찾을 수 없습니다.' });
+      }
+      // 2) 동일 값이면 업데이트 생략하고 200 반환
+      const oldDesc = product.description || '';
+      if (oldDesc.trim() === description.trim()) {
+        return res.status(200).json({ message: '이미 동일한 설명입니다.', unchanged: true });
       }
   
+      // 3) 실제 업데이트
+      await product.update({ description });
       res.status(200).json({ message: "AI 설명이 저장되었습니다." });
     } catch (err) {
       console.error("AI 설명 저장 오류:", err);

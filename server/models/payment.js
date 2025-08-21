@@ -51,9 +51,15 @@ module.exports = (sequelize, DataTypes) => {
 
   Payment.associate = (models) => {
     Payment.belongsTo(models.Order, {
+      as: 'order',
       foreignKey: 'order_id',
       targetKey: 'order_id'
     });
+    Payment.hasMany(models.Refund, {
+    as: 'refunds',           // 선택(안 써도 됨)
+    foreignKey: 'payment_id',
+    sourceKey: 'payment_id'
+  });
   };
 
   return Payment;

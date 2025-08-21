@@ -1,111 +1,54 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import ProductSlider from './ProductSlider';
-//import ProductCard from "./ProductCard";
+import React,{useMemo} from "react";
+import ProductSlider from "./ProductSlider";
+import useRecommendations from "../../../hooks/useRecommendations";
+import mockRecoProducts from "../../../data/mockRecoProducts";
 
-//비회원인 경우 userId
-function generateNewGuestId() {
-  return "guest_" + Date.now() + "_" + Math.floor(Math.random() * 10000);
+// id 기준 중복 제거
+function dedupeById(list) {
+  const m = new Map();
+  for (const it of list) m.set(it.id, it);
+  return Array.from(m.values());
+}
+// mock → slider 포맷으로 매핑
+function mapFromMock(item) {
+  return {
+    id: item.product_id ?? item.id,
+    name: item.title ?? item.name ?? "상품",
+    price: item.price ?? 0,
+    image: item.image_url ?? item.image ?? "/images/mock/no-image-240.png",
+    rating: Number(item.rating ?? 0),
+  };
 }
 
-export default function Recommendations() {
-    const [products, setProducts] = useState([]);
+export default function Recommendations({
+  title = "추천 상품",
+  fallbackToMock = true, // 필요 시 false로 두면 빈 리스트 그대로 유지
+}) {
+  // 1) API 우선
+  const { items: apiItems = [], loading, error } = useRecommendations();
 
-     // 게스트 아이디를 localStorage에서 불러오거나 새로 생성
-    const guestUserIdRef = React.useRef(null);
+  // 2) API가 비어있거나 실패하면 mock 사용
+  const products = useMemo(() => {
+    const base =
+      apiItems && apiItems.length
+        ? apiItems // 훅에서 이미 {id,name,price,image} 로 매핑됨
+        : fallbackToMock
+        ? mockRecoProducts.map(mapFromMock)
+        : [];
+    return dedupeById(base);
+  }, [apiItems, fallbackToMock]);
 
-    if (!guestUserIdRef.current) {
-        let id = localStorage.getItem("guestUserId");
-        if (!id) {
-            id = generateNewGuestId();
-            localStorage.setItem("guestUserId", id);
-        }
-        guestUserIdRef.current = id;
-    }
-    
-    useEffect(() => {
-        const fetchProducts = async () => {
-            console.log("fetchProducts 실행");
-            try {
-                const accessToken = localStorage.getItem("accessToken");
+  // 로딩 중에도 이전값이 없으면 스켈레톤처럼 비워두고, 값이 있으면 바로 렌더
+  // (ProductSlider에 스켈레톤이 없다면 그냥 즉시 렌더)
 
-                const headers = {
-                    "Content-Type": "application/json",
-                    ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
-                };
-
-                const params = accessToken ? {} : { user_id: guestUserIdRef.current };
-
-                const response = await axios.get(
-                    `${process.env.REACT_APP_API_URL}/api/products/recommendations`,
-                    {
-                        headers,
-                        params,
-                    }
-                );
-
-            if (response.data.status === "success") {
-                // 필요한 데이터 가공 (별점이 없으면 0으로)
-                const productsWithRating = response.data.data.map((item) => ({
-                    ...item,
-                    name: item.title,
-                    rating: item.rating || 0,
-                    image: item.image_url,
-                }));
-
-                setProducts(productsWithRating);
-            } else {
-                alert("상품 정보를 불러올 수 없습니다.");
-            }
-        } catch (error) {
-            console.error("상품 불러오기 실패", error);
-            //alert("상품 정보를 불러올 수 없습니다.");
-            // 임시: 백엔드 연결 안됐을 때 더미 데이터로 테스트
-            setProducts([
-                {
-                    id: "101",
-                    name: "감자",
-                    image: "https://via.placeholder.com/200x150?text=감자",
-                    price: 3200,
-                    rating: 4.3,
-                },
-                {
-                id: "102",
-                name: "강원도 고구마",
-                image: "https://via.placeholder.com/200x150?text=고구마",
-                price: 5800,
-                rating: 4.7,
-                },
-                                {
-                    id: "103",
-                    name: "감자",
-                    image: "https://via.placeholder.com/200x150?text=감자",
-                    price: 3200,
-                    rating: 4.3,
-                },
-                                {
-                    id: "104",
-                    name: "감자",
-                    image: "https://via.placeholder.com/200x150?text=감자",
-                    price: 3200,
-                    rating: 4.3,
-                },
-                                {
-                    id: "105",
-                    name: "감자",
-                    image: "https://via.placeholder.com/200x150?text=감자",
-                    price: 3200,
-                    rating: 4.3,
-                },
-            ]);
-            }
-        };
-
-        fetchProducts();
-    }, []);
-
-
-    return (
-        <ProductSlider products={products} title="추천 상품" />
-    );
+  return(
+    <div style={{marginTop: '20px', marginBottom: '20px'}}>
+      {error && !apiItems.length && fallbackToMock && (
+        <div style={{ padding: 10, margin: "0 24px 8px", background: "#fff3cd", border: "1px solid #ffeeba" }}>
+          추천 상품을 불러오지 못해 임시 데이터를 보여드려요.
+        </div>
+      )}
+      <ProductSlider products={products} title={title} />
+    </div>
+  );
 }

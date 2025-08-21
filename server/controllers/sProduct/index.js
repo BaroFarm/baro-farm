@@ -5,6 +5,7 @@ const AIDescription = require('./AIDescription');
 const manualDescription = require('./manualDescription');
 const AISummary = require('./AISummary');
 const AIVideo = require('./AIVideo');
+const detailPage = require('./detailPage');
 
 module.exports = {
   ...basic,
@@ -13,4 +14,5 @@ module.exports = {
   ...manualDescription,
   ...AISummary,
   ...AIVideo,
+  ...detailPage,
 };
