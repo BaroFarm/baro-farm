@@ -5,5 +5,7 @@ const { authMiddleware, optionalAuth } = require('../middlewares/authMiddleware'
 // 비로그인자도 사용 가능해야 하므로 authMiddleware 대신 optionalAuth 적용
 
 router.get('/products/recommend', optionalAuth, recommendProducts); //
+//둘 다 허용(호환)
+router.get('/products/recommendations', optionalAuth, recommendProducts);
 
 module.exports = router;

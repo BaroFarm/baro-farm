@@ -54,6 +54,7 @@ async function getPopularProducts(limit) {
         const products = await Product.findAll({
             include: [{
                 model: Seller,
+                as: 'seller',
                 where: { store_id }
             }],
             raw: true,
@@ -73,7 +74,9 @@ async function getPopularProducts(limit) {
         where: { product_id: ranked.slice(0, limit) },
         include: [{
             model: ProductImg,
+            as: 'images',
             required: false,
+            separate: true,              // ✅ include limit/order 제대로 먹게
             order: [['img_order', 'ASC']],
             limit: 1
         }],
@@ -142,6 +145,7 @@ async function getContentBasedRecommendedProducts(userId, limit = 20) {
         const orderCounts = await OrderProduct.findAll({
             include: [{
                 model: Product,
+                as:'Product',
                 where: { category_id: categoryId, product_id: { [Op.notIn]: Array.from(alreadyRecommended) } }
             }],
             attributes: [[sequelize.col('OrderProduct.product_id'), 'product_id']],
@@ -188,6 +192,7 @@ async function getContentBasedRecommendedProducts(userId, limit = 20) {
         where: { product_id: resultIds.slice(0, limit) },
         include: [{
             model: ProductImg,
+            as: 'images',
             required: false,
             order: [['img_order', 'ASC']],
             limit: 1
