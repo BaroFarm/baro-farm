@@ -122,67 +122,57 @@ exports.getProductReviews = async (req, res) => {
 };
 
 exports.createReview = async (req, res) => {
-    const { product_id, order_id, rating, content, images } = req.body;
-    const user_id = req.user.id; // JWT 인증 미들웨어에서 세팅된 사용자 정보
+    const product_id = Number.parseInt(req.params.product_id ?? req.body.product_id, 10);
+    const ratingInt = Number.parseInt(req.body.rating, 10);
+    const content = (req.body.content ?? '').trim();
+    const img_url = req.body.img_url ?? null;
+    const customer_id = req.user?.customer_id;
 
-    // 필수 파라미터 검사
-    if (!product_id || !order_id || !rating || !content) {
+    // 인증/필수값 검사
+    if (!customer_id) {
+        return res.status(401).json({ error: { code: 401, message: '인증이 필요합니다.' } });
+    }
+    if (!Number.isInteger(product_id) || product_id <= 0 || !content) {
         return res.status(400).json({
-            error: {
-                code: 400,
-                message: "필수 입력값이 누락되었습니다. (product_id, order_id, rating, content)"
-            }
+        error: { code: 400, message: '필수 입력값이 누락되었습니다. (product_id, rating, content)' }
         });
     }
+    if (!Number.isInteger(ratingInt) || ratingInt < 1 || ratingInt > 5) {
+        return res.status(400).json({ error: { code: 400, message: 'rating은 1~5 사이의 정수여야 합니다.' } });
+        }
 
     try {
-        // 상품 존재 여부 확인
+        // 상품 확인
         const product = await Product.findByPk(product_id);
         if (!product) {
-            return res.status(404).json({
-                error: { code: 404, message: `상품 ID ${product_id}를 찾을 수 없습니다.` }
-            });
+            return res.status(404).json({ error: { code: 404, message: `상품 ID ${product_id}를 찾을 수 없습니다.` } });
         }
 
-    // // 주문 존재 여부 확인 및 본인 확인
-    // const order = await Order.findOne({ where: { order_id, user_id, product_id } });
-    // if (!order) {
-    //     return res.status(403).json({
-    //         error: { code: 403, message: "이 상품에 대한 리뷰를 등록할 권한이 없습니다." }
-    //     });
-    // }
-
-    // 리뷰 저장
-    const review = await Review.create({
-        product_id,
-        user_id,
-        order_id,
-        rating,
-        content,
-        images
-    });
-
-    return res.status(201).json({
-        status: 'success',
-        message: '리뷰가 등록되었습니다.',
-        data: {
-            review_id: review.review_id,
+        // 저장
+        const review = await Review.create({
+            customer_id,
             product_id,
-            user_id,
-            rating,
+            rating: ratingInt,
             content,
-            images,
-            created_at: review.created_date
-        }
-    });
+            img_url,
+            created_date: new Date()
+        });
 
+        return res.status(201).json({
+            status: 'success',
+            message: '리뷰가 등록되었습니다.',
+            data: {
+                review_id: review.review_id,
+                product_id,
+                customer_id,
+                rating: ratingInt,
+                content,
+                img_url,
+                created_at: review.created_date
+            }
+        });
     } catch (err) {
         console.error('리뷰 등록 오류:', err);
-        return res.status(500).json({
-        error: {
-            code: 500,
-            message: '서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
-        }
-        });
+        return res.status(500).json({ error: { code: 500, message: '서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' } });
     }
 };
