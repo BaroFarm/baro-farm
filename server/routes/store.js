@@ -17,6 +17,6 @@ router.get('/product/:product_id', authMiddleware, storeController.getProductDet
 router.patch('/product/:product_id', authMiddleware, storeController.updateProduct);
 
 // 직매장 상세 조회 
-router.get('/:store_id', /*authMiddleware,*/ mainStoreController.getStoreDetail);
+router.get('/:store_id', authMiddleware, mainStoreController.getStoreDetail);
 
 module.exports = router;
