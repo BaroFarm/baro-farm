@@ -116,7 +116,6 @@ module.exports = (sequelize, DataTypes) => {
       sourceKey: 'product_id',
     });
 
-
     Product.hasMany(models.Inquiry, {
       foreignKey: 'product_id',
       sourceKey: 'product_id',
