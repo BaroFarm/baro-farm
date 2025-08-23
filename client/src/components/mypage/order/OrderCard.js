@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import ReviewModal from '../../modal/ReviewModal';
+import DeliveryTrackModal from '../../modal/DeliveryTrackModal';
 
 const API_BASE = process.env.REACT_APP_API_BASE_URL || "";
 
@@ -43,6 +44,7 @@ export default function OrderCard({ order }) {
   } = order || {};
 
   const [openReview, setOpenReview] = useState(false); // ★ 모달 상태
+  const [openTrack, setOpenTrack] = useState(false);
 
   const firstItem = itemsPreview[0] || {};
   const formattedDate = order_date
@@ -219,6 +221,7 @@ export default function OrderCard({ order }) {
           ) : (
             <button
               type="button"
+              onClick={() => setOpenTrack(true)}
               style={{
                 border: '1px solid #ccc',
                 padding: '6px 18px',
@@ -274,6 +277,18 @@ export default function OrderCard({ order }) {
       sellerName={"직매장(농가) 명"}          // 백엔드 값 있으면 교체
       productName={firstItem?.product_name}
       onSubmit={handleSubmitReview}
+    />
+    <DeliveryTrackModal
+      open={openTrack}
+      onClose={() => setOpenTrack(false)}
+      carrierName="CJ 대한통운"
+      carrierPhone="1111-2222"
+      trackingNumber="12345678910"
+      currentStep={2} // 0:주문확인,1:상품준비,2:배송중,3:배송완료
+      events={[
+      { time: "2025-08-23 11:41", location: "이천 로컬 직매장", status: "상품 배송 시작" },
+      { time: "2025-08-23 11:23", location: "이천 로컬 직매장", status: "주문 정보 확인" },
+      ]}
     />
     </div>
   );
