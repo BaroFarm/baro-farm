@@ -19,7 +19,7 @@ export default function DeliveryTrackModal({
         { time: "2025-08-23 11:41", location: "이천 로컬 직매장", status: "상품 배송 시작" },
         { time: "2025-08-23 11:23", location: "이천 로컬 직매장", status: "주문 정보 확인" },
     ],
-    address = "서울시 노원구 공릉로 35…",
+    address = "12345 서울특별시 강남구 테헤란로 101호",
 }) {
     if (!open) return null;
 
@@ -48,7 +48,7 @@ export default function DeliveryTrackModal({
 
                 {/* 현재 배송 상태 */}
                 <div style={S.sectionBox}>
-                    <div style={{ fontWeight: 'bold', marginBottom: 10, textAlign: 'left' }}>현재 배송 상태</div>
+                    <div style={{ fontWeight: 'bold', marginBottom: 15, textAlign: 'left' }}>현재 배송 상태</div>
 
                     <div style={S.progressWrap}>
                         {/* 베이스 라인 */}
@@ -58,7 +58,9 @@ export default function DeliveryTrackModal({
 
                         {/* 스텝 아이콘 */}
                         {steps.map((st, idx) => {
-                            const left = (idx / (steps.length - 1)) * 100;
+                            const basePct = 5;   // 왼쪽 시작 여백 (%)
+                            const rangePct = 90;  // 실제 분배할 영역 (%)
+                            const left = basePct + (idx / (steps.length - 1)) * rangePct;
                             const active = idx <= currentStep;
                             const IconComp = st.Icon;
                             return (
@@ -70,7 +72,7 @@ export default function DeliveryTrackModal({
                                     }}>
                                         <IconComp size={24} color={active ? "#3F7D20" : "#CFCFCF"} />
                                     </div>
-                                    <div style={{ marginTop: 6, fontSize: 12, color: "#2B2B2B" }}>{st.label}</div>
+                                    <div style={{ marginTop: 6, fontSize: 12, color: "#2B2B2B" ,whiteSpace: "nowrap", overflow: "visible",  }}>{st.label}</div>
                                 </div>
                             );
                         })}
@@ -143,23 +145,23 @@ const S = {
     border: "1px solid #EEF0EB",
   },
 
-  progressWrap: { position: "relative", paddingTop: 14, paddingBottom: 8, marginTop: 6 },
+  progressWrap: { position: "relative", padding: '40px 0px 30px', marginTop: 6 },
   progressBase: {
-    position: "absolute", top: 24, left: 28, right: 28, height: 8,
+    position: "absolute", top: 24, left: "5%", right: "5%", height: 8,
     background: "#DADFDA", borderRadius: 8,
   },
   progressFill: {
-    position: "absolute", top: 24, left: 28, height: 8,
+    position: "absolute", top: 24, left: "3%", height: 8,
     background: "#3F7D20", borderRadius: 8,
   },
-  stepItem: { position: "absolute", top: 0, width: 40, textAlign: "center" },
+  stepItem: { position: "absolute", top: 0, width: 40, textAlign: "center",},
   stepIcon: {
-    width: 40, height: 40, borderRadius: 12, border: "2px solid", display: "grid",
+    width: 40, height: 40, borderRadius: 30, border: "2px solid", display: "grid",
     placeItems: "center",
   },
 
   infoBox: {
-    border: "1px solid #E6E8E4", borderRadius: 16, padding: 16,
+    border: "1px solid #E6E8E4", borderRadius: 16, padding: 16, textAlign: 'left'
   },
   infoRow: { display: "flex", gap: 12, alignItems: "baseline" },
   infoKey: { width: 90, color: "#666", fontWeight: 700 },
