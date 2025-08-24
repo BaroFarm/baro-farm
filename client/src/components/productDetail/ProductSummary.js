@@ -5,11 +5,13 @@ import AddCartModal from '../modal/AddCartModal';
 import BuyNowModal from '../modal/BuyNowModal';
 import StarRating from '../common/product/StarRating';
 import CouponCard from '../../seller/CouponCard';
+import CouponListModal from '../modal/CouponListModal';
 
 export default function ProductSummary({ product, subscriptionOnly = false }) {
   const navigate = useNavigate();
   const [openCartModal, setOpenCartModal] = useState(false);
   const [openBuyModal, setOpenBuyModal] = useState(false);
+  const [openCoupons, setOpenCoupons] = useState(false);
 
   // ✅ 안전 가드
   const pid = String(product?.id ?? product?.product_id ?? '');
@@ -219,7 +221,7 @@ export default function ProductSummary({ product, subscriptionOnly = false }) {
         </div>
 
         {/* 쿠폰 영역 (나중에 추가) */}
-        <div style={{  height: '100px' }}><CouponCard /></div>
+        <div onClick={() => setOpenCoupons(true)} style={{ cursor: 'pointer', height: '100px' }}><CouponCard /></div>
 
         {/* 버튼들 */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' }}>
@@ -269,6 +271,14 @@ export default function ProductSummary({ product, subscriptionOnly = false }) {
           )}
         </div>
       </div>
+      {/* 쿠폰 모달 */}
+        <CouponListModal
+          open={openCoupons}
+          onClose={() => setOpenCoupons(false)}
+          // 필요 시 실제 쿠폰 목록 내려주기
+          // coupons={myCouponsFromServer}
+        />
+      
     </section>
   );
 }
