@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import ReviewModal from '../../modal/ReviewModal';
 import DeliveryTrackModal from '../../modal/DeliveryTrackModal';
+import ReturnRequestModal from '../../modal/ReturnRequestModal';
 
 const API_BASE = process.env.REACT_APP_API_BASE_URL || "";
 
@@ -45,6 +46,7 @@ export default function OrderCard({ order }) {
 
   const [openReview, setOpenReview] = useState(false); // ★ 모달 상태
   const [openTrack, setOpenTrack] = useState(false);
+  const [openReturn, setOpenReturn] = useState(false);
 
   const firstItem = itemsPreview[0] || {};
   const formattedDate = order_date
@@ -254,6 +256,7 @@ export default function OrderCard({ order }) {
 
           <button
             type="button"
+            onClick={()=> setOpenReturn(true)}
             style={{
               border: '1px solid #ccc',
               padding: '6px 18px',
@@ -289,6 +292,15 @@ export default function OrderCard({ order }) {
       { time: "2025-08-23 11:41", location: "이천 로컬 직매장", status: "상품 배송 시작" },
       { time: "2025-08-23 11:23", location: "이천 로컬 직매장", status: "주문 정보 확인" },
       ]}
+    />
+    <ReturnRequestModal
+      open={openReturn}
+      onClose={() => setOpenReturn(false)}
+      orderId={detailId}                        // 주문 식별자
+      orderProductId={firstItem?.order_product_id} // 있으면 전달
+      defaultType="RETURN"                      // 기본값: 반품
+      //onSubmitted={handleReturnSubmitted}
+      getToken={getToken}
     />
     </div>
   );
