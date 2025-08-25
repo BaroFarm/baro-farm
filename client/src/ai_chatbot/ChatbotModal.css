@@ -142,11 +142,11 @@
   background-clip: padding-box;
 }
 /* Scrollbar (Firefox) */
-.chatbot-chatArea { scrollbar-color: #cbd5c0 transparent; scrollbar-width: thin; }
+.chatbot-chatArea { scrollbar-color: #cbd5c0 transparent; scrollbar-width: thin; scroll-behavior: smooth; }
 
 /* Message bubbles */
 .chatbot-bubble {
-  max-width: 92%;
+  max-width: 100%;
   border-radius: 12px;
   padding: 10px 12px;
   white-space: pre-wrap;
@@ -249,7 +249,7 @@
   padding: 14px 16px;
   border-radius: 999px;
   cursor: pointer;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 20px;
   letter-spacing: 0.02em;
   transition: transform 80ms ease, filter 120ms ease;
@@ -335,6 +335,30 @@
 .chatbot-input:focus {
   outline: 2px solid #9bb88a;
   outline-offset: 2px;
+}
+
+/* 채팅 버블(봇/사용자) 텍스트 모두 왼쪽 정렬 */
+.chatbot-bubble,
+.chatbot-bubbleUser,
+.chatbot-bubbleBot {
+  text-align: left;
+}
+
+/* 카드/리스트도 왼쪽 정렬 */
+.chatbot-card,
+.chatbot-card-list,
+.chatbot-card * {
+  text-align: left;
+}
+
+/* 팔로업 버튼 영역도 왼쪽 정렬(버튼 텍스트 포함) */
+.chatbot-followups { justify-content: flex-start; }
+.chatbot-followBtn {
+  text-align: left;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-left: 12px; /* 필요 시 */
 }
 
 /* Reduce motion */
