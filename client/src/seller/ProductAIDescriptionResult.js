@@ -1,4 +1,4 @@
-// src/seller/ProductAIDescriptionResult.js (또는 pages/.. 경로)
+// src/seller/ProductAIDescriptionResult.js
 import React from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
@@ -40,7 +40,7 @@ function ProductAIDescriptionResult() {
           },
           body: JSON.stringify({
             product_id: Number(productId),
-            description: aiDescription, // 서버가 필요 없다면 무시, 필요하면 사용
+            description: aiDescription,
           }),
         }
       );
@@ -73,7 +73,7 @@ function ProductAIDescriptionResult() {
       const summaryText = json?.summary ?? json?.data?.summary ?? "";
 
       // 3) 다음 단계로 이동
-        navigate("/product/summary-preview", {
+      navigate("/product/summary-preview", {
         state: { productId, description: aiDescription, summary: summaryText },
       });
     } catch (err) {
@@ -82,52 +82,98 @@ function ProductAIDescriptionResult() {
   };
 
   const handleGoCustom = () =>
-    navigate("/product/ai-custom-input", { state: { productId, base: aiDescription } });
+    navigate("/product/ai-custom-input", {
+      state: { productId, base: aiDescription },
+    });
 
   return (
-    <div style={{ padding: 24 }}>
-      <h2>AI 생성 결과</h2>
-      <div
-    style={{
-      marginTop: 12,
-      padding: 16,
-      border: "1px solid #ddd",
-      borderRadius: 8,
-      backgroundColor: "#f9f9f9",   // 박스 배경 살짝 회색
-      maxWidth: "100%",             // 화면 벗어나지 않게
-      overflowWrap: "break-word",   // 긴 단어 줄바꿈
-      whiteSpace: "pre-wrap"        // 줄바꿈 유지
-    }}
-  >
-    {aiDescription}
-  </div>
+    <div style={styles.page}>
+      {/* 좌측 상단 타이틀 */}
+      <div style={styles.titleRow}>
+        <h1 style={styles.title}>상품 등록</h1>
+      </div>
 
-  <div style={{ marginTop: 16, display: "flex", gap: 12, justifyContent: 'center' }}>
-    <button onClick={handleUseDescription}
-      style={{
-            display: "inline-block", 
-            backgroundColor: "#B6D19B",  // 원하는 버튼 색
-            padding: "8px 16px",
-            borderRadius: "6px",
-            cursor: "pointer",
-            marginTop: '16px',
-            border: 'none',
-            fontSize: '16px'}}
-    >위 설명 사용할게요</button>
-    <button onClick={handleGoCustom}
-      style={{
-            display: "inline-block", 
-            backgroundColor: "#B6D19B",  // 원하는 버튼 색
-            padding: "8px 16px",
-            borderRadius: "6px",
-            cursor: "pointer",
-            marginTop: '16px',
-            border: 'none',
-            fontSize: '16px'}}>
-              직접 작성할게요</button>
-  </div>
+      {/* 중앙 안내 문구 */}
+      <p style={styles.subTitle}>AI가 자동으로 생성한 상세 설명입니다.</p>
+
+      {/* 설명 박스 */}
+      <div style={styles.box}>
+        <div style={styles.desc}>{aiDescription}</div>
+      </div>
+
+      {/* 버튼: 좌/우 배치 */}
+      <div style={styles.actions}>
+        <button onClick={handleUseDescription} style={{ ...styles.btn }}>
+          위 설명 사용할게요
+        </button>
+        <button onClick={handleGoCustom} style={{ ...styles.btn }}>
+          직접 작성할게요
+        </button>
+      </div>
     </div>
   );
 }
+
+const styles = {
+  page: {
+    padding: "24px",
+  },
+  titleRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 20,
+  },
+  // 전페이지 크기에 최대한 맞춘 굵고 큰 제목 (필요시 px값 조절)
+  title: {
+    margin: 0,
+    fontSize: "28px",
+    fontWeight: 700,
+    lineHeight: 1,
+  },
+  subTitle: {
+    textAlign: "center",
+    fontSize: "20px",
+    fontWeight: 600,
+    margin: "20px 0 24px",
+  },
+  box: {
+    maxWidth: 720,
+    margin: "0 auto",
+    background: "#F9F9F9",
+    border: "1px solid #E3E3E3",
+    borderRadius: 10,
+    padding: 24,
+    minHeight: 260,
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "flex-start",
+  },
+  desc: {
+    whiteSpace: "pre-wrap",
+    overflowWrap: "break-word",
+    lineHeight: 1.6,
+    fontSize: 18,
+  },
+  actions: {
+    maxWidth: 720,
+     margin: "48px auto 0",   // ✅ 박스랑 버튼 사이 간격 늘림 (16px → 48px)
+    display: "flex",
+    justifyContent: "space-between", // 좌/우 배치
+    gap: 12,
+  },
+  btn: {
+  
+    backgroundColor: "#B6D19B",   // 연두색
+  border: "1px solid #333",     // 테두리 (진하게)
+  borderRadius: 15,              // 각진 느낌
+  padding: "8px 26px",
+  
+  fontSize: 18,
+  color: "#1d1d1f",
+  cursor: "pointer",
+  fontWeight: 500,
+  },
+};
 
 export default ProductAIDescriptionResult;

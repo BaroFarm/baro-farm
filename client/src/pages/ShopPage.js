@@ -8,7 +8,7 @@ import Subscription from '../components/common/product/Subscription';
 import ProductList from '../components/common/product/ProductList';
 import Pagination from '../components/common/pagination/Pagination';
 //판매자인 경우
-import NavBar from '../seller/NavBar';
+import NavBar from '../components/seller/NavBar';
 
 // JWT payload 안전 파서 (base64url 대응)
 function parseJwt(token) {

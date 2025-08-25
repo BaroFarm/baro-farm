@@ -32,6 +32,37 @@ import ProductAICustomInput from './seller/ProductAICustomInput';
 import ProductVideoPreview from './seller/ProductVideoPreview';
 import ProductFinalPage from './seller/ProductFinalPage';
 import ProductCompletePage from './seller/ProductCompletePage';
+import SellerMainPage from './seller/MainPage';
+import OrderManagementPage from './seller/OrderManagementPage';
+import MyStorePage from './seller/MyStorePage';
+
+import SellerProductDetailPage from './seller/SellerProductDetailPage';
+
+
+import SellerMyPage from './seller/SellerMyPage';
+import MemberInfoPage from './seller/MemberInfoPage';
+
+
+// App.js 맨 위 import들 아래
+const dummyOrderList = [
+  {
+    smartDelivery: 'Y',
+    orderNo: 'ORD-20250824-001',
+    buyer: '김바로',
+    product: '친환경 사과 5kg',
+    status: '결제완료',
+    date: '2025-08-24',
+  },
+  {
+    smartDelivery: 'N',
+    orderNo: 'ORD-20250824-002',
+    buyer: '이팜',
+    product: '바로팜 흙당근 2kg',
+    status: '배송중',
+    date: '2025-08-24',
+  },
+];
+
 
 function App() {
 
@@ -75,6 +106,16 @@ function App() {
             <Route path="/product/video-preview" element={<ProductVideoPreview />} />
             <Route path="/product/final" element={<ProductFinalPage />} />
             <Route path="/product/complete" element={<ProductCompletePage />} />
+            <Route path="/seller/main" element={<SellerMainPage />} /> 
+            <Route path="/order" element={<OrderManagementPage orderList={dummyOrderList} />} />
+
+
+            <Route path="/shop" element={<MyStorePage />} />
+            <Route path="/seller/product/:id" element={<SellerProductDetailPage />} />
+
+            <Route path="/seller/mypage" element={<SellerMyPage />} />
+        <Route path="/mypage/member-info" element={<MemberInfoPage />} />
+
           </Route>
         </Routes>
       </div>
