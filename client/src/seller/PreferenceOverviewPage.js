@@ -121,7 +121,7 @@ function Stars({ n = 4 }) {
 /* ------- 스타일 ------- */
 const styles = {
   page: { padding: "20px 24px 40px" },
-  title: { fontSize: 22, fontWeight: 700, margin: "8px 0 18px" },
+  title: { fontSize: 22, fontWeight: 'bold', margin: "8px 0 18px", textAlign: 'left' },
 
   card: {
     background: "#fff",

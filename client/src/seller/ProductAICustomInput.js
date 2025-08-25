@@ -127,7 +127,7 @@ const styles = {
     marginBottom: 20,
     justifyContent: 'flex-start',
   },
-  title: { margin: 0, fontSize: '28px', fontWeight: 700, lineHeight: 1, textAlign: 'left' },
+  title: { margin: 0, fontSize: '28px', fontWeight: 'bold', lineHeight: 1, textAlign: 'left' },
 
   // 본문 안내는 중앙 정렬 유지 (디자인 동일)
   subTitle: { textAlign: 'center', fontSize: '20px', fontWeight: 600, margin: '20px 0 24px' },

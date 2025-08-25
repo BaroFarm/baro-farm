@@ -30,7 +30,7 @@ const styles = {
   },
   title: {
     fontSize: '28px',
-    fontWeight: '800',
+    fontWeight: 'bold',
     margin: 0,
     textAlign: 'left',
     color: '#1d1d1f',

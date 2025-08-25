@@ -310,7 +310,7 @@ const styles = {
   // 상단 "상품 등록"
   title: {
     fontSize: '28px',
-    fontWeight: 800,
+    fontWeight: 'bold',
     margin: 0,
     textAlign: 'left',
     color: '#1d1d1f'
