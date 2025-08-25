@@ -11,7 +11,6 @@ function ProductAICustomInput() {
   const { state } = useLocation() || {};
   const navigate = useNavigate();
 
-  // 이전 단계에서 넘겨준 값들
   const productId =
     toNum(state?.productId) ?? toNum(localStorage.getItem('current_product_id'));
   const baseText =
@@ -26,10 +25,7 @@ function ProductAICustomInput() {
   const BASE = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/$/, '');
   const token = localStorage.getItem('accessToken');
 
-  const goPrev = () => {
-    // 직전 페이지로 돌아가기(라우트가 고정돼 있다면 원하는 경로로 바꿔도 됨)
-    navigate(-1);
-  };
+  const goPrev = () => navigate(-1);
 
   const goNext = async () => {
     setError('');
@@ -39,7 +35,6 @@ function ProductAICustomInput() {
     try {
       setSaving(true);
 
-      // 명세: POST /api/s-products/{product_id}/description/manual (application/json)
       const res = await fetch(
         `${BASE}/api/s-products/${productId}/description/manual`,
         {
@@ -48,10 +43,9 @@ function ProductAICustomInput() {
             'Content-Type': 'application/json',
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
-          // product_id는 URL 파라미터로 들어가지만, 서버가 바디를 참고할 수도 있으니 같이 전달
           body: JSON.stringify({
             product_id: Number(productId),
-            description: customDescription || '', // 서버가 필요 없다면 무시
+            description: customDescription || '',
           }),
         }
       );
@@ -65,18 +59,14 @@ function ProductAICustomInput() {
         throw new Error(t || `설명 저장 실패 (${res.status})`);
       }
 
-      // 로컬 캐시(다음 단계·복귀 대비)
       if (productId) {
         localStorage.setItem(`last_ai_desc_${productId}`, customDescription || '');
-        localStorage.removeItem(`last_ai_summary_${productId}`); // 요약은 다음 단계에서 새로 생성/조회
+        localStorage.removeItem(`last_ai_summary_${productId}`);
       }
 
-      // 다음 단계로 이동
       navigate('/product/summary-preview', {
         state: {
           productId,
-          // summary 화면은 summary가 없으면 서버에서 생성/조회하므로
-          // description만 넘겨도 무방하나, 즉시 표시하려면 summary로도 같이 전달 가능
           description: customDescription,
           summary: customDescription,
         },
@@ -89,26 +79,35 @@ function ProductAICustomInput() {
   };
 
   return (
-    <div style={styles.wrapper}>
-      <h2 style={styles.title}>상품 등록</h2>
-      <p style={styles.subText}>상세 설명을 직접 작성해주세요.</p>
+    <div style={styles.page}>
+      {/* 좌측 상단 타이틀 */}
+      <div style={styles.titleRow}>
+        <h1 style={styles.title}>상품 등록</h1>
+      </div>
 
-      <textarea
-        style={styles.textarea}
-        value={customDescription}
-        onChange={(e) => setCustomDescription(e.target.value)}
-        placeholder="여기에 상세 설명을 작성하세요."
-      />
+      {/* 안내 문구 (중앙 정렬 유지) */}
+      <p style={styles.subTitle}>상세 설명을 직접 작성해주세요.</p>
+
+      {/* 설명 박스 느낌으로 텍스트 영역 감싸기 */}
+      <div style={styles.box}>
+        <textarea
+          style={styles.textarea}
+          value={customDescription}
+          onChange={(e) => setCustomDescription(e.target.value)}
+          placeholder="여기에 상세 설명을 작성하세요."
+        />
+      </div>
 
       {error && (
         <p style={{ color: '#c00', marginTop: 8, whiteSpace: 'pre-wrap' }}>{error}</p>
       )}
 
-      <div style={styles.buttonGroup}>
-        <button style={styles.button} onClick={goPrev} disabled={saving}>
+      {/* 버튼 위치 및 모양 (DescriptionResult와 동일) */}
+      <div style={styles.actions}>
+        <button style={styles.btn} onClick={goPrev} disabled={saving}>
           &lt; 이전 단계로 이동
         </button>
-        <button style={styles.button} onClick={goNext} disabled={saving}>
+        <button style={styles.btn} onClick={goNext} disabled={saving}>
           {saving ? '저장 중…' : '다음 단계로 이동 >'}
         </button>
       </div>
@@ -117,29 +116,60 @@ function ProductAICustomInput() {
 }
 
 const styles = {
-  wrapper: { maxWidth: '800px', margin: '0 auto', padding: '40px 20px', textAlign: 'center' },
-  title: { fontSize: '22px', fontWeight: 'bold', textAlign: 'left' },
-  subText: { marginTop: '24px', fontSize: '16px' },
+  // ✅ 좌측 정렬 강제: 가운데 컨테이너를 없애고 페이지 전체 좌정렬
+  page: { padding: '24px', width: '100%', textAlign: 'left' },
+
+  // ✅ 제목 줄도 왼쪽 정렬 고정
+  titleRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 20,
+    justifyContent: 'flex-start',
+  },
+  title: { margin: 0, fontSize: '28px', fontWeight: 700, lineHeight: 1, textAlign: 'left' },
+
+  // 본문 안내는 중앙 정렬 유지 (디자인 동일)
+  subTitle: { textAlign: 'center', fontSize: '20px', fontWeight: 600, margin: '20px 0 24px' },
+
+  // DescriptionResult의 박스와 동일한 톤
+  box: {
+    maxWidth: 720,
+    margin: '0 auto',
+    background: '#F9F9F9',
+    border: '1px solid #E3E3E3',
+    borderRadius: 10,
+    padding: 24,
+    minHeight: 260,
+  },
   textarea: {
-    marginTop: '20px',
     width: '100%',
     minHeight: '200px',
-    padding: '16px',
-    fontSize: '15px',
-    borderRadius: '6px',
-    border: '1px solid #ccc',
+    padding: '12px',
+    fontSize: 16,
+    border: 'none',
+    outline: 'none',
     resize: 'vertical',
-    boxSizing: 'border-box',
+    background: 'transparent',
   },
-  buttonGroup: { display: 'flex', justifyContent: 'space-between', marginTop: '40px' },
-  button: {
+
+  // 버튼 영역도 동일한 배치/간격
+  actions: {
+    maxWidth: 720,
+    margin: '48px auto 0',
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  btn: {
     backgroundColor: '#B6D19B',
-    border: '1px solid black',
-    borderRadius: '999px',
-    padding: '10px 24px',
-    fontSize: '14px',
-    fontWeight: '500',
+    border: '1px solid #333',
+    borderRadius: 15,      // DescriptionResult와 동일
+    padding: '8px 26px',
+    fontSize: 18,
+    color: '#1d1d1f',
     cursor: 'pointer',
+    fontWeight: 500,
   },
 };
 

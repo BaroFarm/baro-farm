@@ -3,6 +3,8 @@ import ProductSlider from "./ProductSlider";
 import useRecommendations from "../../../hooks/useRecommendations";
 import mockRecoProducts from "../../../data/mockRecoProducts";
 
+
+
 // id 기준 중복 제거
 function dedupeById(list) {
   const m = new Map();

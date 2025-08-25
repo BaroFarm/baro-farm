@@ -32,12 +32,11 @@ function ProductSummaryPreview() {
 
   const [summary, setSummary] = useState(initialSummary);
   const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);     // 요약 저장 로딩
+  const [saving, setSaving] = useState(false); // 요약 저장 로딩
 
   // 요약이 없으면 서버에 요청해서 생성/조회
   useEffect(() => {
     if (!productId) return;
-    // 이미 요약을 가지고 있으면 호출 안 함
     if (summary && summary.trim()) return;
 
     if (!BASE) {
@@ -92,10 +91,9 @@ function ProductSummaryPreview() {
             "Content-Type": "application/json",
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
-          // 명세엔 product_id만 필수지만, 서버가 요약 본문을 요구할 수도 있으니 같이 전송
           body: JSON.stringify({
             product_id: Number(productId),
-            summary, // 서버가 무시해도 무해
+            summary,
           }),
         }
       );
@@ -109,10 +107,7 @@ function ProductSummaryPreview() {
         throw new Error(text || `요약 저장 실패 (${res.status})`);
       }
 
-      // 성공 캐시
       localStorage.setItem(`final_ai_summary_${productId}`, summary);
-
-      // 다음 단계로 이동
       navigate("/product/video-preview", { state: { productId, summary } });
     } catch (e) {
       alert(e.message || "요약 저장 중 오류가 발생했습니다.");
@@ -127,7 +122,7 @@ function ProductSummaryPreview() {
       <p style={styles.subText}>상품에 대한 간단한 소개글입니다.</p>
 
       <div style={styles.labelRow}>
-        <span>AI 요약</span>
+        <span style={styles.labelText}>AI 요약</span>
         <button style={styles.editButton} onClick={goPrev} disabled={loading}>
           요약 수정하기
         </button>
@@ -158,13 +153,55 @@ function ProductSummaryPreview() {
 const styles = {
   wrapper: { maxWidth: "800px", margin: "0 auto", padding: "40px 20px", textAlign: "center" },
   title: { fontSize: "22px", fontWeight: "bold", textAlign: "left" },
-  subText: { fontSize: "18px", margin: "40px 0 24px" },
-  labelRow: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px", fontSize: "15px" },
-  editButton: { padding: "6px 12px", border: "1px solid #ccc", borderRadius: "999px", backgroundColor: "white", cursor: "pointer", fontSize: "13px" },
-  summaryBox: { border: "1px solid #888", padding: "24px", minHeight: "80px", textAlign: "left", fontSize: "16px", backgroundColor: "#fff" },
+  // ⬆️ 안내문 크기 업 (18 → 22)
+  subText: { fontSize: "22px", margin: "40px 0 24px" },
+
+  labelRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "10px",
+  },
+  // ⬆️ AI 요약 라벨 크기 업 (15 → 20) + 굵게
+  labelText: { fontSize: "20px", fontWeight: 700 },
+
+  editButton: {
+    padding: "6px 12px",
+    border: "1px solid #ccc",
+    borderRadius: "999px",
+    backgroundColor: "white",
+    cursor: "pointer",
+    fontSize: "13px",
+  },
+
+  summaryBox: {
+    border: "1px solid #888",
+    padding: "24px",
+    minHeight: "80px",
+    textAlign: "left",
+    fontSize: "16px",
+    backgroundColor: "#fff",
+  },
+
   buttonGroup: { display: "flex", justifyContent: "space-between", marginTop: "60px" },
-  buttonWhite: { backgroundColor: "white", border: "1px solid #ccc", borderRadius: "999px", padding: "10px 24px", fontSize: "14px", fontWeight: "500", cursor: "pointer" },
-  buttonGreen: { backgroundColor: "#B6D19B", border: "1px solid black", borderRadius: "999px", padding: "10px 24px", fontSize: "14px", fontWeight: "500", cursor: "pointer" },
+  buttonWhite: {
+    backgroundColor: "white",
+    border: "1px solid #ccc",
+    borderRadius: "999px",
+    padding: "10px 24px",
+    fontSize: "14px",
+    fontWeight: "500",
+    cursor: "pointer",
+  },
+  buttonGreen: {
+    backgroundColor: "#B6D19B",
+    border: "1px solid black",
+    borderRadius: "999px",
+    padding: "10px 24px",
+    fontSize: "14px",
+    fontWeight: "500",
+    cursor: "pointer",
+  },
 };
 
 export default ProductSummaryPreview;

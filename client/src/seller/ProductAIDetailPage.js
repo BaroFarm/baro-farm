@@ -7,125 +7,145 @@ export default function ProductAIDetailPage() {
   const navigate = useNavigate();
 
   const [keywordsText, setKeywordsText] = useState("");
-  const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
-  const [desc, setDesc] = useState("");
   const [error, setError] = useState(null);
 
-  // 응답에서 설명 텍스트 뽑기 (스키마 방어)
-  const pickDescription = (resJson) => {
-    if (!resJson) return "";
-    if (typeof resJson === "string") return resJson;
-    if (resJson.generatedDescription) return resJson.generatedDescription;
-    if (resJson.data?.generatedDescription) return resJson.data.generatedDescription;
-    if (resJson.description) return resJson.description;
-    return JSON.stringify(resJson);
-  };
-
-  const onGenerate = async () => {
-    setError(null);
-    if (!productId) return setError("상품 ID가 필요합니다.");
-
-    const keywords = keywordsText
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-
-    try {
-      setLoading(true);
-
-      const BASE = (process.env.REACT_APP_API_BASE_URL || "").replace(/\/$/, "");
-      const token = localStorage.getItem("accessToken");
-
-      const res = await fetch(`${BASE}/api/s-products/${productId}/description/ai-gen`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          product_id: Number(productId),
-          ...(keywords.length ? { keywords } : {}),
-          ...(prompt.trim() ? { prompt: prompt.trim() } : {}),
-        }),
-      });
-
-      if (res.status === 401) {
-        setError("로그인이 필요합니다. 다시 로그인해주세요.");
-        setTimeout(() => navigate("/login"), 600);
-        return;
-      }
-      if (!res.ok) {
-        const errText = await res.text().catch(() => "");
-        throw new Error(errText || `요청 실패 (${res.status})`);
-      }
-
-      const json = await res.json();
-      const text = pickDescription(json) || "";
-      setDesc(text);
-
-      // 🔸 로컬 캐시 + 결과 페이지로 이동
-      localStorage.setItem(`last_ai_desc_${productId}`, text);
-      navigate(`/seller/products/${productId}/description/result`, {
-        state: { productId: Number(productId), description: text },
-      });
-    } catch (e) {
-      setError(e.message || "AI 생성 실패");
-    } finally {
-      setLoading(false);
-    }
+  const onGenerate = () => {
+    if (!keywordsText.trim()) return;
+    const text = `샘플 생성된 설명: ${keywordsText}`;
+    localStorage.setItem(`last_ai_desc_${productId}`, text);
+    navigate(`/seller/products/${productId}/description/result`, {
+      state: { productId: Number(productId), description: text },
+    });
   };
 
   return (
-    <div style={{ padding: 16,
-      maxWidth: 960,   // 👉 폭을 넓혀줌 (필요하면 100%로 해도 됨)
-      margin: "0 auto",}} 
-    > 
-      <h2>상품 설명 자동 생성</h2>
-
-      <div style={{ marginTop: 12 }}>
-        <label>키워드 (쉼표로 구분):</label>
-        <input
-          style={{ display: "block", width: "100%", border: "1px solid #ccc", padding: 6, marginTop: 6 }}
-          value={keywordsText}
-          onChange={(e) => setKeywordsText(e.target.value)}
-          placeholder="예: 유기농, 산지직송, 아침수확"
-          onKeyDown={(e) => { if (e.key === "Enter") onGenerate(); }}
-        />
+    <div style={styles.pageWrapper}>
+      <div style={{ marginBottom: 24 }}>
+        <h2 style={styles.title}>상품 등록</h2>
       </div>
 
-      <div style={{ marginTop: 12 }}>
-        <label>프롬프트(선택):</label>
-        <textarea
-          style={{ display: "block", width: "100%", height: 120, border: "1px solid #ccc", padding: 6, marginTop: 6 }}
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="설명 톤/분량/타겟 등을 자유롭게"
-        />
-      </div>
+      <div style={styles.mainSection}>
+        <p style={styles.headline}>
+          키워드를 입력해 자동으로 상세 설명을 만들어보세요!
+        </p>
 
-      <div style={{ marginTop: 12,  }}>
-        <button onClick={onGenerate} disabled={loading}
+        <div style={styles.inputRow}>
+          <label style={styles.inputLabel}>키워드 입력</label>
+          <input
+            style={styles.inputBox}
+            value={keywordsText}
+            onChange={(e) => setKeywordsText(e.target.value)}
+            placeholder="달달한"
+            onKeyDown={(e) => { if (e.key === "Enter") onGenerate(); }}
+          />
+        </div>
+
+        <button
+          onClick={onGenerate}
+          disabled={loading}
           style={{
-            display: "inline-block", 
-            backgroundColor: "#B6D19B",  // 원하는 버튼 색
-            padding: "8px 16px",
-            borderRadius: "6px",
-            cursor: "pointer",
-            marginTop: '16px',
-            border: 'none',
-            fontSize: '16px'}}>
+            ...styles.ctaButton,
+            opacity: loading ? 0.7 : 1,
+            cursor: loading ? "not-allowed" : "pointer",
+          }}
+        >
           {loading ? "생성 중..." : "자동 AI 상세 설명 생성하기"}
         </button>
       </div>
 
-      {error && <p style={{ color: "#c00", marginTop: 8 }}>{error}</p>}
-      {/* desc는 즉시 이동하므로 남겨도 되고 제거해도 됨 */}
-      {desc && (
-        <div style={{ marginTop: 16, padding: 12, border: "1px solid #ddd", borderRadius: 8, whiteSpace: "pre-wrap" }}>
-          {desc}
-        </div>
-      )}
+      <div style={styles.bottomLeft}>
+        <button
+          type="button"
+          onClick={() => navigate("/product/image-upload")}
+          style={styles.prevBtn}
+        >
+          &lt;  이전 단계로 이동
+        </button>
+      </div>
+
+      {error && <p style={{ color: "#c00", marginTop: 12, textAlign: "center" }}>{error}</p>}
     </div>
   );
 }
+
+const styles = {
+  pageWrapper: { maxWidth: 1200, margin: "0 auto", padding: "40px 20px" },
+
+  title: { fontSize: 28, fontWeight: 800, margin: 0, textAlign: "left", color: "#1d1d1f" },
+
+  mainSection: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: "40vh",
+    gap: 36,
+  },
+
+  // ✅ 안내 문구도 30px로 통일
+  headline: {
+    fontSize: 30,
+    fontWeight: 400,
+    color: "#333",
+    textAlign: "center",
+    margin: "20px 0 8px 0",
+    lineHeight: 1.5,
+  },
+
+  inputRow: {
+    display: "flex",
+    alignItems: "center",
+    width: "100%",
+    maxWidth: 720,
+    marginTop: 4,
+  },
+  // ✅ 라벨 30px (볼드 X)
+  inputLabel: {
+    fontSize: 30,
+    fontWeight: 400,
+    color: "#1d1d1f",
+    marginRight: 12,
+    whiteSpace: "nowrap",
+  },
+  // ✅ 입력 박스 위아래 높이를 더 얇게
+  inputBox: {
+    flex: 1,
+    height: 40,           // 기존 50 → 40 (얇게)
+    padding: "0 12px",    // 위아래 최소 패딩
+    borderRadius: 8,
+    border: "1px solid #ccc",
+    fontSize: 18,
+    boxSizing: "border-box",
+    backgroundColor: "#fff",
+  },
+
+  // ✅ 버튼 위아래 좁게 + 텍스트 30px로 라벨과 통일
+  ctaButton: {
+    backgroundColor: "#2E7D32",
+    color: "#fff",
+    border: "none",
+    borderRadius: 10,
+    padding: "px 36px", // 기존 16px → 10px (세로 얇게)
+    fontSize: 30,         // 라벨과 동일한 크기
+    fontWeight: 400,      // 볼드 제거
+    marginTop: 16,
+  },
+
+  bottomLeft: {
+    display: "flex",
+    justifyContent: "flex-start",
+    width: "100%",
+    maxWidth: 900,
+    margin: "80px auto 0",
+  },
+  // ✅ 이전 버튼도 약간 키움
+  prevBtn: {
+    backgroundColor: "#fff",
+    border: "1px solid #bbb",
+    borderRadius: 22,
+    padding: "14px 26px", // 살짝 키움
+    fontSize: 18,         // 글자 크기 업
+    color: "#1d1d1f",
+  },
+};
