@@ -3,3 +3,6 @@ node_modules/
 
 #환경 변수 파일 (보안 중요)
 .env
+
+#테스트 HTML 파일
+controllers/chatbot/tester.html
