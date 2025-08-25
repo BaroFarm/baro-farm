@@ -107,7 +107,7 @@ const card = {
   border: '1px solid #e7eedf',
 };
 
-const title = { fontSize: 18, fontWeight: 700, marginBottom: 20, color: '#1b1b1b' };
+const title = { fontSize: 18, fontWeight: 'bold', marginBottom: 20, color: '#1b1b1b' };
 
 const topRow = { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 };
 const realname = { fontWeight: 600, color: '#333' };

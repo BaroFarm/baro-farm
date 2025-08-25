@@ -152,7 +152,7 @@ const styles = {
   pageWrapper: { maxWidth: 1200, margin: "0 auto", padding: "40px 20px" },
 
   // 전페이지 크기에 맞춘 굵고 큰 제목
-  title: { fontSize: 28, fontWeight: 800, margin: 0, textAlign: "left", color: "#1d1d1f" },
+  title: { fontSize: 28, fontWeight: 'bold', margin: 0, textAlign: "left", color: "#1d1d1f" },
 
   mainSection: {
     display: "flex",
@@ -165,11 +165,12 @@ const styles = {
 
   // 안내 문구 30px
   headline: {
-    fontSize: 30,
+    fontSize: 24,
     fontWeight: 400,
     color: "#333",
     textAlign: "center",
-    margin: "20px 0 8px 0",
+    maxWidth: 720,
+    margin: "20px auto 8px",
     lineHeight: 1.5,
   },
 
@@ -178,13 +179,13 @@ const styles = {
     alignItems: "center",
     width: "100%",
     maxWidth: 720,
-    marginTop: 4,
+    margin: "4px auto 0",
     gap: 12,
   },
 
   // 라벨 30px(볼드X)
   inputLabel: {
-    fontSize: 30,
+    fontSize: 24,
     fontWeight: 400,
     color: "#1d1d1f",
     whiteSpace: "nowrap",
@@ -209,7 +210,7 @@ const styles = {
     border: "none",
     borderRadius: 10,
     padding: "10px 36px",
-    fontSize: 30,
+    fontSize: 24,
     fontWeight: 400,
     marginTop: 16,
   },

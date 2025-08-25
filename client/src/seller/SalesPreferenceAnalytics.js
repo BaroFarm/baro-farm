@@ -322,7 +322,7 @@ function PreferenceBars() {
 /* =============== 스타일 =============== */
 const styles = {
   page: { padding: "20px 24px 40px" },
-  title: { fontSize: 22, fontWeight: 700, margin: "8px 0 18px" },
+  title: { fontSize: 22, fontWeight: 700, margin: "8px 0 18px" , textAlign: 'left'},
   tabRow: { display: "flex", gap: 10, marginBottom: 16 },
   tab: { padding: "10px 16px", borderRadius: 999, border: "1px solid #cfd8cf", background: "#fff", cursor: "pointer", fontSize: 14 },
   tabActive: { background: "#9CC285", color: "#fff", borderColor: "#9CC285", fontWeight: 600 },

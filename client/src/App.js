@@ -37,7 +37,8 @@ import OrderManagementPage from './seller/OrderManagementPage';
 import MyStorePage from './seller/MyStorePage';
 
 import SellerProductDetailPage from './seller/SellerProductDetailPage';
-
+import SalesPreferenceAnalytics from './seller/SalesPreferenceAnalytics';
+import PreferenceOverviewPage from './seller/PreferenceOverviewPage';
 
 import SellerMyPage from './seller/SellerMyPage';
 import MemberInfoPage from './seller/MemberInfoPage';
@@ -114,7 +115,9 @@ function App() {
             <Route path="/seller/product/:id" element={<SellerProductDetailPage />} />
 
             <Route path="/seller/mypage" element={<SellerMyPage />} />
-        <Route path="/mypage/member-info" element={<MemberInfoPage />} />
+            <Route path="/mypage/member-info" element={<MemberInfoPage />} />
+            <Route path="/analytics" element={<SalesPreferenceAnalytics />} />
+            <Route path="/analytics/preference/overview" element={<PreferenceOverviewPage />} />
 
           </Route>
         </Routes>

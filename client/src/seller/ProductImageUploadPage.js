@@ -188,7 +188,7 @@ const styles = {
   },
   title: {
     fontSize: "28px",
-    fontWeight: 800,
+    fontWeight: 'bold',
     margin: 0,
     textAlign: "left",
     color: "#1d1d1f",
@@ -202,7 +202,7 @@ const styles = {
     marginBottom: "40px",
   },
   subTitle: {
-    fontSize: "28px", // ✅ 더 크게
+    fontSize: "24px", // ✅ 더 크게
     fontWeight: 400, // ✅ 볼드 없음
     textAlign: "center",
     marginBottom: "20px",

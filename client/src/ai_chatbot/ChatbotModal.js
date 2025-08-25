@@ -33,7 +33,7 @@ export default function ChatbotModal({ open, onClose, onSend, role = "buyer" }) 
         <div style={styles.header}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={styles.iconBox}>💬</span>
-            <span style={{ fontWeight: 700 }}>AI 챗봇</span>
+            <span style={{ fontWeight: 'bold' }}>AI 챗봇</span>
             <span style={styles.roleBadge}>{isSeller ? "판매자" : "구매자"}</span>
           </div>
           <button onClick={onClose} style={styles.closeBtn} aria-label="닫기">✕</button>
@@ -134,7 +134,7 @@ const styles = {
   },
 
   body: { padding: 16, display: "grid", alignItems: "start", gap: 16 },
-  greeting: { textAlign: "center", fontWeight: 700, marginTop: 8 },
+  greeting: { textAlign: "center", fontWeight: 'bold', marginTop: 8 },
 
   // 세로로 꽉 찬 알약 버튼 (구매자 스샷 느낌)
   quickCol: {
@@ -153,7 +153,7 @@ const styles = {
     padding: "14px 16px",
     borderRadius: 999,
     cursor: "pointer",
-    fontWeight: 800,
+    fontWeight: 'bold',
     fontSize: 20,
     letterSpacing: "0.02em",
   },

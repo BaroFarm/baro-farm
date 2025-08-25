@@ -128,7 +128,7 @@ const styles = {
   title: {
     margin: 0,
     fontSize: "28px",
-    fontWeight: 700,
+    fontWeight: 'bold',
     lineHeight: 1,
   },
   subTitle: {

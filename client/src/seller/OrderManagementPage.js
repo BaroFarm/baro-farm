@@ -8,7 +8,7 @@ export default function OrderManagementPage({ orderList = [] }) {
         <h2
           style={{
             fontSize: '28px',       // 글씨 더 크게
-            fontWeight: '800',      // 굵게
+            fontWeight: 'bold',      // 굵게
             margin: 0,              // 불필요한 여백 제거
             textAlign: 'left',      // 좌측 정렬
             color: '#1d1d1f'        // 진한 블랙톤
