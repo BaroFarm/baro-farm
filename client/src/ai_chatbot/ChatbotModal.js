@@ -11,10 +11,11 @@ import "./ChatbotModal.css";
 
 const BASE = (process.env.REACT_APP_API_BASE_URL || "").replace(/\/$/, "");
 
-// ✅ 당신 앱의 주문 목록 기본 경로만 여기서 정하면 나머지는 자동 매핑됩니다.
-const ORDERS_BASE = "/my/orders"; // 앱이 /orders 라면 "/orders" 로만 바꾸세요.
-const SEARCH_PATH = "/search";        // 검색 페이지를 쓰면 경로 지정(없으면 그대로 유지)
-const SEASONAL_PATH = "/seasonal";    // 제철 상품 페이지 경로(선택)
+// ✅ 앱 라우팅 기본 경로
+const ORDERS_BASE = "/my/orders";
+const REFUNDS_BASE = "/my/refunds";   // 환불/반품 내역 페이지가 없으면 ORDERS_BASE로 폴백됨
+const SEARCH_PATH = "/search";
+const SEASONAL_PATH = "/seasonal";
 
 export default function ChatbotModal({ open, onClose, role = "buyer" }) {
   const [msg, setMsg] = useState("");
@@ -27,21 +28,21 @@ export default function ChatbotModal({ open, onClose, role = "buyer" }) {
   const title = isSeller ? "바로팜 판매자 도우미" : "바로팜 구매자 도우미";
   const subtitle = "무엇을 도와드릴까요?";
 
-  // 퀵 버튼 → menu 호출
+  // 퀵 버튼 → menu 호출 (백엔드 스펙에 있는 메뉴만)
   const quickMenus = useMemo(() => {
     return isSeller
       ? {
-          "서비스 사용 안내": { menu_id: "help" },
-          "판매 데이터 확인": { menu_id: "sales_overview" },
-          "상품 등록 도움": { menu_id: "product_register" },
+          // 백엔드에 없는 help/sales_overview/product_register/customer_support 제거/대체
+          "상품 안내": { menu_id: "product" },
           "재고/배송 설정": { menu_id: "shipping" },
-          "고객 문의 응대": { menu_id: "customer_support" },
+          "환불/반품 안내": { menu_id: "refund" },
+          "주문 내역": { menu_id: "orders_page" },
         }
       : {
           "상품 문의": { menu_id: "product" },
           "배송 문의": { menu_id: "shipping" },
           "환불 문의": { menu_id: "refund" },
-          "주문 및 결제": { menu_id: "payment" },
+          "주문 및 결제": { menu_id: "order_payment" }, // ✅ 백엔드와 일치
           "배송 전 변경": { menu_id: "shipping_change_address" },
         };
   }, [isSeller]);
@@ -108,31 +109,38 @@ export default function ChatbotModal({ open, onClose, role = "buyer" }) {
     callChat({ type: "menu", menu_id, params: { ...params, context_role: role } });
 
   // ---------- 라우팅 보조 ----------
-  // /order → /mypage/orders 같은 치환
   const routeAlias = (to) => {
     if (!to) return to;
     let out = to;
 
     // 단수 → 복수, 루트별 alias
     out = out.replace(/^\/order(\/|$)/, `${ORDERS_BASE}$1`);
-    out = out.replace(/^\/orders(\/|$)/, `${ORDERS_BASE}$1`); // 혹시 BE가 /orders 라고 주면 우리 기준으로
+    out = out.replace(/^\/orders(\/|$)/, `${ORDERS_BASE}$1`);
     out = out.replace(/^\/mypage\/order(\/|$)/, `${ORDERS_BASE}$1`);
 
     return out;
   };
 
-  // ★★★ 확장된 매핑: /api/products*, /api/products/seasonal* → 앱 라우트로
+  // /api/products*, /api/products/seasonal* → 앱 라우트로
   function mapProductsApiToApp(url) {
-    // /api/products?query=사과 → /search?keyword=사과
-    const u = new URL(url, "http://_dummy"); // 쿼리 파싱용
+    const u = new URL(url, "http://_dummy");
     if (/^\/api\/products\/?$/i.test(u.pathname)) {
       const q = u.searchParams.get("query") || "";
-      if (SEARCH_PATH) return { kind: "app", to: `${SEARCH_PATH}${q ? `?keyword=${encodeURIComponent(q)}` : ""}` };
+      if (SEARCH_PATH) {
+        return {
+          kind: "app",
+          to: `${SEARCH_PATH}${q ? `?keyword=${encodeURIComponent(q)}` : ""}`,
+        };
+      }
     }
-    // /api/products/seasonal?month=8 → /seasonal?month=8
     if (/^\/api\/products\/seasonal\/?$/i.test(u.pathname)) {
       const m = u.searchParams.get("month");
-      if (SEASONAL_PATH) return { kind: "app", to: `${SEASONAL_PATH}${m ? `?month=${encodeURIComponent(m)}` : ""}` };
+      if (SEASONAL_PATH) {
+        return {
+          kind: "app",
+          to: `${SEASONAL_PATH}${m ? `?month=${encodeURIComponent(m)}` : ""}`,
+        };
+      }
     }
     return null;
   }
@@ -144,13 +152,24 @@ export default function ChatbotModal({ open, onClose, role = "buyer" }) {
     // 절대 외부 링크
     if (/^https?:\/\//i.test(url)) return { kind: "external", href: url };
 
-    // ★ 제품/제철 전용 매핑
+    // 제품/제철 전용 매핑
     const mapped = mapProductsApiToApp(url);
     if (mapped) return mapped;
 
-    // 주문 API 패턴을 SPA 라우트로 변환
-    if (/^\/api\/my\/orders$/i.test(url)) return { kind: "app", to: ORDERS_BASE };
-    const detail = url.match(/^\/api\/orders\/(\d+)/i);
+    // 주문 목록 (/api/my/orders[?order_id=...]) → 앱 라우트
+    const u = new URL(url, "http://_dummy");
+    if (/^\/api\/my\/orders$/i.test(u.pathname)) {
+      const oid = u.searchParams.get("order_id");
+      return { kind: "app", to: `${ORDERS_BASE}${oid ? `?order_id=${encodeURIComponent(oid)}` : ""}` };
+    }
+
+    // 환불/반품 내역 (/api/my/cancel) → 앱 라우트(없으면 주문 목록으로 폴백)
+    if (/^\/api\/my\/cancel$/i.test(u.pathname)) {
+      return { kind: "app", to: REFUNDS_BASE || ORDERS_BASE };
+    }
+
+    // 주문 상세 (/api/orders/:id) → /my/orders/:id
+    const detail = u.pathname.match(/^\/api\/orders\/(\d+)/i);
     if (detail) return { kind: "app", to: `${ORDERS_BASE}/${detail[1]}` };
 
     // 일반 내부 경로
@@ -225,7 +244,7 @@ export default function ChatbotModal({ open, onClose, role = "buyer" }) {
         return;
       }
 
-      // 2) menu_id에 따른 라우팅 스위치 (명세 예시 대응)
+      // 2) menu_id에 따른 라우팅 스위치
       if (fu?.menu_id === "orders_page") {
         goto(ORDERS_BASE);
         setLoading(false);
@@ -242,12 +261,6 @@ export default function ChatbotModal({ open, onClose, role = "buyer" }) {
         setLoading(false);
         return;
       }
-      // if (fu?.menu_id === "product_seasonal_list" && SEASONAL_PATH) {
-      //   const m = fu?.params?.month;
-      //   goto(`${SEASONAL_PATH}${m ? `?month=${encodeURIComponent(m)}` : ""}`);
-      //   setLoading(false);
-      //   return;
-      // }
       // 제철: 페이지 이동 대신 채팅 내 미리보기 카드로 응답 받기
       if (fu?.menu_id === "product_seasonal_list") {
         const rep = await sendMenu("product_seasonal_list", fu.params || {});
@@ -370,7 +383,7 @@ export default function ChatbotModal({ open, onClose, role = "buyer" }) {
                         }
                       }
 
-                      // ★ 제품 미리보기 카드
+                      // 제품 미리보기 카드 (옵션)
                       if (c.type === "products" && Array.isArray(c.items)) {
                         return (
                           <div key={idx} className="chatbot-card">
@@ -445,8 +458,6 @@ export default function ChatbotModal({ open, onClose, role = "buyer" }) {
                 )}
               </div>
             ))}
-
-            {/* 최초 진입 시 퀵버튼 (현재 상단 고정으로 충분) */}
           </div>
         </div>
 
@@ -472,7 +483,7 @@ export default function ChatbotModal({ open, onClose, role = "buyer" }) {
               aria-label="전송"
               title="전송"
               onClick={() => handleSend()}
-              disabled={!canSend}
+              disabled={!(!loading && msg.trim().length > 0)}
             >
               <HiOutlinePaperAirplane size={18} />
             </button>

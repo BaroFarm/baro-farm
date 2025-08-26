@@ -20,6 +20,8 @@ import ProfileEdit from './components/mypage/ProfileEdit';
 import RefundDetailPage from './pages/RefundDetailPage';
 import PaymentPage from './pages/PaymentPage';
 
+import SearchPage from '../src/ai_chatbot/SearchPage';
+
 //판매자 관련
 import SellerLayout from './components/layout/SellerLayout';
 import ProductRegisterPage from './seller/ProductRegisterPage';
@@ -92,6 +94,7 @@ function App() {
             <Route path="/my/cancel/:refundId" element={<RefundDetailPage />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/payments" element={<PaymentPage />} />
+            <Route path="/search" element={<SearchPage />} />
 
           </Route>
 
