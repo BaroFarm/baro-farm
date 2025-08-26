@@ -121,6 +121,22 @@ export default function ChatbotModal({ open, onClose, role = "buyer" }) {
     return out;
   };
 
+  // ★★★ 확장된 매핑: /api/products*, /api/products/seasonal* → 앱 라우트로
+  function mapProductsApiToApp(url) {
+    // /api/products?query=사과 → /search?keyword=사과
+    const u = new URL(url, "http://_dummy"); // 쿼리 파싱용
+    if (/^\/api\/products\/?$/i.test(u.pathname)) {
+      const q = u.searchParams.get("query") || "";
+      if (SEARCH_PATH) return { kind: "app", to: `${SEARCH_PATH}${q ? `?keyword=${encodeURIComponent(q)}` : ""}` };
+    }
+    // /api/products/seasonal?month=8 → /seasonal?month=8
+    if (/^\/api\/products\/seasonal\/?$/i.test(u.pathname)) {
+      const m = u.searchParams.get("month");
+      if (SEASONAL_PATH) return { kind: "app", to: `${SEASONAL_PATH}${m ? `?month=${encodeURIComponent(m)}` : ""}` };
+    }
+    return null;
+  }
+
   // 챗봇 URL → 내부(app) or 외부(external) 판별 + 매핑
   const resolveLink = (url) => {
     if (!url) return null;
@@ -128,7 +144,11 @@ export default function ChatbotModal({ open, onClose, role = "buyer" }) {
     // 절대 외부 링크
     if (/^https?:\/\//i.test(url)) return { kind: "external", href: url };
 
-    // API 패턴을 SPA 라우트로 변환
+    // ★ 제품/제철 전용 매핑
+    const mapped = mapProductsApiToApp(url);
+    if (mapped) return mapped;
+
+    // 주문 API 패턴을 SPA 라우트로 변환
     if (/^\/api\/my\/orders$/i.test(url)) return { kind: "app", to: ORDERS_BASE };
     const detail = url.match(/^\/api\/orders\/(\d+)/i);
     if (detail) return { kind: "app", to: `${ORDERS_BASE}/${detail[1]}` };
@@ -222,9 +242,16 @@ export default function ChatbotModal({ open, onClose, role = "buyer" }) {
         setLoading(false);
         return;
       }
-      if (fu?.menu_id === "product_seasonal_list" && SEASONAL_PATH) {
-        const m = fu?.params?.month;
-        goto(`${SEASONAL_PATH}${m ? `?month=${encodeURIComponent(m)}` : ""}`);
+      // if (fu?.menu_id === "product_seasonal_list" && SEASONAL_PATH) {
+      //   const m = fu?.params?.month;
+      //   goto(`${SEASONAL_PATH}${m ? `?month=${encodeURIComponent(m)}` : ""}`);
+      //   setLoading(false);
+      //   return;
+      // }
+      // 제철: 페이지 이동 대신 채팅 내 미리보기 카드로 응답 받기
+      if (fu?.menu_id === "product_seasonal_list") {
+        const rep = await sendMenu("product_seasonal_list", fu.params || {});
+        pushBot(rep);
         setLoading(false);
         return;
       }
@@ -273,19 +300,19 @@ export default function ChatbotModal({ open, onClose, role = "buyer" }) {
           {/* 대화 영역 */}
           <div ref={scrollRef} className="chatbot-chatArea">
             {/* 항상 맨 위에 표시되는 퀵버튼 영역 */}
-   <div className="chatbot-quickCol">
-     {quickItems.map((label) => (
-       <button
-         key={label}
-         className="chatbot-quickPill"
-         onClick={() => handleQuick(label)}
-       >
-         {label}
-       </button>
-     ))}
-   </div>
+            <div className="chatbot-quickCol">
+              {quickItems.map((label) => (
+                <button
+                  key={label}
+                  className="chatbot-quickPill"
+                  onClick={() => handleQuick(label)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
 
-   {history.map((m, i) => (
+            {history.map((m, i) => (
               <div
                 key={i}
                 className={`chatbot-bubble ${
@@ -298,6 +325,7 @@ export default function ChatbotModal({ open, onClose, role = "buyer" }) {
                 {Array.isArray(m.cards) && m.cards.length > 0 && (
                   <div className="chatbot-cards">
                     {m.cards.map((c, idx) => {
+                      // 가이드 카드
                       if (c.type === "tips" && Array.isArray(c.items)) {
                         return (
                           <div key={idx} className="chatbot-card">
@@ -312,6 +340,8 @@ export default function ChatbotModal({ open, onClose, role = "buyer" }) {
                           </div>
                         );
                       }
+
+                      // 링크 카드
                       if (c.type === "link" && c.url) {
                         const link = resolveLink(c.url);
                         if (link?.kind === "app") {
@@ -339,6 +369,61 @@ export default function ChatbotModal({ open, onClose, role = "buyer" }) {
                           );
                         }
                       }
+
+                      // ★ 제품 미리보기 카드
+                      if (c.type === "products" && Array.isArray(c.items)) {
+                        return (
+                          <div key={idx} className="chatbot-card">
+                            {c.title && <b className="chatbot-card-title">{c.title}</b>}
+                            <div className="cb-productsRow">
+                              {c.items.map((p) => (
+                                <button
+                                  key={p.id ?? p.product_id}
+                                  className="cb-productCard"
+                                  onClick={() => goto(`/product/${p.id ?? p.product_id}`)}
+                                  title={p.title}
+                                >
+                                  <img src={p.image} alt={p.title} />
+                                  <div className="tit">{p.title}</div>
+                                  {"price" in p && p.price != null && (
+                                    <div className="price">
+                                      {Number(p.price).toLocaleString()}원
+                                    </div>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+
+                            {c.more && (() => {
+                              const link = resolveLink(c.more.url);
+                              if (link?.kind === "app") {
+                                return (
+                                  <button
+                                    className="chatbot-linkCard"
+                                    onClick={() => goto(link.to)}
+                                  >
+                                    {c.more.label || "전체 보기"}
+                                  </button>
+                                );
+                              }
+                              if (link?.kind === "external") {
+                                return (
+                                  <a
+                                    className="chatbot-linkCard"
+                                    href={link.href}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    {c.more.label || "전체 보기"}
+                                  </a>
+                                );
+                              }
+                              return null;
+                            })()}
+                          </div>
+                        );
+                      }
+
                       return null;
                     })}
                   </div>
@@ -361,20 +446,7 @@ export default function ChatbotModal({ open, onClose, role = "buyer" }) {
               </div>
             ))}
 
-            {/* 최초 진입 시 퀵버튼 */}
-            {/* {history.length === 0 && (
-              <div className="chatbot-quickCol">
-                {quickItems.map((label) => (
-                  <button
-                    key={label}
-                    className="chatbot-quickPill"
-                    onClick={() => handleQuick(label)}
-                  >
-                    {label}
-                  </button>
-                ))} */}
-              {/* </div> */}
-            {/* )} */}
+            {/* 최초 진입 시 퀵버튼 (현재 상단 고정으로 충분) */}
           </div>
         </div>
 

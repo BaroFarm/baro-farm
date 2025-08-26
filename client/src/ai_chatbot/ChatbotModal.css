@@ -148,6 +148,7 @@
 .chatbot-bubble {
   max-width: 100%;
   border-radius: 12px;
+  margin: 0 4px; 
   padding: 10px 12px;
   white-space: pre-wrap;
   word-break: break-word;
