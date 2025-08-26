@@ -21,6 +21,7 @@ import RefundDetailPage from './pages/RefundDetailPage';
 import PaymentPage from './pages/PaymentPage';
 
 import SearchPage from '../src/ai_chatbot/SearchPage';
+import SeasonalPage from '../src/ai_chatbot/SeasonalPage';
 
 //판매자 관련
 import SellerLayout from './components/layout/SellerLayout';
@@ -95,6 +96,7 @@ function App() {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/payments" element={<PaymentPage />} />
             <Route path="/search" element={<SearchPage />} />
+            <Route path="/seasonal" element={<SeasonalPage />} />
 
           </Route>
 

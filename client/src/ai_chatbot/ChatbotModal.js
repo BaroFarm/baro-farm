@@ -33,10 +33,9 @@ export default function ChatbotModal({ open, onClose, role = "buyer" }) {
     return isSeller
       ? {
           // 백엔드에 없는 help/sales_overview/product_register/customer_support 제거/대체
-          "상품 안내": { menu_id: "product" },
-          "재고/배송 설정": { menu_id: "shipping" },
-          "환불/반품 안내": { menu_id: "refund" },
-          "주문 내역": { menu_id: "orders_page" },
+          "서비스 사용 안내": { menu_id: "guide" },
+          "판매 데이터 확인": { menu_id: "sales_data" },
+          "납품업체/판매자 연결": { menu_id: "call" },
         }
       : {
           "상품 문의": { menu_id: "product" },
