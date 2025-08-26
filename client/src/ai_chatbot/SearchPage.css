@@ -1,0 +1,123 @@
+/* SearchPage.css */
+:root {
+  --sp-green-bg: #E6F4E6;
+  --sp-text: #333;
+  --sp-muted: #666;
+  --sp-radius-pill: 20px;
+  --sp-gap: 8px;
+}
+
+/* 상단 영역 정렬 */
+.sp-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 20px auto 12px;
+  padding: 0 12px;
+}
+
+/* ✅ 연한 초록색 pill 형태의 검색바 */
+.sp-searchBar {
+  background-color: var(--sp-green-bg);
+  border-radius: var(--sp-radius-pill);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-gap);
+  max-width: 300px;
+  width: 100%;
+}
+
+/* 내부 input */
+.sp-searchInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  background-color: transparent;
+  font-size: 16px;
+  color: var(--sp-text);
+}
+
+.sp-searchInput::placeholder {
+  color: var(--sp-muted);
+}
+
+/* X 버튼 */
+.sp-searchClearBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sp-searchClearBtn:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+/* 기존 .sp-sortSelect 제거하고 아래 공통 클래스로 교체 */
+.sp-pillSelect {
+  height: 40px;
+  border-radius: var(--sp-radius-pill);
+  border: 1px solid #e5e7eb;
+  padding: 0 36px 0 12px;         /* 오른쪽 아이콘 공간 */
+  background: #fff;
+  color: var(--sp-text);
+  /* 기본 셀렉트 화살표 감추기 + 커스텀 드롭다운 아이콘 */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 7l5 5 5-5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+.sp-pillSelect:focus {
+  outline: none;
+  border-color: #b6e3b6;
+  box-shadow: 0 0 0 3px rgba(102, 187, 106, 0.15);
+}
+
+.sp-pillSelect:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 개별 폭 조절(선택) */
+.sp-sortSelect { width: 140px; }
+.sp-categorySelect { width: 220px; }
+
+/* 필터 줄 간격 유지 */
+.sp-filters {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 0 12px;
+  margin-bottom: 8px;
+}
+
+/* 필터 섹션 기본 간격만 살짝 */
+.sp-filters {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 0 12px;
+  margin-bottom: 8px;
+}
+
+.sp-price input[type="number"] {
+  height: 30px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  padding: 0 10px;
+  max-width: 100px;
+}
