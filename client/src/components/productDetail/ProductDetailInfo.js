@@ -183,7 +183,7 @@ export default function ProductDetailInfo({ product }) {
               controls
               playsInline
               preload="metadata"
-              style={{ width: "100%", maxWidth: 1500, borderRadius: 8, background: "#000" }}
+              style={{ width: "100%", maxWidth: 720, borderRadius: 8, background: "#000" }}
               onError={(e) => {
                 if (DEMO_MP4 && e.currentTarget.src !== DEMO_MP4) {
                   e.currentTarget.src = DEMO_MP4;
@@ -236,7 +236,7 @@ export default function ProductDetailInfo({ product }) {
       {!htmlFailed && iframeSrc ? (
         <iframe
           src={iframeSrc}
-          width="55%"
+          width="75%"
           height="800"
           style={{ border: "none", display: "block", margin: "0 auto" }}
           title="상세정보 보기"

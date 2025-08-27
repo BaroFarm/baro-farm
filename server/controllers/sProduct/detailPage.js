@@ -207,7 +207,7 @@ function buildLayoutSpec(product, heroAbs) {
 
   return {
     page_title: `${p.title} 상세페이지`,
-    canvas: { width: 500, padding: 16, bg: "#FFFFFF" },
+    canvas: { width: 660, padding: 16, bg: "#FFFFFF" },
     design_tokens: {
       fonts: { headline: "Inter Bold", subtitle: "Inter Regular", body: "Inter Regular" },
       colors: { primary: "#2E7D32", muted: "#757575", accent: "#FF8A65", chipBg: "#FFF3E0" },
