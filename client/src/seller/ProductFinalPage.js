@@ -196,8 +196,10 @@ export default function ProductFinalPage() {
 
   /* ---- UI ---- */
   return (
+    <>
+    <h2 style={styles.title}>상품 등록</h2>
     <div style={styles.wrapper}>
-      <h2 style={styles.title}>상품 등록</h2>
+      
       <p style={styles.subText}>마지막으로 상품 페이지를 점검해주세요.</p>
 
       {withVideo && (
@@ -252,13 +254,14 @@ export default function ProductFinalPage() {
         </button>
       </div>
     </div>
+    </>
   );
 }
 
 /* ---------- styles ---------- */
 const styles = {
   wrapper: { maxWidth: "800px", margin: "0 auto", padding: "40px 20px", textAlign: "center" },
-  title: { fontSize: "22px", fontWeight: "bold", textAlign: "left" },
+  title: { fontSize: 28, fontWeight: 'bold', marginLeft: "20px", marginTop: "17px", textAlign: "left", color: "#1d1d1f", },
   subText: { fontSize: "16px", margin: "20px 0 30px" },
   mediaSection: { marginBottom: "30px" },
   buttonGroup: { display: "flex", justifyContent: "space-between", marginTop: "40px" },

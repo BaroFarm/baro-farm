@@ -223,32 +223,43 @@ export default function ProductDetailInfo({ product }) {
           transition: "max-height 0.4s ease",
         }}
       >
-        {/* 우선 iframe(HTML) 시도 → 실패/미검증이면 이미지 */}
-        {!htmlFailed && iframeSrc ? (
-          <iframe
-            src={iframeSrc}
-            width="100%"
-            height="800"
-            style={{ border: "none" }}
-            title="상세정보 보기"
-            loading="lazy"
-            referrerPolicy="strict-origin-when-cross-origin"
-            allow="fullscreen; clipboard-write"
-            onError={() => setHtmlFailed(true)} // 일부 브라우저에서만 동작함
-          />
-        ) : imgSrc ? (
-          <img
-            src={imgSrc}
-            alt="상세페이지"
-            style={{ width: "100%", borderRadius: 8 }}
-            loading="lazy"
-            onError={(e) => {
-              e.currentTarget.src = `${BASE}/images/mock/no-image-240.png`;
-            }}
-          />
-        ) : (
-          <div style={{ color: "#666" }}>상세 페이지가 아직 없습니다.</div>
-        )}
+        {/* 가운데 정렬 래퍼 */}
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "center",
+      width: "100%",
+    }}
+  >
+    <div style={{ width: "100%", maxWidth: 960 }}>
+      {/* 우선 iframe(HTML) 시도 → 실패/미검증이면 이미지 */}
+      {!htmlFailed && iframeSrc ? (
+        <iframe
+          src={iframeSrc}
+          width="55%"
+          height="800"
+          style={{ border: "none", display: "block", margin: "0 auto" }}
+          title="상세정보 보기"
+          loading="lazy"
+          referrerPolicy="strict-origin-when-cross-origin"
+          allow="fullscreen; clipboard-write"
+          onError={() => setHtmlFailed(true)} // 일부 브라우저에서만 동작
+        />
+      ) : imgSrc ? (
+        <img
+          src={imgSrc}
+          alt="상세페이지"
+          style={{ width: "100%", maxWidth: 960, display: "block", margin: "0 auto", borderRadius: 8 }}
+          loading="lazy"
+          onError={(e) => {
+            e.currentTarget.src = `${BASE}/images/mock/no-image-240.png`;
+          }}
+        />
+      ) : (
+        <div style={{ color: "#666", textAlign: "center" }}>상세 페이지가 아직 없습니다.</div>
+      )}
+    </div>
+      </div>
       </div>
 
       {/* 펼치기 버튼 */}

@@ -117,8 +117,10 @@ function ProductSummaryPreview() {
   };
 
   return (
+    <>
+    <h2 style={styles.title}>상품 등록</h2>
     <div style={styles.wrapper}>
-      <h2 style={styles.title}>상품 등록</h2>
+      
       <p style={styles.subText}>상품에 대한 간단한 소개글입니다.</p>
 
       <div style={styles.labelRow}>
@@ -147,12 +149,13 @@ function ProductSummaryPreview() {
         </button>
       </div>
     </div>
+  </>
   );
 }
 
 const styles = {
   wrapper: { maxWidth: "800px", margin: "0 auto", padding: "40px 20px", textAlign: "center" },
-  title: { fontSize: "22px", fontWeight: "bold", textAlign: "left" },
+  title: { fontSize: 28, fontWeight: 'bold', marginLeft: "20px", marginTop: "17px", textAlign: "left", color: "#1d1d1f", },
   // ⬆️ 안내문 크기 업 (18 → 22)
   subText: { fontSize: "22px", margin: "40px 0 24px" },
 
