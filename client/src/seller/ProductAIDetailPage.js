@@ -101,16 +101,7 @@ export default function ProductAIDetailPage() {
           />
         </div>
 
-        {/* 프롬프트 입력(선택) */}
-        <div style={{ ...styles.inputRow, alignItems: "flex-start" }}>
-          <label style={{ ...styles.inputLabel, lineHeight: "40px" }}>프롬프트</label>
-          <textarea
-            style={{ ...styles.inputBox, height: 120, padding: "10px 12px", resize: "vertical" }}
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="설명 톤/분량/타겟 등을 자유롭게"
-          />
-        </div>
+        
 
         {/* 생성 버튼 */}
         <button
