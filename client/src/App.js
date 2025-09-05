@@ -20,6 +20,12 @@ import ProfileEdit from './components/mypage/ProfileEdit';
 import RefundDetailPage from './pages/RefundDetailPage';
 import PaymentPage from './pages/PaymentPage';
 
+//page추가 
+
+
+import BuyerWishlistPage from './components/mypage/BuyerWishlistPage';
+
+
 //판매자 관련
 import SellerLayout from './components/layout/SellerLayout';
 import ProductRegisterPage from './seller/ProductRegisterPage';
@@ -91,6 +97,19 @@ function App() {
             <Route path="/my/cancel/:refundId" element={<RefundDetailPage />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/payments" element={<PaymentPage />} />
+
+              <Route
+                path="/my/wishlist"
+                element={
+                  <BuyerWishlistPage
+                    items={[
+                      { id: 1, name: "옹이네 양파 (1kg)", price: 9200, rating: 5, imageUrl: "/images/onion.jpg" },
+                      { id: 2, name: "바로팜 당근 (1kg)", price: 4200, rating: 4, imageUrl: "/images/carrot.jpg" },
+                      { id: 3, name: "달큰 고구마 (2kg)", price: 11900, rating: 4, imageUrl: "/images/sweetpotato.jpg" },
+                    ]}
+                  />
+                }
+              />    
 
           </Route>
 
