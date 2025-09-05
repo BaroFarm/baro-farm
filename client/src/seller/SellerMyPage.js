@@ -1,10 +1,77 @@
 // src/seller/SellerMyPage.jsx
-import React from 'react';
+import React, {useEffect, useState, useMemo} from 'react';
 import { MdAccountCircle, MdAssignment } from 'react-icons/md';
 import { FiUsers } from 'react-icons/fi';
-import { Link } from 'react-router-dom';
+import { Link} from 'react-router-dom';
+
+const BASE = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/$/, '');
+
+function getStoreId() {
+  // 프로젝트별로 저장 키가 다를 수 있어 여러 경로를 시도
+  const direct = localStorage.getItem('storeId');
+  if (direct) return direct;
+  const fromUser = localStorage.getItem('user');
+  if (fromUser) {
+    try {
+      const parsed = JSON.parse(fromUser);
+      if (parsed?.store_id) return String(parsed.store_id);
+      if (parsed?.seller?.store_id) return String(parsed.seller.store_id);
+    } catch {}
+  }
+  // 최후: userId가 store_id와 동일하게 운용된다면(프로젝트 정책에 따라)
+  const maybe = localStorage.getItem('userId');
+  return maybe || null;
+}
+
 
 export default function SellerMyPage() {
+  const [seller, setSeller] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState('');
+  
+  const storeId = useMemo(getStoreId, []);
+  const token = localStorage.getItem('accessToken') || '';
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      setErr('');
+      try {
+        if (!storeId) {
+          setErr('store_id를 찾을 수 없습니다. (로컬스토리지 storeId/user.user.store_id 확인)');
+          setLoading(false);
+          return;
+        }
+
+        const url = `${BASE}/api/seller?store_id=${encodeURIComponent(storeId)}`;
+        const res = await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`판매자 정보 조회 실패(${res.status}): ${text}`);
+        }
+
+        const json = await res.json();
+        // 명세 예시: { "status": "success", "data": { name, email, password, phone, contact, license_number } }
+        const data = json?.data ?? json; // 백 응답 형태 유연화
+        setSeller(data);
+      } catch (e) {
+        console.error(e);
+        setErr(e.message || '판매자 정보 조회 중 오류가 발생했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [storeId, token]);
+
+  const nameText = loading ? '불러오는 중...' : (seller?.name || '(실명)');
+  const verified = !!seller?.license_number;
+
   return (
     <div style={{ padding: '32px', maxWidth: '960px', margin: '0 auto' }}>
       {/* 사용자 정보 */}
@@ -13,7 +80,7 @@ export default function SellerMyPage() {
         <MdAccountCircle size={42} color="#1d1d1f" style={{ marginRight: '10px' }} />
 
         {/* 실명 */}
-        <span style={realNameStyle}>(실명)</span>
+        <span style={realNameStyle}>{nameText}</span>
 
         {/* 회원 정보 링크 */}
         <Link to="/mypage/member-info" style={linkStyle}>
@@ -21,8 +88,8 @@ export default function SellerMyPage() {
         </Link>
 
         {/* 신원 인증 */}
-        <span style={verifyWrap}>
-          신원 인증
+        <span style={verifyWrap} title={verified ? '인증 완료' : '미인증'}>
+          {verified ? '신원 인증 완료' : '신원 인증 미완료'}
           <span style={verifyDot}></span>
         </span>
       </div>
