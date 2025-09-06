@@ -1,0 +1,53 @@
+.wrap { display:flex; justify-content:center; width:100%; }
+.container { width:100%; max-width:1100px; padding:20px 16px 36px; }
+
+.headerRow { display:flex; align-items:center; justify-content:space-between; }
+.title { font-size:22px; font-weight:700; margin:0; }
+.highlight { background:#ffe54d; padding:2px 6px; border-radius:6px; }
+.ai { color:#3d5a2a; font-weight:600; }
+.hr { height:1px; background:#e6e6e6; margin:14px 0 18px; }
+
+.empty {
+  border:1px solid #eee; border-radius:12px; padding:40px 16px; text-align:center; background:#fff;
+}
+.emptyTitle { font-weight:700; margin-bottom:6px; }
+.emptyDesc { color:#666; font-size:14px; }
+
+.list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:18px; }
+
+.item {
+  display:grid;
+  grid-template-columns: 70px 1fr 480px;
+  gap:12px;
+  align-items:center;
+  border-bottom:1px solid #efefef;
+  padding:12px 4px 16px 0;
+}
+@media (max-width: 980px) {
+  .item { grid-template-columns: 60px 1fr; grid-auto-rows:auto; }
+  .side { grid-column: 1 / -1; padding-left:72px; }
+}
+
+.logo { width:70px; height:70px; object-fit:cover; border-radius:6px; background:#f3f3f3; border:1px solid #ddd; }
+
+.main { display:flex; flex-direction:column; gap:6px; }
+.row1 { display:flex; align-items:center; gap:8px; }
+.market { font-weight:700; }
+.badge {
+  background:#ffe54d; border-radius:6px; padding:2px 6px; font-size:12px; font-weight:700;
+}
+.subMarket { color:#777; font-size:14px; }
+.expire { color:#777; font-size:13px; }
+
+.side { display:flex; align-items:center; gap:16px; justify-content:flex-end; }
+.labelCol { display:flex; flex-direction:column; gap:12px; min-width:110px; }
+.valueCol { display:flex; flex-direction:column; gap:12px; text-align:right; min-width:140px; }
+.redLabel { color:#d64545; font-weight:700; font-size:14px; }
+.value { font-weight:700; }
+
+.actions { display:flex; gap:10px; margin-left:8px; }
+.pill {
+  background:#e1eddb; border:0; border-radius:16px; padding:6px 12px;
+  font-size:13px; font-weight:600; color:#2d4b26; cursor:pointer;
+}
+.pill:hover { filter:brightness(0.95); }

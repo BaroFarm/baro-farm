@@ -24,6 +24,10 @@ import PaymentPage from './pages/PaymentPage';
 
 
 import BuyerWishlistPage from './components/mypage/BuyerWishlistPage';
+import FavoritesPage from './components/mypage/FavoritesPage';
+import VoucherPage from './components/mypage/VoucherPage';
+import CouponsPage from './components/mypage/CouponsPage';
+import MyReviewsPage from "./components/mypage/MyReviewsPage";
 
 
 //판매자 관련
@@ -109,8 +113,74 @@ function App() {
                     ]}
                   />
                 }
-              />    
+              />  
+              <Route path="/my/favorites" element={<FavoritesPage />} />  
 
+              <Route
+  path="/my/vouchers"
+  element={
+    <VoucherPage
+      vouchers={[
+        {
+          id: 1,
+          marketName: "옹이네 채소",
+          voucherName: "옹이네 채소 금액권",
+          imageUrl: "https://images.unsplash.com/photo-1524592714635-d77511a4834a?q=80&w=400&auto=format&fit=crop",
+          expiresAt: "2025.05.31",
+          usableAmount: 120000,
+          refundableUntil: "2025.05.31",
+        },
+        {
+          id: 2,
+          marketName: "바로팜",
+          voucherName: "바로팜 금액권",
+          imageUrl: "/logo192.png",
+          expiresAt: "2025.05.31",
+          usableAmount: 45000,
+          refundableUntil: "2025.05.31",
+        },
+      ]}
+      onClickUsage={(id) => console.log("usage", id)}
+      onClickRefund={(id) => console.log("refund", id)}
+    />
+  }
+/>        <Route
+  path="/my/coupons"
+  element={
+    <CouponsPage
+      banners={[
+        { id: 1, imageUrl: "https://picsum.photos/1200/400?1", alt: "봄맞이 특가" },
+        { id: 2, imageUrl: "https://picsum.photos/1200/400?2", alt: "주말 할인" },
+      ]}
+      coupons={[
+        {
+          id: 101,
+          discountText: "20% 할인",
+          productName: "심광쌀 > 맛있는밥상",
+          marketName: "맛있는밥상",
+          imageUrl: "https://images.unsplash.com/photo-1604335399105-a0d7b16f2b6a?q=80&w=400&auto=format&fit=crop",
+        },
+        {
+          id: 102,
+          discountText: "10% 할인",
+          productName: "주호네 농원 사과 >",
+          marketName: "주호네 농원",
+          imageUrl: "https://images.unsplash.com/photo-1570913149827-d2ac84ab3f9a?q=80&w=400&auto=format&fit=crop",
+        },
+        {
+          id: 103,
+          discountText: "10% 할인",
+          productName: "장수막걸리 >",
+          marketName: "장수합시다",
+          imageUrl: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?q=80&w=400&auto=format&fit=crop",
+        },
+      ]}
+      onClaim={(id) => console.log("claim coupon", id)}
+    />
+  }
+/>
+
+          <Route path="/mypage/reviews" element={<MyReviewsPage />} />
           </Route>
 
           {/* 판매자 레이아웃(NavBar) ↓ */}
