@@ -22,7 +22,7 @@ exports.getStoreInfo = async (req, res) => {
       status: 'success',
       data: {
         name: store.name,
-        zip_code: store.zipCode,
+        zip_code: store.zip_code ?? store.zipCode ?? '',
         street: store.street,
         detail: store.detail,
       },
@@ -48,7 +48,7 @@ exports.patchStoreInfo = async (req, res) => {
     const [updated] = await Store.update(
       {
         ...(name && { name }),
-        ...(zip_code && { zipCode: zip_code }),
+        ...(zip_code && { zip_code }),
         ...(street && { street }),
         ...(detail && { detail }),
       },
