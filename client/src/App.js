@@ -20,6 +20,8 @@ import ProfileEdit from './components/mypage/ProfileEdit';
 import RefundDetailPage from './pages/RefundDetailPage';
 import PaymentPage from './pages/PaymentPage';
 
+import BuyerWishlistPage from './components/mypage/BuyerWishlistPage';
+
 import SearchPage from '../src/ai_chatbot/SearchPage';
 import SeasonalPage from '../src/ai_chatbot/SeasonalPage';
 
@@ -97,7 +99,7 @@ function App() {
             <Route path="/payments" element={<PaymentPage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/seasonal" element={<SeasonalPage />} />
-
+            <Route path="/my/wishlist" element={<BuyerWishlistPage />}/>  
           </Route>
 
           {/* 판매자 레이아웃(NavBar) ↓ */}
