@@ -4,9 +4,8 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 /** ---------- 유틸 ---------- */
 const API_BASE = (process.env.REACT_APP_API_BASE_URL || "").replace(/\/$/, "");
 const REVIEWS_API = `${API_BASE}/api/my/reviews`;
-const REVIEW_DETAIL_API = (id) => `${API_BASE}/api/reviews/${id}`;
+const REVIEW_DETAIL_API = null; // 상세 API 없음
 
-// null/undefined 만 건너뛰는 병합 유틸
 function coalesce(...vals) {
   for (let i = 0; i < vals.length; i++) {
     const v = vals[i];
@@ -15,7 +14,6 @@ function coalesce(...vals) {
   return undefined;
 }
 
-// 취소/언마운트/재요청 abort 판별
 function isAbort(err) {
   if (!err) return false;
   if (err.name === "AbortError") return true;
@@ -23,7 +21,7 @@ function isAbort(err) {
   return msg.includes("abort") || msg.includes("aborted") || msg.includes("canceled") || msg.includes("unmount");
 }
 
-// URL 정규화(상대경로 → API_BASE 붙임)
+// 상대경로를 API_BASE 기준 절대경로로
 function toAbs(url) {
   let v = String(url || "").trim();
   if (!v) return "";
@@ -60,21 +58,16 @@ const Box = ({ w, h, radius = 12 }) => (
   />
 );
 
-const ImgOrBox = ({ src, w, h, radius = 12, alt = "" }) =>
-  src ? (
+function ImgOrBox({ src, w, h, radius = 12, alt = "" }) {
+  const [ok, setOk] = useState(!!src);
+  // src 변경 시 반영
+  useEffect(() => setOk(!!src), [src]);
+  if (!ok) return <Box w={w} h={h} radius={radius} />;
+  return (
     <img
       src={src}
       alt={alt}
-      onError={(e) => {
-        // 이미지 로드 실패 시 플레이스홀더로 교체
-        const ph = document.createElement("div");
-        ph.style.width = `${w}px`;
-        ph.style.height = `${h}px`;
-        ph.style.borderRadius = `${radius}px`;
-        ph.style.border = "1px solid #eee";
-        ph.style.background = "#F4F4F4";
-        e.currentTarget.replaceWith(ph);
-      }}
+      onError={() => setOk(false)}
       style={{
         width: w,
         height: h,
@@ -85,9 +78,8 @@ const ImgOrBox = ({ src, w, h, radius = 12, alt = "" }) =>
         background: "#F4F4F4",
       }}
     />
-  ) : (
-    <Box w={w} h={h} radius={radius} />
   );
+}
 
 /** 별점 */
 function RatingStars({ value = 0, size = 20 }) {
@@ -153,7 +145,8 @@ function ReviewModal({ open, onClose, review, loading }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-          <ImgOrBox src={review.productThumb} w={64} h={64} />
+          {/* 헤더 썸네일: 리뷰 이미지가 있으면 그걸, 없으면 상품 */}
+          <ImgOrBox src={review.reviewImg || review.productThumb} w={64} h={64} />
           <div>
             <div style={{ fontWeight: 700, fontSize: 18 }}>{review.productName}</div>
             <div style={{ color: "#888", fontSize: 13 }}>{review.sellerName}</div>
@@ -220,54 +213,53 @@ export default function MyReviewsPage() {
   const mountedRef = useRef(true);
   const reqIdRef = useRef(0);
 
-  // 마운트/언마운트 가드
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
       if (abortRef.current) {
-        try {
-          abortRef.current.abort("unmount");
-        } catch {}
+        try { abortRef.current.abort("unmount"); } catch {}
         abortRef.current = null;
       }
     };
   }, []);
 
-  // (목록) 응답 매핑
+  // 응답 매핑: 백엔드 필드에 정확히 맞춤
   function mapReview(raw) {
     const r = raw || {};
     const productThumb = toAbs(coalesce(r.product_img_url, r.productThumb, r.product_image, ""));
-    const reviewImage = toAbs(coalesce(r.img_url, r.review_img_url, ""));
+    const reviewImg    = toAbs(coalesce(r.img_url, r.review_img_url, "")); // 리뷰 이미지 "문자열" 하나
     return {
       id: coalesce(r.review_id, r.id, `${r.product_id || ""}-${r.created_at || ""}`),
       productId: r.product_id,
       productName: coalesce(r.product_name, r.productName, r.title, ""),
       sellerName: coalesce(r.store_name, r.sellerName, ""),
-      productThumb: productThumb || "",
+      productThumb,                 // 상품 대표 이미지
+      reviewImg,                    // 리뷰 대표 이미지(없으면 빈 문자열)
       rating: Number(r.rating) || 0,
       date: fmtDate(coalesce(r.created_at, r.createdDate, r.date)),
       content: coalesce(r.content, r.summary, r.snippet, ""),
-      images: reviewImage ? [reviewImage] : Array.isArray(r.images) ? r.images.map(toAbs) : [],
+      // 갤러리: 리뷰 이미지가 있으면 먼저, 없으면 상품 썸네일이라도 1장 보이도록
+      images: [reviewImg, productThumb].filter(Boolean),
     };
   }
 
-  // (상세) 응답 매핑
   function mapReviewDetail(raw) {
     const r = raw || {};
     const productThumb = toAbs(coalesce(r.product_img_url, r.productThumb, r.product_image, ""));
-    const reviewImage = toAbs(coalesce(r.img_url, r.review_img_url, ""));
+    const reviewImg    = toAbs(coalesce(r.img_url, r.review_img_url, ""));
     const content = coalesce(r.content, r.full_content, r.body, "");
     return {
       id: coalesce(r.review_id, r.id),
       productId: r.product_id,
       productName: coalesce(r.product_name, r.productName, r.title, ""),
       sellerName: coalesce(r.store_name, r.sellerName, ""),
-      productThumb: productThumb || "",
+      productThumb,
+      reviewImg,
       rating: Number(r.rating) || 0,
       date: fmtDate(coalesce(r.created_at, r.createdDate, r.date)),
       content,
-      images: reviewImage ? [reviewImage] : Array.isArray(r.images) ? r.images.map(toAbs) : [],
+      images: [reviewImg, productThumb].filter(Boolean),
     };
   }
 
@@ -281,7 +273,6 @@ export default function MyReviewsPage() {
       if (p === 1) setErr("");
     }
 
-    // 이전 요청 취소
     if (abortRef.current) abortRef.current.abort("next-request");
     const controller = new AbortController();
     abortRef.current = controller;
@@ -292,7 +283,8 @@ export default function MyReviewsPage() {
         sessionStorage.getItem("accessToken") ||
         "";
 
-      const res = await fetch(`${REVIEWS_API}?page=${p}&limit=${limit}`, {
+      // 백엔드가 pageSize를 읽으므로 pageSize로 보냄
+      const res = await fetch(`${REVIEWS_API}?page=${p}&pageSize=${limit}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -308,11 +300,12 @@ export default function MyReviewsPage() {
 
       const json = await res.json();
 
+      // data.result 우선
       const arr =
-        (Array.isArray(json) && json) ||
-        (Array.isArray(json?.reviews) && json.reviews) ||
-        (Array.isArray(json?.data?.reviews) && json.data.reviews) ||
         (Array.isArray(json?.data?.result) && json.data.result) ||
+        (Array.isArray(json?.data?.reviews) && json.data.reviews) ||
+        (Array.isArray(json?.reviews) && json.reviews) ||
+        (Array.isArray(json) && json) ||
         [];
 
       const mapped = arr.map(mapReview);
@@ -333,13 +326,11 @@ export default function MyReviewsPage() {
     }
   }
 
-  // 최초/페이지 변경 시 로드
   useEffect(() => {
     fetchPage(page);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit]);
 
-  // 검색 필터
   const filtered = useMemo(() => {
     const q = query.trim();
     if (!q) return items;
@@ -348,11 +339,12 @@ export default function MyReviewsPage() {
     );
   }, [items, query]);
 
-  // 상세 열기: 즉시 모달 + 백그라운드 상세 갱신
   const openModal = async (review) => {
     setActiveReview(review || null);
     setModalOpen(true);
-    if (!review || !review.id) return;
+
+    // 상세 API 없음 → 즉시 리턴
+    if (!REVIEW_DETAIL_API || !review?.id) return;
 
     try {
       setDetailLoading(true);
@@ -360,19 +352,14 @@ export default function MyReviewsPage() {
         localStorage.getItem("accessToken") ||
         sessionStorage.getItem("accessToken") ||
         "";
-
-      const res = await fetch(REVIEW_DETAIL_API(review.id), {
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+      const res = await fetch(`${REVIEW_DETAIL_API(review.id)}`, {
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
-
       const raw = coalesce(json?.data?.review, json?.review, json?.data, json);
       const full = mapReviewDetail(raw);
-
-      if (mountedRef.current && full && full.content && full.content !== review.content) {
+      if (mountedRef.current && full?.content && full.content !== review.content) {
         setActiveReview((prev) => ({ ...(prev || {}), ...full }));
       }
     } catch (e) {
@@ -385,7 +372,7 @@ export default function MyReviewsPage() {
   return (
     <div style={styles.page}>
       {/* 제목 */}
-      <h2 style={styles.h2}>나의 리뷰 목록</h2>
+      <h2 style={styles.title}>나의 리뷰 목록</h2>
       <div style={styles.sectionDivider} />
 
       {/* 검색 */}
@@ -397,11 +384,7 @@ export default function MyReviewsPage() {
           style={styles.searchInput}
         />
         {query && (
-          <button
-            onClick={() => setQuery("")}
-            style={styles.clearBtn}
-            aria-label="검색어 지우기"
-          >
+          <button onClick={() => setQuery("")} style={styles.clearBtn} aria-label="검색어 지우기">
             ×
           </button>
         )}
@@ -413,11 +396,11 @@ export default function MyReviewsPage() {
         <div style={{ color: "#666", marginTop: 16 }}>표시할 리뷰가 없습니다.</div>
       )}
 
-      {/* 리뷰 리스트 */}
+      {/* 리스트 */}
       <div style={{ display: "grid", gap: 16, marginTop: 12 }}>
         {filtered.map((r) => (
           <Card key={r.id} style={{ padding: 0 }}>
-            {/* 상단: 상품 정보 */}
+            {/* 상단: 상품 */}
             <div
               style={{
                 display: "flex",
@@ -450,9 +433,9 @@ export default function MyReviewsPage() {
                   marginTop: 14,
                 }}
               >
-                <ImgOrBox src={(r.images || [])[0]} w={88} h={88} />
+                {/* 대표: 리뷰 이미지 있으면 그걸, 없으면 상품 */}
+                <ImgOrBox src={r.reviewImg} w={88} h={88} />
 
-                {/* 텍스트 + 더보기 */}
                 <div style={{ color: "#222", lineHeight: 1.7 }}>
                   <div style={{ marginBottom: 6, textAlign: "left" }}>
                     <Truncate text={r.content} max={120} />
@@ -467,7 +450,7 @@ export default function MyReviewsPage() {
         ))}
       </div>
 
-      {/* 더보기 / 로딩 */}
+      {/* 더보기 */}
       <div style={{ marginTop: 16, display: "flex", justifyContent: "center" }}>
         {loading ? (
           <span style={{ color: "#666" }}>불러오는 중…</span>
@@ -496,9 +479,9 @@ const styles = {
     margin: "24px auto 80px",
     padding: "0 16px",
   },
-  h2: {
+  title: {
     fontSize: 24,
-    fontWeight: 800,
+    fontWeight: "bold",
     margin: "0 0 12px",
     textAlign: "left",
   },
@@ -506,7 +489,6 @@ const styles = {
     borderBottom: "1px solid #D9D9D9",
     margin: "0 0 16px",
   },
-  // 가운데 정렬된 검색바
   searchWrap: {
     position: "relative",
     background: "#E8FAEA",

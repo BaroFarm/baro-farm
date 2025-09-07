@@ -33,7 +33,7 @@ export default function ReviewModal({
 
     const canSubmit = rating > 0 && content.trim().length >= 10;
 
-    const MAX = 5000;
+    const MAX = 1000;
     const count = content.length;
 
     const handleFiles = (e) => {
@@ -146,8 +146,8 @@ export default function ReviewModal({
                         <input
                             id="review-files"
                             type="file"
-                            accept="image/*,video/*"
-                            multiple
+                            accept="image/*"
+                            multiple={false}
                             onChange={handleFiles}
                             style={{ display: "none" }}
                         />
