@@ -41,7 +41,7 @@ const getMyReviews = async (req, res) => {
             img_url: item?.img_url ?? null,
             product_id: item?.Product?.product_id ?? null,
             product_name: item?.Product?.title ?? null,
-            product_img_url: item?.Product?.ProductImgs?.[0]?.img_url ?? null,
+            product_img_url: item?.Product?.images?.[0]?.img_url ?? null,
             created_at: item?.created_date ?? null
         }));
 
