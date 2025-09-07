@@ -19,9 +19,12 @@ const getMyReviews = async (req, res) => {
         include: [
             {
             model: Product,
+            as: 'Product',
             attributes: ['product_id', 'title'],
             include: [
-                { model: ProductImg, attributes: ['img_url'], required: false }
+                { model: ProductImg, 
+                    as:'images',
+                    attributes: ['img_url'], required: false }
             ]
             }
         ],
