@@ -1,11 +1,5 @@
-import React, {useState} from 'react';
-import axios from 'axios';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import ReviewModal from '../../modal/ReviewModal';
-import DeliveryTrackModal from '../../modal/DeliveryTrackModal';
-import ReturnRequestModal from '../../modal/ReturnRequestModal';
-
-const API_BASE = process.env.REACT_APP_API_BASE_URL || "";
 
 // 1) 배송상태 정규화 + 버튼 라벨 매핑
 const normalizeStatus = (s) => {
@@ -44,10 +38,6 @@ export default function OrderCard({ order }) {
     itemsPreview = [],
   } = order || {};
 
-  const [openReview, setOpenReview] = useState(false); // ★ 모달 상태
-  const [openTrack, setOpenTrack] = useState(false);
-  const [openReturn, setOpenReturn] = useState(false);
-
   const firstItem = itemsPreview[0] || {};
   const formattedDate = order_date
     ? new Date(order_date).toLocaleDateString('ko-KR')
@@ -61,11 +51,6 @@ export default function OrderCard({ order }) {
 
   // 상세 이동에 쓸 ID
   const detailId = order?.order_pk ?? order?.id ?? order_id;
-
-  const productId = firstItem?.product_id ?? firstItem?.productId;
-
-    // ★ 토큰 가져오기(프로젝트에 맞춰 교체: accessToken/localStorage key 등)
-  const getToken = () => localStorage.getItem('accessToken') || "";
 
   const goDetail = () => {
     if (!detailId) return;
@@ -89,55 +74,6 @@ export default function OrderCard({ order }) {
 
   const fallbackText = encodeURIComponent(firstItem?.product_name || '상품');
   const fallbackImg = `https://placehold.co/100x100?text=${fallbackText}`;
-
-  // 등록 콜백: 실제로는 API 호출 연결
-  const handleSubmitReview = async ({ rating, content, files }) => {
-    try {
-      let imgUrl = null;
-
-      // 가장 첫 파일만 채택(명세가 img_url 단일 필드이므로)
-      // if (files && files[0]) {
-      //   imgUrl = await uploadFileAndGetUrl(files[0]); // 업로드 엔드포인트 없으면 null
-      // }
-
-      if (!productId) {
-        alert("product_id를 찾을 수 없어요.");
-        return;
-      }
-
-      const payload = {
-        rating,
-        content,
-        ...(imgUrl ? { img_url: imgUrl } : {}), // 있으면 포함
-      };
-
-      const { data } = await axios.post(
-        `${API_BASE}/api/products/${productId}/reviews`,
-        payload,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${getToken()}`,
-          },
-        }
-      );
-
-      // 성공 UX
-      console.log("review created:", data);
-      alert("리뷰가 등록되었습니다!");
-      setOpenReview(false);
-
-      // (선택) 주문/리뷰 리스트 리프레시 트리거 또는 상위 콜백 호출
-
-    } catch (err) {
-      console.error(err);
-      const msg =
-        err.response?.data?.message ||
-        err.message ||
-        "리뷰 등록에 실패했습니다.";
-      alert(msg);
-    }
-  };
 
   return (
     <div
@@ -206,7 +142,6 @@ export default function OrderCard({ order }) {
           {isDelivered ? (
             <button
               type="button"
-              onClick={() => setOpenReview(true)}   // ★ 모달 오픈
               style={{
                 border: '1px solid #3F7D20',
                 color: '#3F7D20',
@@ -223,7 +158,6 @@ export default function OrderCard({ order }) {
           ) : (
             <button
               type="button"
-              onClick={() => setOpenTrack(true)}
               style={{
                 border: '1px solid #ccc',
                 padding: '6px 18px',
@@ -256,7 +190,6 @@ export default function OrderCard({ order }) {
 
           <button
             type="button"
-            onClick={()=> setOpenReturn(true)}
             style={{
               border: '1px solid #ccc',
               padding: '6px 18px',
@@ -271,37 +204,6 @@ export default function OrderCard({ order }) {
           </button>
         </div>
       </div>
-
-      {/* ★ 리뷰 모달 */}
-    <ReviewModal
-      open={openReview}
-      onClose={() => setOpenReview(false)}
-      productImage={firstItem?.image_url || firstItem?.product_img}
-      sellerName={"직매장(농가) 명"}          // 백엔드 값 있으면 교체
-      productName={firstItem?.product_name}
-      onSubmit={handleSubmitReview}
-    />
-    <DeliveryTrackModal
-      open={openTrack}
-      onClose={() => setOpenTrack(false)}
-      carrierName="CJ 대한통운"
-      carrierPhone="1111-2222"
-      trackingNumber="12345678910"
-      currentStep={2} // 0:주문확인,1:상품준비,2:배송중,3:배송완료
-      events={[
-      { time: "2025-08-23 11:41", location: "이천 로컬 직매장", status: "상품 배송 시작" },
-      { time: "2025-08-23 11:23", location: "이천 로컬 직매장", status: "주문 정보 확인" },
-      ]}
-    />
-    <ReturnRequestModal
-      open={openReturn}
-      onClose={() => setOpenReturn(false)}
-      orderId={detailId}                        // 주문 식별자
-      orderProductId={firstItem?.order_product_id} // 있으면 전달
-      defaultType="RETURN"                      // 기본값: 반품
-      //onSubmitted={handleReturnSubmitted}
-      getToken={getToken}
-    />
     </div>
   );
 }

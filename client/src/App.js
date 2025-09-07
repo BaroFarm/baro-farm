@@ -21,6 +21,7 @@ import RefundDetailPage from './pages/RefundDetailPage';
 import PaymentPage from './pages/PaymentPage';
 
 import BuyerWishlistPage from './components/mypage/BuyerWishlistPage';
+import FavoritesPage from './components/mypage/FavoritesPage';
 
 import SearchPage from '../src/ai_chatbot/SearchPage';
 import SeasonalPage from '../src/ai_chatbot/SeasonalPage';
@@ -100,6 +101,7 @@ function App() {
             <Route path="/search" element={<SearchPage />} />
             <Route path="/seasonal" element={<SeasonalPage />} />
             <Route path="/my/wishlist" element={<BuyerWishlistPage />}/>  
+            <Route path="/my/favorites" element={<FavoritesPage />} />  
           </Route>
 
           {/* 판매자 레이아웃(NavBar) ↓ */}
