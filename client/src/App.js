@@ -28,6 +28,12 @@ import FavoritesPage from './components/mypage/FavoritesPage';
 import VoucherPage from './components/mypage/VoucherPage';
 import CouponsPage from './components/mypage/CouponsPage';
 import MyReviewsPage from "./components/mypage/MyReviewsPage";
+import MyInquiryListPage from "./components/mypage/MyInquiryListPage";
+import MyInquiryDetailPage from "./components/mypage/MyInquiryDetailPage";
+import InquiryPage from "./components/mypage/InquiryPage";
+import MyInquiryDetailView from "./components/mypage/MyInquiryDetailView";
+
+import MySubscriptionListPage from "./components/mypage/MySubscriptionListPage";
 
 
 //판매자 관련
@@ -181,6 +187,14 @@ function App() {
 />
 
           <Route path="/mypage/reviews" element={<MyReviewsPage />} />
+
+          <Route path="/mypage/inquiries" element={<MyInquiryListPage />} />
+  <Route path="/mypage/inquiry/new" element={<div>문의 작성 페이지(추가 예정)</div>} />
+          <Route path="/mypage/inquiry/:id" element={<MyInquiryDetailPage />} />
+           <Route path="/mypage/inquiry" element={<InquiryPage />} />
+           <Route path="/mypage/inquiryView" element={<MyInquiryDetailView />} />
+            <Route path="/mypage/subscription" element={<MySubscriptionListPage />} />
+
           </Route>
 
           {/* 판매자 레이아웃(NavBar) ↓ */}
