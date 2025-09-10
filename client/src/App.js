@@ -26,6 +26,9 @@ import VoucherPage from './components/mypage/VoucherPage';
 import CouponsPage from './components/mypage/CouponsPage';
 import MyReviewsPage from "./components/mypage/MyReviewsPage";
 import MySubscriptionListPage from "./components/mypage/MySubscriptionListPage";
+import MyInquiryListPage from "./components/mypage/MyInquiryListPage";
+
+import InquiryPage from "./components/mypage/InquiryPage";
 
 import SearchPage from '../src/ai_chatbot/SearchPage';
 import SeasonalPage from '../src/ai_chatbot/SeasonalPage';
@@ -172,6 +175,9 @@ function App() {
 
           <Route path="/my/reviews" element={<MyReviewsPage />} />
           <Route path="/mypage/subscription" element={<MySubscriptionListPage />} />
+          <Route path="/mypage/inquiries" element={<MyInquiryListPage />} />
+
+          <Route path="/mypage/inquiry" element={<InquiryPage />} />
           </Route>
 
           {/* 판매자 레이아웃(NavBar) ↓ */}
