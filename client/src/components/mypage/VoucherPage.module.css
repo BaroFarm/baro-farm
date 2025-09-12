@@ -2,37 +2,42 @@
 .container { width:100%; max-width:1100px; padding:20px 16px 36px; }
 
 .headerRow { display:flex; align-items:center; justify-content:space-between; }
-.title { font-size:22px; font-weight:700; margin:0; }
+.title { font-size:22px; font-weight:bold; margin:0; }
 .highlight { background:#ffe54d; padding:2px 6px; border-radius:6px; }
-.ai { color:#3d5a2a; font-weight:600; }
 .hr { height:1px; background:#e6e6e6; margin:14px 0 18px; }
 
 .empty {
   border:1px solid #eee; border-radius:12px; padding:40px 16px; text-align:center; background:#fff;
 }
-.emptyTitle { font-weight:700; margin-bottom:6px; }
+.emptyTitle { font-weight:bold; margin-bottom:6px; }
 .emptyDesc { color:#666; font-size:14px; }
 
 .list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:18px; }
 
 .item {
-  display:grid;
-  grid-template-columns: 70px 1fr 480px;
-  gap:12px;
-  align-items:center;
-  border-bottom:1px solid #efefef;
-  padding:12px 4px 16px 0;
-}
-@media (max-width: 980px) {
-  .item { grid-template-columns: 60px 1fr; grid-auto-rows:auto; }
-  .side { grid-column: 1 / -1; padding-left:72px; }
+  display: grid;
+  /* 오른쪽 조금 여유 주고 싶으면 minmax로 */
+  grid-template-columns: 70px 1fr minmax(500px, 560px);
+  gap: 12px;
+  align-items: center;
+  border-bottom: 1px solid #efefef;
+  padding: 12px 4px 16px 0;
 }
 
-.logo { width:70px; height:70px; object-fit:cover; border-radius:6px; background:#f3f3f3; border:1px solid #ddd; }
+/* ✅ 컬럼 고정 */
+.logo { grid-column: 1; }
+.main { grid-column: 2; }
+.side { grid-column: 3; }
 
-.main { display:flex; flex-direction:column; gap:6px; }
-.row1 { display:flex; align-items:center; gap:8px; }
-.market { font-weight:700; }
+/* (선택) 제목이 너무 쪼개지지 않도록 */
+.market { font-weight:700; white-space: nowrap; }
+
+/* ⚠️ 기존 미디어쿼리 문법 오류 수정
+   '@media (max-width: 100%;)' -> px 같은 단위 필요 */
+@media (max-width: 900px) {
+  .item { grid-template-columns: 1fr; }
+  .side { grid-column: 1; justify-content: flex-start; }
+}
 .badge {
   background:#ffe54d; border-radius:6px; padding:2px 6px; font-size:12px; font-weight:700;
 }

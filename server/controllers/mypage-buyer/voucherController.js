@@ -45,6 +45,8 @@ const getMyVouchers = async (req, res) => {
             acquired_at: iv ? iv.acquired_at : null,
             expired_at: iv ? iv.expired_at : null,
             status: iv ? iv.status : null,
+            //추가
+            refundable_date: voucher.refundable_date || null,
         };
     });
 
