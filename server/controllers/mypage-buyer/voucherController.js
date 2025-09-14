@@ -37,6 +37,8 @@ const getMyVouchers = async (req, res) => {
     // 응답 가공
     const result = vouchers.map(voucher => {
         const iv = voucher.IssueVouchers[0]; 
+        const usageRows = iv?.VoucherUsages || []; // include에 model: VoucherUsage 추가했으니 접근 가능
+        const totalUsed = usageRows.reduce((sum, u) => sum + (u.used_amount || 0), 0);
         return {
             voucher_id: voucher.voucher_id,
             voucher_name: voucher.voucher_name,
@@ -47,6 +49,7 @@ const getMyVouchers = async (req, res) => {
             status: iv ? iv.status : null,
             //추가
             refundable_date: voucher.refundable_date || null,
+            total_used: totalUsed, 
         };
     });
 

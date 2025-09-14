@@ -3,6 +3,7 @@ import axios from "axios";
 import s from "./VoucherPage.module.css";
 import ChatbotModal from '../../ai_chatbot/ChatbotModal';
 import AIbotButton from '../common/buttons/AIbotButton';
+import VoucherUsageModal from '../modal/VoucherUsageModal';
 
 export default function VoucherPage({
   onClickUsage,       // (id) => ...
@@ -13,6 +14,8 @@ export default function VoucherPage({
   const [err, setErr] = useState("");
 
   const [chatOpen, setChatOpen] = useState(false);
+
+  const [usageOpen, setUsageOpen] = useState(null);
 
   const fmtDate = (d) => (d ? `~${d} 까지` : "-");
   const fmtWon = (n) =>
@@ -65,6 +68,25 @@ export default function VoucherPage({
           expiresAt: v.expired_at,
           usableAmount: v.remaining_amount,
           refundableUntil: minDate(v.refundable_date, v.expired_at),                 // 명세서에 없으므로 일단 null
+          amount: v.amount,
+          usedAmount: (Number.isFinite(+v.amount) && Number.isFinite(+v.remaining_amount))
+            ? Math.max(0, +v.amount - +v.remaining_amount)   // 안전하게 0 하한
+            : null,
+          // ✅ 모달로 넘길 요약
+          modalVoucher: {
+            title: v.voucher_name,
+            expiresAt: v.expired_at,
+            remainingAmount: v.remaining_amount,
+            refundableUntil: minDate(v.refundable_date, v.expired_at),
+            amount: v.amount,
+            usedAmount: (Number.isFinite(+v.amount) && Number.isFinite(+v.remaining_amount))
+              ? Math.max(0, +v.amount - +v.remaining_amount)
+              : null,
+            total_used:
+              Number.isFinite(+v.amount) && Number.isFinite(+v.remaining_amount)
+                ? Math.max(0, +v.amount - +v.remaining_amount)
+                : 0,
+          },
         }));
 
         setVouchers(mapped);
@@ -131,7 +153,11 @@ export default function VoucherPage({
                   <div className={s.actions}>
                     <button
                       className={s.pill}
-                      onClick={() => onClickUsage && onClickUsage(v.id)}
+                      onClick={() => {
+                       // 외부 콜백이 있으면 호출 + 모달도 띄우기
+                        onClickUsage?.(v.id);
+                        setUsageOpen({ id: v.id, voucher: v.modalVoucher });
+                      }}
                     >
                       사용 이력
                     </button>
@@ -148,6 +174,13 @@ export default function VoucherPage({
           </ul>
         )}
         {chatOpen && <ChatbotModal open={chatOpen} onClose={() => setChatOpen(false)} />}
+          <VoucherUsageModal
+          open={usageOpen}
+          voucherId={usageOpen?.id}
+          voucher={usageOpen?.voucher}
+          onClose={() => setUsageOpen(null)}
+          onClickRefund={onClickRefund}
+        />
       </div>
     </div>
   );
