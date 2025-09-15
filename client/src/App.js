@@ -34,7 +34,7 @@ import InquiryPage from "./components/mypage/InquiryPage";
 import MyInquiryDetailView from "./components/mypage/MyInquiryDetailView";
 
 import MySubscriptionListPage from "./components/mypage/MySubscriptionListPage";
-
+import InquiryBoardPage from "./components/mypage/InquiryBoardPage";
 
 //판매자 관련
 import SellerLayout from './components/layout/SellerLayout';
@@ -79,7 +79,8 @@ const dummyOrderList = [
   },
 ];
 
-
+const InquiryWritePage = () => <div style={{padding:24}}>작성 페이지 (준비 중)</div>;
+const InquiryDetailPage = () => <div style={{padding:24}}>상세 페이지 (준비 중)</div>;
 function App() {
 
   return (
@@ -218,7 +219,7 @@ function App() {
 
             <Route path="/seller/mypage" element={<SellerMyPage />} />
         <Route path="/mypage/member-info" element={<MemberInfoPage />} />
-
+           <Route path="/inquiry" element={<InquiryBoardPage />} />
           </Route>
         </Routes>
       </div>
