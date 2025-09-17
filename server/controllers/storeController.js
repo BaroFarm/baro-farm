@@ -1,4 +1,36 @@
-const { Seller, Product } = require('../models');
+const { Seller, Store, Product } = require('../models');
+
+//응답에 상품 포함하기 위해 추가하였습니다. - 프론트
+exports.getStore = async (req, res) => {
+  try {
+    const sellerId = req.user.seller_id;
+    const seller = await Seller.findByPk(sellerId);
+
+    if (!seller) {
+      return res.status(401).json({ status: 'error', message: '로그인이 필요합니다.', code: 401 });
+    }
+
+    const store = await Store.findByPk(seller.store_id, {
+      attributes: ['name', 'zip_code', 'street', 'detail']
+    });
+
+    const products = await Product.findAll({
+      where: { seller_id: sellerId },
+      attributes: ['product_id', 'title', 'weight', 'intro', 'price']
+    });
+
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        ...store.get(),
+        products  // ✅ 상품 포함해서 내려줌
+      }
+    });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ status: 'error', message: '서버 내부 오류', code: 500 });
+  }
+};
 
 // 상품 목록 조회
 exports.getProductList = async (req, res) => {
