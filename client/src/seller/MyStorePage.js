@@ -10,6 +10,7 @@ function MyStorePage() {
   const [storeName, setStoreName] = useState("내 스토아");
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deletingIds, setDeletingIds] = useState(new Set());
   const [err, setErr] = useState("");
 
   useEffect(() => {
@@ -138,16 +139,6 @@ function MyStorePage() {
     }
   }
 
-  function formatWeight(raw) {
-    if (raw == null) return "";
-    const s = String(raw).trim();
-    // 이미 단위가 있으면 그대로
-    if (/\b(kg|g)\b/i.test(s)) return s.replace(/\s+/g, "");
-    const n = Number(s);
-    if (!isFinite(n)) return s;
-    return n >= 1000 ? `${(n / 1000) % 1 === 0 ? n / 1000 : (n / 1000).toFixed(1)}kg` : `${n}g`;
-  }
-
   async function safeJson(res) {
     try {
       return await res.json();
@@ -156,12 +147,59 @@ function MyStorePage() {
     }
   }
 
-  const handleProductClick = (id) => navigate(`/product/${id}`);
-  const handleDelete = (id) => {
-    if (window.confirm('정말 삭제하시겠습니까?')) {
-      setProducts((prev) => prev.filter((p) => p.id !== id));
+  const handleProductClick = (id) => navigate(`/shop/product/${id}`);
+  
+  //삭제
+  const handleDelete = async (id) => {
+  if (!window.confirm("정말 삭제하시겠습니까?")) return;
+
+  const token =
+    localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
+  if (!token) { setErr("로그인이 필요합니다."); return; }
+
+  // UI: 삭제 중 표시
+  setDeletingIds((s) => new Set(s).add(id));
+
+  // 낙관적 제거 (실패 시 롤백)
+  const prev = products;
+  setProducts((p) => p.filter((x) => x.id !== id));
+
+  try {
+    const res = await fetch(`${API_BASE}/api/store/product-list/${id}`, {
+      method: "DELETE",                // ← 명세서 준수
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+        "Cache-Control": "no-cache",
+      },
+      cache: "no-store",
+    });
+
+    const json = await safeJson(res);
+
+    if (!res.ok) {
+      // 404 등 에러 메시지 노출 + 롤백
+      const msg =
+        json?.message || json?.error?.message || `삭제 실패 (${res.status})`;
+      throw new Error(msg);
     }
-  };
+
+    // (성공) 서버 메시지가 있으면 콘솔/토스트
+    console.log("삭제 성공:", json);
+
+  } catch (e) {
+    console.error(e);
+    setErr(e.message || "삭제 중 오류가 발생했습니다.");
+    // 롤백
+    setProducts(prev);
+  } finally {
+    setDeletingIds((s) => {
+      const n = new Set(s);
+      n.delete(id);
+      return n;
+    });
+  }
+};
 
   return (
     <div style={styles.wrapper}>
