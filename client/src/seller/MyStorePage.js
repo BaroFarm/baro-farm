@@ -147,7 +147,7 @@ function MyStorePage() {
     }
   }
 
-  const handleProductClick = (id) => navigate(`/shop/product/${id}`);
+  const handleProductClick = (id) => navigate(`/seller/product/${id}`);
   
   //삭제
   const handleDelete = async (id) => {
