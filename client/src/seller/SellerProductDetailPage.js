@@ -78,6 +78,8 @@ export default function SellerProductDetailPage() {
   const [p, setP] = useState(null);
   const [editOpen, setEditOpen] = useState(false);
   const [editData, setEditData] = useState({ name: "", price: 0, intro: "" });
+  const [returnOpen, setReturnOpen] = useState(false);
+  const [returnData, setReturnData] = useState({ returnable: false, return_condition: "" });
 
   useEffect(() => {
     let alive = true;
@@ -178,6 +180,46 @@ export default function SellerProductDetailPage() {
     setEditOpen(true);
   };
 
+  const openReturnModal = () => {
+  if (!p) return;
+  setReturnData({
+    returnable: !!p.returnable,
+    return_condition: p.return_condition || ""
+  });
+  setReturnOpen(true);
+};
+
+const saveReturn = async () => {
+  try {
+    const token =
+      localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
+    const res = await fetch(`${API_BASE}/api/store/product/${id}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        returnable: returnData.returnable,
+        return_condition: returnData.return_condition,
+      }),
+    });
+    const json = await safeJson(res);
+    if (!res.ok) throw new Error(json?.message || "수정 실패");
+
+    // 화면 즉시 반영
+    setP(prev => ({
+      ...prev,
+      returnable: returnData.returnable,
+      return_condition: returnData.return_condition,
+    }));
+    setReturnOpen(false);
+    alert(json?.message || "반품 정보가 수정되었습니다.");
+  } catch (e) {
+    alert(`수정 실패: ${e.message}`);
+  }
+};
+
   const handleSave = async () => {
     try {
       const token =
@@ -216,7 +258,7 @@ export default function SellerProductDetailPage() {
             <p className={`${s.badge} ${p.returnable ? s.badgeGreen : s.badgeGray}`}>
               {p.returnable ? "반품 가능" : "반품 불가"}
             </p>
-            <button className={s.inlineEdit} onClick={handleEdit}>
+            <button className={s.inlineEdit} onClick={openReturnModal}>
               ✎ 수정하기
             </button>
           </div>
@@ -294,6 +336,38 @@ export default function SellerProductDetailPage() {
           </div>
         </div>
       )}
+      
+      {returnOpen && (
+  <div className={s.modal} role="dialog" aria-modal="true" aria-labelledby="returnTitle">
+    <h3 id="returnTitle" className={s.modalTitle}>반품 가능 여부 수정</h3>
+    <hr className={s.modalDivider} />
+
+    <div className={s.radioRow}>
+      <label className={s.radioItem}>
+        <input
+          type="radio"
+          name="returnable"
+          checked={returnData.returnable === true}
+          onChange={() => setReturnData(r => ({ ...r, returnable: true }))}
+        />
+        <span>반품 가능</span>
+      </label>
+      <label className={s.radioItem}>
+        <input
+          type="radio"
+          name="returnable"
+          checked={returnData.returnable === false}
+          onChange={() => setReturnData(r => ({ ...r, returnable: false }))}
+        />
+        <span>반품 불가능</span>
+      </label>
+    </div>
+    <div className={s.modalActions}>
+      <button className={s.btnGhost} onClick={() => setReturnOpen(false)}>취소</button>
+      <button className={s.btnPrimary} onClick={saveReturn}>확인</button>
+    </div>
+  </div>
+)}
 
       <ProductDetailInfo product={p} />
     </>
