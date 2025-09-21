@@ -1,6 +1,7 @@
-// src/pages/InquiryBoardPage.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+const API_BASE = (process.env.REACT_APP_API_BASE_URL || "").replace(/\/$/, "");
 
 /** 잠금 아이콘 */
 const Lock = ({ size = 14 }) => (
@@ -15,16 +16,25 @@ const CATEGORIES = [
   "쿠폰/포인트 문의","상품 문의","이벤트/프로모션 문의","기타 문의",
 ];
 
-const ROWS = [
-  { id: 1, category: "회원/계정 문의", title: "주소 변경이 안됩니다.", isPublic: true,  date: "2025-08-06", status: "답변 대기" },
-  { id: 2, category: "배송 문의",     title: "상품 배송이 언제 되나요?",  isPublic: false, date: "2025-08-03", status: "답변 대기" },
-  { id: 3, category: "상품 문의",     title: "사과 유통기한 문의",      isPublic: true,  date: "2025-08-02", status: "답변 완료" },
-];
+function toPublicBool(v) {
+  const s = String(v ?? "").toLowerCase().trim();
+  if (s === "public" || s === "공개" || s === "true" || s === "1") return true;
+  if (s === "private" || s === "비공개" || s === "false" || s === "0") return false;
+  return false; // 모호하면 비공개로
+}
 
 export default function InquiryBoardPage() {
   const [open, setOpen] = useState(false);
   const [selectedCat, setSelectedCat] = useState("전체");
   const [query, setQuery] = useState("");
+
+  const [rows, setRows] = useState([]);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
+
   const btnRef = useRef(null);
   const panelRef = useRef(null);
   const navigate = useNavigate();
@@ -38,14 +48,72 @@ export default function InquiryBoardPage() {
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
+  useEffect(() => {
+    async function fetchInquiries() {
+      try {
+        setLoading(true);
+        setErr("");
+
+        const token =
+          localStorage.getItem("accessToken") ||
+          sessionStorage.getItem("accessToken");
+
+        const url = `${API_BASE}/api/my/inquiries?page=${page}&limit=${limit}`;
+        const res = await fetch(url, {
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+
+        if (!res.ok) {
+          const j = await safeJson(res);
+          throw new Error(j?.message || `HTTP ${res.status}`);
+        }
+
+        const json = await res.json();
+        const list = Array.isArray(json?.data?.inquiries) ? json.data.inquiries : [];
+
+        // 방어적 매핑
+        const mapped = list.map((it) => {
+          const created =
+            it.created_at || it.createdAt || it.createdAT || it.created_at_ts; // 혹시 모를 변형 대비
+          const dt = created ? new Date(created) : null;
+          const visRaw = it.is_visible ?? it.isVisible ?? it.visibility;
+          return {
+            id: it.inquiry_id ?? it.id,
+            category: it.category ?? "-",                   // 없으면 "-"
+            title: it.title ?? "",
+            isPublic: toPublicBool(visRaw),
+            date: dt ? dt.toLocaleDateString("ko-KR") : "-",
+            status: (it.status === "ANSWERED") ? "답변 완료" : "답변 대기",
+          };
+        });
+
+        setRows(mapped);
+
+        const pg = json?.data?.pagination || {};
+        setTotalPages(Number(pg.totalPages) || 1);
+      } catch (e) {
+        console.error("fetchInquiries error:", e);
+        setErr(e.message || "불러오기 실패");
+        setRows([]);
+        setTotalPages(1);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchInquiries();
+  }, [page, limit]);
+
   const filtered = useMemo(() => {
     const q = query.trim();
-    return ROWS.filter((r) => {
+    return rows.filter((r) => {
       const catOk = selectedCat === "전체" ? true : r.category === selectedCat;
       const qOk = !q || r.title.includes(q) || r.category.includes(q) || r.status.includes(q);
       return catOk && qOk;
     });
-  }, [selectedCat, query]);
+  }, [rows, selectedCat, query]);
 
   return (
     <div style={styles.page}>
@@ -107,16 +175,42 @@ export default function InquiryBoardPage() {
           <tbody>
             {filtered.length === 0 ? (
               <tr><td colSpan={5} style={{ textAlign: "center", padding: 28 }}>검색 결과가 없습니다.</td></tr>
-            ) : (
-              filtered.map((r) => (
-                <tr key={r.id} onClick={() => navigate(`/inquiry/${r.id}`)} style={{ cursor: "pointer" }}>
-                  <td>{r.category}</td>
-                  <td style={{ textAlign: "left" }}>{r.title}</td>
-                  <td>{r.isPublic ? "공개" : <span style={{ display: "inline-flex", gap: 6, alignItems: "center" }}><Lock/> 비공개</span>}</td>
-                  <td>{r.date}</td>
-                  <td style={{ color: r.status === "답변 완료" ? "#2f7235" : "#666", fontWeight: 700 }}>{r.status}</td>
-                </tr>
-              ))
+                ) : (
+                  filtered.map((r) => {
+                    const canOpen = r.isPublic === true; // 공개글만 클릭 가능
+                    return (
+                    <tr
+                      key={r.id}
+                      onClick={canOpen ? () => navigate(`/inquiry/${r.id}`) : undefined}
+                      aria-disabled={!canOpen}
+                      title={!canOpen ? "비공개 글은 열람할 수 없습니다." : undefined}
+                      style={{
+                        cursor: canOpen ? "pointer" : "default",
+                        opacity: canOpen ? 1 : 0.7, // 비공개일 때 살짝 흐리게
+                      }}
+                    >
+                    <td>{r.category}</td>
+                    <td style={{ textAlign: "left" }}>
+                    {canOpen ? (
+                      <span >{r.title}</span>
+                    ) : (
+                      <span >{r.title}</span>
+                    )}
+                    </td>
+                    <td>
+                      {r.isPublic ? "공개" : (
+                        <span style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
+                        <Lock/> 비공개
+                        </span>
+                      )}
+                    </td>
+                    <td>{r.date}</td>
+                    <td style={{ color: r.status === "답변 완료" ? "#2f7235" : "#666", fontWeight: 700 }}>
+                      {r.status}
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
@@ -128,7 +222,7 @@ export default function InquiryBoardPage() {
             <span>1</span>
             <button>Next &gt;</button>
           </div>
-          <button type="button" onClick={() => navigate("/inquiry/new")} style={styles.askBtn}>
+          <button type="button" onClick={() => navigate("/mypage/inquiry")} style={styles.askBtn}>
             문의하기
           </button>
         </div>
@@ -136,6 +230,8 @@ export default function InquiryBoardPage() {
     </div>
   );
 }
+async function safeJson(res) { try { return await res.json(); } catch { return null; } }
+
 
 /** 스타일 */
 const styles = {

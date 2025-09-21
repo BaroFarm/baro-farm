@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import {useNavigate} from 'react-router-dom';
 import dummyQnA from '../../data/dummyQnA';
 
 export default function ProductQnA({ productId }) {
@@ -10,7 +11,7 @@ export default function ProductQnA({ productId }) {
   const [totalPages, setTotalPages] = useState(1);
 
   const [source, setSource] = useState(''); // 'api' | 'dummy' | ''
-
+  const navigate = useNavigate();
   // 더미를 현재 상품 ID로 스탬핑(없으면 inquiry_id/답글 id도 부여)
   const stampedDummy = useMemo(() => {
     const base = dummyQnA.filter(q => String(q.product_id) === String(productId));
@@ -175,6 +176,7 @@ export default function ProductQnA({ productId }) {
             borderRadius: '4px',
             cursor: 'pointer',
           }}
+          onClick={() => navigate(`/mypage/inquiry?product_id=${productId}`)}
         >
           문의하기
         </button>

@@ -28,8 +28,9 @@ import MyReviewsPage from "./components/mypage/MyReviewsPage";
 import MySubscriptionListPage from "./components/mypage/MySubscriptionListPage";
 import MyInquiryListPage from "./components/mypage/MyInquiryListPage";
 
+import MyInquiryDetailPage from "./components/mypage/MyInquiryDetailPage";
 import InquiryPage from "./components/mypage/InquiryPage";
-import InquiryBoardPage from "./components/mypage/InquiryBoardPage";
+import MyInquiryDetailView from "./components/mypage/MyInquiryDetailView";import InquiryBoardPage from "./components/mypage/InquiryBoardPage";
 
 import SearchPage from '../src/ai_chatbot/SearchPage';
 import SeasonalPage from '../src/ai_chatbot/SeasonalPage';
@@ -176,9 +177,11 @@ function App() {
 
           <Route path="/my/reviews" element={<MyReviewsPage />} />
           <Route path="/mypage/subscription" element={<MySubscriptionListPage />} />
-          <Route path="/mypage/inquiries" element={<MyInquiryListPage />} />
 
+          <Route path="/mypage/inquiries" element={<MyInquiryListPage />} />
+          <Route path="/mypage/inquiry/:id" element={<MyInquiryDetailPage />} />
           <Route path="/mypage/inquiry" element={<InquiryPage />} />
+          <Route path="/mypage/inquiryView" element={<MyInquiryDetailView />} />
           <Route path="/inquiry/board" element={<InquiryBoardPage />} />
           </Route>
 

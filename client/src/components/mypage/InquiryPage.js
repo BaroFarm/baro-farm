@@ -1,16 +1,23 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
 const CATEGORIES = [
-  "전체",
   "회원/계정 문의",
   "주문/결제 문의",
   "배송 문의",
-  "반품/교환/환불 문의",
+  "반품/교환/환불",
   "쿠폰/포인트 문의",
   "상품 문의",
   "이벤트/프로모션 문의",
   "기타 문의",
 ];
+
+const API_BASE = (process.env.REACT_APP_API_BASE_URL || "").replace(/\/$/, "");
+
+function useQuery() {
+  const { search } = useLocation();
+  return new URLSearchParams(search);
+}
 
 function CustomSelect({ value, onChange, placeholder = "카테고리 선택" }) {
   const [open, setOpen] = useState(false);
@@ -57,7 +64,92 @@ function CustomSelect({ value, onChange, placeholder = "카테고리 선택" }) 
 }
 
 export default function InquiryPage() {
+  const q = useQuery();
+  const queryPid = q.get("product_id") || q.get("productId") || ""; // 상품 상세에서 진입 시 사용
+  const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
+  const [content, setContent] = useState("");
+  const [isPublic, setIsPublic] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [productId, setProductId] = useState(queryPid);
+  const cameFromProduct = !!queryPid;   
+
+  const endpoint = `${API_BASE}/api/my/store-communication/inquiries`;
+
+  useEffect(() => {
+    if (queryPid) setCategory("상품 문의");
+  }, [queryPid]);
+
+  async function handleSubmit() {
+    // ✅ 기본 검증
+    if (!category || !CATEGORIES.includes(category)) {
+      alert("카테고리를 선택하세요.");
+      return;
+    }
+    const t = title.trim();
+    const c = content.trim();
+    if (!t) return alert("제목을 입력하세요.");
+    if (!c) return alert("내용을 입력하세요.");
+    if (t.length > 200) return alert("제목은 200자 이내로 입력하세요.");
+    if (c.length > 1000) return alert("내용은 1000자 이내로 입력하세요.");
+
+    const payload = {
+      category,
+      title: t,
+      content: c,
+      is_visible: isPublic ? "공개" : "비공개",
+    };
+
+    // ✅ '상품 문의'일 때만 product_id 포함 (있으면 숫자로)
+    if (cameFromProduct) {
+      const pidNum = Number(productId || queryPid);
+      if (Number.isFinite(pidNum) && pidNum > 0) {
+        payload.product_id = pidNum;
+      }
+    }
+
+    const token =
+      localStorage.getItem("accessToken") ||
+      sessionStorage.getItem("accessToken");
+
+    if (!token) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const err = await safeJson(res);
+        throw new Error(err?.message || `요청 실패 (${res.status})`);
+      }
+
+      alert("문의가 등록되었습니다.");
+      // 초기화
+      setTitle("");
+      setCategory("");
+      setContent("");
+      setIsPublic(true);
+      // productId는 상품 상세 진입이면 유지
+      if (!queryPid) setProductId("");
+      // 필요하면 게시판/상세로 이동
+      // window.location.href = "/inquiry/board";
+    } catch (e) {
+      console.error(e);
+      alert(`오류: ${e.message}`);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div style={S.page}>
@@ -78,27 +170,74 @@ export default function InquiryPage() {
           id="title"
           type="text"
           placeholder="제목을 작성하세요"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
           style={S.input}
+          maxLength={200}
         />
 
         {/* 카테고리 */}
         <label style={S.label}>카테고리 선택</label>
         <CustomSelect value={category} onChange={setCategory} />
+        {cameFromProduct && (
+          <>
+            <label htmlFor="productId" style={S.label}>
+              상품 ID 
+            </label>
+            <input
+              id="productId"
+              type="number"
+              value={productId}
+              readOnly
+              style={{ ...S.input, background: "#f7f7f7", cursor: "not-allowed" }}
+            />
+          </>
+        )}
 
         {/* 내용 */}
         <label htmlFor="content" style={S.label}>내용 작성</label>
-        <textarea id="content" rows={8} placeholder="내용을 입력하세요" style={S.textarea} />
+        <textarea id="content" rows={8} placeholder="내용을 입력하세요 (최대 1000자)"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          style={S.textarea}
+          maxLength={1000} />
 
-        <div style={S.checkboxRow}>
-          <input type="checkbox" id="public" />
-          <label htmlFor="public" style={S.checkboxText}>공개 여부 설정</label>
-        </div>
+        {/* 공개 여부 */}
+<div style={S.checkboxRow} role="group" aria-label="공개 여부">
+  <label style={S.checkLabel}>
+    <input
+      type="checkbox"
+      checked={isPublic === true}
+      onChange={() => setIsPublic(true)}   // 공개 강제 선택
+    />
+    <span style={S.checkboxText}>공개</span>
+  </label>
+
+  <label style={S.checkLabel}>
+    <input
+      type="checkbox"
+      checked={isPublic === false}
+      onChange={() => setIsPublic(false)}  // 비공개 강제 선택
+    />
+    <span style={S.checkboxText}>비공개</span>
+  </label>
+</div>
       </div>
 
-      <button style={S.submitBtn}>문의 등록</button>
+      <button style={S.submitBtn} onClick={handleSubmit}>문의 등록</button>
     </div>
   );
 }
+
+/* ===== 유틸 ===== */
+async function safeJson(res) {
+  try {
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
 
 /* ====== page styles ====== */
 const S = {
