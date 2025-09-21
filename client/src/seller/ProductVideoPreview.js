@@ -158,12 +158,7 @@ const styles = {
     textAlign: 'left',
   },
   title: {
-    fontSize: '28px',
-    fontWeight: 800,
-    margin: 0,
-    textAlign: 'left',
-    color: '#1d1d1f',
-    marginBottom: '24px',
+    fontSize: 28, fontWeight: 'bold',marginTop: 0, textAlign: "left", color: "#1d1d1f",
   },
   subtitle: {
     fontSize: '16px',

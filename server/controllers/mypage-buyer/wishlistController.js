@@ -74,12 +74,16 @@ const getProductWishlists = async (req, res) => {
 
         const wishlists = await ProductWishlist.findAll({
         where: { customer_id: customerId },
+        attributes: ['product_wishlist_id', 'created_at'],
         include: [
             {
             model: Product,
+            as:'Product',
             attributes: ['product_id', 'title', 'price'],
             include: [
-                { model: ProductImg, attributes: ['img_url'], required: false }
+                { model: ProductImg, 
+                    as: 'images',
+                    attributes: ['img_url'], required: false }
             ]
             }
         ],

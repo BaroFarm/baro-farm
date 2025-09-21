@@ -91,7 +91,7 @@ export default function OrderCard({ order }) {
   const fallbackImg = `https://placehold.co/100x100?text=${fallbackText}`;
 
   // 등록 콜백: 실제로는 API 호출 연결
-  const handleSubmitReview = async ({ rating, content, files }) => {
+  const handleSubmitReview = async ({ rating, content, file }) => {
     try {
       let imgUrl = null;
 

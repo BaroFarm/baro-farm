@@ -29,8 +29,10 @@ function ProductCompletePage() {
   };
 
   return (
+    <>
+    <h2 style={styles.title}>상품 등록</h2>
     <div style={styles.wrapper}>
-      <h2 style={styles.title}>상품 등록</h2>
+      
       <p style={styles.message}>
         <span style={styles.emoji}>✅</span> 상품 등록이 완료되었습니다.
       </p>
@@ -49,12 +51,13 @@ function ProductCompletePage() {
         </button>
       </div>
     </div>
+    </>
   );
 }
 
 const styles = {
   wrapper: { maxWidth: '700px', margin: '0 auto', padding: '60px 20px', textAlign: 'center' },
-  title: { fontSize: '22px', fontWeight: 'bold', textAlign: 'left', marginBottom: '60px' },
+  title: { fontSize: 28, fontWeight: 'bold', marginLeft: "20px", marginTop: "17px", textAlign: "left", color: "#1d1d1f",},
   message: { fontSize: '20px', marginBottom: '40px' },
   emoji: { fontSize: '22px', marginRight: '8px' },
   buttonGroup: { display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' },

@@ -1,0 +1,105 @@
+/* --- Overlay & Modal --- */
+.overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal{
+  width: 420px;             /* 스크린샷 비율 */
+  max-width: 92vw;
+  background: #fff;
+  border: 1px solid #e5e7eb;/* 연한 회색 테두리 */
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0,0,0,.12);
+  padding: 16px 14px 18px;
+  position: relative;
+}
+.close{
+  position:absolute; top:8px; right:10px;
+  border:0; background:transparent; cursor:pointer;
+  font-size:22px; line-height:1; color:#6b7280;
+}
+.title{
+  margin: 0 0 10px;
+  font-size: 15px;          /* 스샷처럼 작게 */
+  font-weight: bold;
+  color:#111827;
+}
+
+/* --- Empty/Error --- */
+.empty{
+  border:1px solid #eee; border-radius:12px;
+  padding: 32px 16px; text-align:center; background:#fff;
+}
+.emptyTitle{ font-weight:bold; margin-bottom:6px; }
+.emptyDesc{ color:#6b7280; font-size:14px; }
+
+/* --- Card Header (로고/이름/만료/남은금액) --- */
+.cardHeader{
+  display:flex; align-items:center; gap:12px;
+  border:1px solid #e5e7eb;
+  background:#fafafa;
+  border-radius:8px;
+  padding: 12px;
+}
+
+.meta{ flex:1; min-width:0; }
+.voucherName{ font-weight:bold; color:#111827; }
+.expire{ margin-top:2px; font-size:12px; color:#6b7280; }
+
+.right{ text-align:right; min-width:90px; }
+.red{ color:#cc2626; font-weight:bold; font-size:12px; }
+.remain{ font-weight:bold; }
+
+/* --- Table (사용일/금액) --- */
+.table{
+  margin-top: 10px;
+  border:1px solid #e5e7eb;
+  border-radius:8px;
+  overflow:hidden;
+  background:#fff;
+}
+.tr{
+  display:grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid #f3f4f6;
+  font-size:14px;
+}
+.tr:first-child{ border-top: 0; }
+.head{ background:#fafafa; font-weight:bold; color:#111827; }
+.td{ white-space:nowrap; }
+.rightCell{ text-align:right; }
+.noRows{ padding: 14px 12px; color:#6b7280; }
+
+/* --- Footer (총 사용 금액/남은 금액/환불 가능 기간) --- */
+.footerRows{
+  padding: 8px 12px;
+  border-top: 1px solid #f3f4f6;
+  display:flex; flex-direction:column; gap:6px;
+  background:#fff;
+}
+.kv{
+  display:flex; align-items:center; justify-content:space-between;
+}
+.kv span{ color:#374151; }
+.kv strong{ font-weight:bold; }
+
+/* --- Actions --- */
+.actions{ margin-top: 14px; }
+.refundBtn{
+  width:100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #d5dfcb; /* 연한 초록 테두리 */
+  background: #e5ecd9;       /* 연한 초록 배경 */
+  cursor: pointer;
+  font-weight: 700;
+  color:#111827;
+}
+.refundBtn:active{ transform: translateY(1px); }

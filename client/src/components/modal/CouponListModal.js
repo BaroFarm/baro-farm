@@ -1,28 +1,28 @@
 import React, { useEffect, useRef, useState, useMemo } from "react";
 
-const API_BASE = process.env.REACT_APP_API_BASE_URL || "";
+const API_BASE = (process.env.REACT_APP_API_BASE_URL || "").replace(/\/$/, "");
 
 export default function CouponListModal({
   open,
   onClose,
   pageSize = 10,
-  onReceive,
-  onReceiveAll,
+  onReceive,      // (선택) 외부에서 가로채고 싶을 때
+  onReceiveAll,   // (선택)
   getToken = () => localStorage.getItem("accessToken") || "",
 }) {
   const sheetRef = useRef(null);
-  const scrollRef = useRef(null);       // 🔹 스크롤 컨테이너
-  const endRef = useRef(null);          // 🔹 센티넬
-  const getTokenRef = useRef(getToken); // 🔒 함수 참조 고정
+  const scrollRef = useRef(null);
+  const endRef = useRef(null);
+  const getTokenRef = useRef(getToken);
   useEffect(() => { getTokenRef.current = getToken; }, [getToken]);
 
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState([]);   // 서버 원본 + 클라이언트 상태 필드 추가
   const [page, setPage] = useState(1);
   const [pg, setPg] = useState({ currentPage: 1, totalPages: 1, totalElements: 0, pageSize });
 
-  // ESC 닫기
+  /* ESC 닫기 */
   useEffect(() => {
     if (!open) return;
     const onKey = (e) => e.key === "Escape" && onClose?.();
@@ -30,7 +30,7 @@ export default function CouponListModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  // 모달 열릴 때 초기화
+  /* 열릴 때 초기화 */
   useEffect(() => {
     if (open) {
       setItems([]);
@@ -40,12 +40,12 @@ export default function CouponListModal({
     }
   }, [open, pageSize]);
 
-  // 📡 페이지 단위 로드 (append)
+  /* 페이지 로드 */
   useEffect(() => {
     if (!open) return;
     const controller = new AbortController();
 
-    const fetchPage = async () => {
+    (async () => {
       setLoading(true);
       try {
         const token = getTokenRef.current?.() || "";
@@ -56,13 +56,10 @@ export default function CouponListModal({
           return;
         }
 
-        const url = `${API_BASE}/api/my/coupons/downloadable?page=${page}&limit=${pageSize}`;
-        const res = await fetch(url, {
-          method: "GET",
-          headers: { Authorization: `Bearer ${token}` }, // ⚠️ GET엔 Content-Type 제거
-          cache: "no-store",
-          signal: controller.signal,
-        });
+        const res = await fetch(
+          `${API_BASE}/api/my/coupons/downloadable?page=${page}&limit=${pageSize}`,
+          { method: "GET", headers: { Authorization: `Bearer ${token}` }, cache: "no-store", signal: controller.signal }
+        );
         if (!res.ok) throw new Error(`서버 오류(${res.status})`);
 
         const js = await res.json().catch(() => ({}));
@@ -70,11 +67,13 @@ export default function CouponListModal({
         const list = Array.isArray(data.downloadableCoupons) ? data.downloadableCoupons : [];
         const pagination = data.pagination ?? {};
 
-        // 🔹 append + dedup(coupon_id)
+        // append + 중복 제거
         setItems((prev) => {
           const seen = new Set(prev.map((x) => x.coupon_id));
           const merged = [...prev];
-          for (const it of list) if (!seen.has(it.coupon_id)) merged.push(it);
+          for (const it of list) {
+            if (!seen.has(it.coupon_id)) merged.push({ ...it, __downloading: false, __downloaded: false });
+          }
           return merged;
         });
 
@@ -87,24 +86,19 @@ export default function CouponListModal({
       } catch (e) {
         if (e.name !== "AbortError") {
           setErr(e.message || "쿠폰을 불러오지 못했습니다.");
-          // 첫 페이지에서 실패했을 때만 리스트 비우기
           if (page === 1) setItems([]);
         }
       } finally {
         setLoading(false);
       }
-    };
+    })();
 
-    fetchPage();
     return () => controller.abort();
   }, [open, page, pageSize]);
 
-  // 더 불러올 수 있는지
-  const hasMore = useMemo(() => {
-    return pg.currentPage < pg.totalPages;
-  }, [pg.currentPage, pg.totalPages]);
+  const hasMore = useMemo(() => pg.currentPage < pg.totalPages, [pg.currentPage, pg.totalPages]);
 
-  // 🔭 인피니트 스크롤(센티넬 관측)
+  /* 인피니트 스크롤 */
   useEffect(() => {
     if (!open) return;
     const rootEl = scrollRef.current || null;
@@ -113,17 +107,73 @@ export default function CouponListModal({
 
     const obs = new IntersectionObserver(
       (entries) => {
-        const ent = entries[0];
-        if (ent.isIntersecting && hasMore && !loading) {
-          setPage((p) => p + 1);
-        }
+        if (entries[0].isIntersecting && hasMore && !loading) setPage((p) => p + 1);
       },
       { root: rootEl, rootMargin: "200px 0px", threshold: 0 }
     );
-
     obs.observe(target);
     return () => obs.disconnect();
   }, [open, hasMore, loading]);
+
+  /* =========================
+     쿠폰 다운로드 API 연동
+     ========================= */
+  async function apiDownload(coupon_id) {
+    const token = getTokenRef.current?.() || "";
+    if (!token) throw new Error("로그인이 필요합니다.");
+
+    const res = await fetch(`${API_BASE}/api/my/coupons`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ coupon_id }),
+    });
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}));
+      throw new Error(j?.message || `발급 실패(${res.status})`);
+    }
+    return await res.json().catch(() => ({}));
+  }
+
+  async function handleReceive(coupon) {
+    // 외부 핸들러가 있으면 그걸 우선 사용
+    if (onReceive) return onReceive(coupon);
+
+    const id = coupon.coupon_id;
+    // UI 상태: 받는중…
+    setItems((arr) => arr.map((c) => (c.coupon_id === id ? { ...c, __downloading: true } : c)));
+    try {
+      await apiDownload(id);
+      // 성공 → 받음 + 비활성화 처리
+      setItems((arr) =>
+        arr.map((c) =>
+          c.coupon_id === id
+            ? { ...c, __downloading: false, __downloaded: true, is_available: false }
+            : c
+        )
+      );
+      alert("쿠폰이 발급되었습니다.");
+    } catch (e) {
+      alert(e.message || "발급 중 오류가 발생했습니다.");
+      setItems((arr) => arr.map((c) => (c.coupon_id === id ? { ...c, __downloading: false } : c)));
+    }
+  }
+
+  async function handleReceiveAll() {
+    if (onReceiveAll) return onReceiveAll(items);
+
+    // is_available == true 이고 아직 받지 않은 쿠폰만 순차 발급
+    const targets = items.filter((c) => c.is_available !== false && !c.__downloaded);
+    for (const c of targets) {
+      // 중복 클릭 대비: 이미 받는중이면 skip
+      const current = items.find((x) => x.coupon_id === c.coupon_id);
+      if (current?.__downloading) continue;
+      // eslint-disable-next-line no-await-in-loop
+      await handleReceive(c);
+    }
+  }
 
   if (!open) return null;
 
@@ -156,54 +206,47 @@ export default function CouponListModal({
   return (
     <div style={S.backdrop} onMouseDown={handleBackdrop} role="dialog" aria-modal="true">
       <div ref={sheetRef} style={S.sheet} onMouseDown={(e)=>e.stopPropagation()}>
-        {/* 헤더 */}
         <div style={S.header}>
           <div style={{ fontWeight: 800, fontSize: 18 }}>쿠폰</div>
           <button type="button" aria-label="닫기" onClick={onClose} style={S.xbtn}>✕</button>
         </div>
 
-        {/* 상태 */}
         {err && <div style={{ ...S.state, color: "#d33" }}>{err}</div>}
         {empty && <div style={S.state}>다운로드 가능한 쿠폰이 없습니다.</div>}
 
-        {/* 리스트 (스크롤 컨테이너) */}
         <div ref={scrollRef} style={S.listScroll}>
-          {items.map((c) => (
-            <div key={c.coupon_id} style={S.row}>
-              <div style={S.thumb}><div style={S.thumbGray}/></div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={S.title}>{c.coupon_name}</div>
-                <div style={S.discount}>
-                  {c.type === "PERCENTAGE" ? "퍼센트 할인 쿠폰"
-                    : c.type === "FIXED_AMOUNT" ? "정액 할인 쿠폰" : "쿠폰"}
-                  {c.min_order_account ? ` · 최소주문 ${Number(c.min_order_account).toLocaleString()}원` : ""}
-                  {c.max_discount != null ? ` · 최대 ${Number(c.max_discount).toLocaleString()}원` : ""}
+          {items.map((c) => {
+            const disabled = !c.is_available || c.__downloading || c.__downloaded;
+            const label = c.__downloaded ? "받음" : c.__downloading ? "받는중…" : "쿠폰\n받기";
+            return (
+              <div key={c.coupon_id} style={S.row}>
+                <div style={S.thumb}><div style={S.thumbGray}/></div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={S.title}>{c.coupon_name}</div>
+                  <div style={S.discount}>
+                    {c.type === "PERCENTAGE" ? "퍼센트 할인 쿠폰"
+                      : c.type === "FIXED_AMOUNT" ? "정액 할인 쿠폰" : "쿠폰"}
+                  </div>
+                  <div style={S.expires}>{renderExpires(c.valid_from, c.valid_at)}</div>
                 </div>
-                <div style={S.expires}>{renderExpires(c.valid_from, c.valid_at)}</div>
+                <button
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => handleReceive(c)}
+                  style={{ ...S.receiveBtn, opacity: disabled ? 0.5 : 1, cursor: disabled ? "not-allowed" : "pointer" }}
+                >
+                  {label.split("\n").map((t,i)=><div key={i}>{t}</div>)}
+                </button>
               </div>
-              <button
-                type="button"
-                disabled={!c.is_available}
-                onClick={() => onReceive ? onReceive(c) : alert(`'${c.coupon_name}' 받기 (UI 데모)`)}
-                style={{ ...S.receiveBtn, opacity: c.is_available ? 1 : 0.5, cursor: c.is_available ? "pointer" : "not-allowed" }}
-              >
-                쿠폰<br/>받기
-              </button>
-            </div>
-          ))}
+            );
+          })}
 
-          {/* 센티넬 + 로딩 표시 */}
           <div ref={endRef} style={S.sentinel} />
           {loading && <div style={S.loadingRow}>불러오는 중…</div>}
           {!hasMore && items.length > 0 && <div style={S.endRow}>마지막 페이지입니다</div>}
         </div>
 
-        {/* 하단 버튼 (전체 받기) */}
-        <button
-          type="button"
-          onClick={() => onReceiveAll ? onReceiveAll() : alert("쿠폰 전체 받기 (UI 데모)")}
-          style={S.fullBtn}
-        >
+        <button type="button" onClick={handleReceiveAll} style={S.fullBtn}>
           쿠폰 전체 받기
         </button>
       </div>
