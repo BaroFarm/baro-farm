@@ -3,7 +3,7 @@ const { Inquiry, Inquiry_reply, Customer, Product } = require('../models');
 
 const getProductInquiries = async (req, res) => {
     try {
-        // ✅ product_id | productId 둘 다 허용
+        // product_id | productId 둘 다 허용
         const pidRaw = req.params.product_id ?? req.params.productId;
         const productId = Number(pidRaw);
         //const productId = Number(req.params.product_id);

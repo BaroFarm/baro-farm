@@ -30,7 +30,6 @@ const getMyOrders = async (req, res) => {
             }
           ]
         }
-        },
         // {
         //   model: DeliveryDetail,
         //   as: 'delivery',
@@ -40,16 +39,6 @@ const getMyOrders = async (req, res) => {
       ]
     });
     // 2) 배송상태 붙이기 (별도 조회)
-    const orderIds = orders.map(o => o.order_id);
-    let deliveryMap = {};
-    if (orderIds.length) {
-      const dels = await DeliveryDetail.findAll({
-        where: { order_id: { [Op.in]: orderIds } },
-        attributes: ['order_id', 'delivery_status'],
-      });
-      deliveryMap = Object.fromEntries(dels.map(d => [d.order_id, d]));
-    }
-
     const orderIds = orders.map(o => o.order_id);
     let deliveryMap = {};
     if (orderIds.length) {
@@ -163,38 +152,29 @@ const getMyOrderDetail = async (req, res) => {
       order: [['delivery_id', 'DESC']],
     });
 
-
     const items = order.OrderProducts || [];
 
-    // 응답 포맷
     const formattedOrder = {
       order_id: order.order_id,
       order_date: order.order_date,
       order_price: order.order_price,
       order_state: order.order_state,
-        delivery_status: delivery?.delivery_status ?? '배송준비',
-        tracking_number: delivery?.tracking_number ?? null,
-        courier: delivery?.courier ?? null,
-        shipping_fee :  order.order_shipping_fee ?? 0, // 배송비 추가
-        receiver_name: order.receiver_name ?? null,
-        receiver_phone: order.receiver_phone ?? null,
-        deliveryAddress: addr
-          ? {
-          zipCode: order.Customer?.zip_code,
-          street: order.Customer?.street,
-          detail: order.Customer?.detail,
-              full: [addr.zip_code, addr.street, addr.detail].filter(Boolean).join(' '),
-            }
-          : null,
-        delivered_at: delivery?.delivered_at ?? null,
-        deliveryHistory: []
-      },
-      // orderItems: (order.OrderProducts || []).map(item => {
-      //   const p = item.Product;
-      //   const firstImgUrl =
-      //     (p?.ProductImgs && p.ProductImgs[0]?.img_url) ??
-      //     p?.ProductImg?.img_url ?? null;
-
+      delivery_status: delivery?.delivery_status ?? '배송준비',
+      tracking_number: delivery?.tracking_number ?? null,
+      courier: delivery?.courier ?? null,
+      shipping_fee: order.order_shipping_fee ?? 0,
+      receiver_name: order.receiver_name ?? null,
+      receiver_phone: order.receiver_phone ?? null,
+      deliveryAddress: addr
+        ? {
+            zipCode: order.Customer?.zip_code,
+            street: order.Customer?.street,
+            detail: order.Customer?.detail,
+            full: [addr.zip_code, addr.street, addr.detail].filter(Boolean).join(' '),
+          }
+        : null,
+      delivered_at: delivery?.delivered_at ?? null,
+      deliveryHistory: [],
       orderItems: items.map((item) => {
         const p = item.Product;
         const firstImgUrl = p?.images?.[0]?.img_url ?? null;
@@ -203,7 +183,7 @@ const getMyOrderDetail = async (req, res) => {
           order_product_id: item.order_product_id,
           product_id: p?.product_id ?? null,
           product_name: p?.title ?? null,
-          product_img: p?.ProductImgs?.[0]?.img_url ?? null,
+          product_img: p?.ProductImgs?.[0]?.img_url ?? firstImgUrl,
           order_product_quantity: item.order_product_quantity,
           order_product_price: item.order_product_price,
           sellerName: p?.Seller?.name ?? null,
@@ -214,13 +194,13 @@ const getMyOrderDetail = async (req, res) => {
         amount: order.Payment?.amount ?? 0,
         method: order.Payment?.method ?? null,
         discountAmount: 0,
-        couponUsed: null
-      }
+        couponUsed: null,
+      },
     };
 
     res.status(200).json({
       status: 'success',
-      data: formattedOrder
+      data: formattedOrder,
     });
   } catch (err) {
     console.error(err);

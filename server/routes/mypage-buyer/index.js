@@ -25,8 +25,11 @@ router.use('/coupons', couponRoutes);
 const inquiryRoutes = require('./inquiryRoutes'); // 문의 내역 조회
 router.use('/inquiries', inquiryRoutes);
 
-const storeCommunicationRoutes = require('./storeCommunicationRoutes');
+const storeCommunicationRoutes = require('./storeCommunicationRoutes'); // 직매장 소통 채널
 router.use('/store-communication', storeCommunicationRoutes);
+
+const subscriptionRoutes = require('./subscriptionRoutes'); // 직매장 소통 채널
+router.use('/subscriptions', subscriptionRoutes);
 
 module.exports = router;
 

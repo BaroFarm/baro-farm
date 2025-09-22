@@ -78,7 +78,7 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     Order.hasOne(models.DeliveryDetail, {
-      as: 'payment',
+      as: 'payment', //
       foreignKey: 'order_id',
       sourceKey: 'order_id',
     });
