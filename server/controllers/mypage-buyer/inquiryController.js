@@ -1,7 +1,6 @@
-//프론트에서 Product 추가했습니다 - 상품 상세에서 진입 시 상품 아이디 포함
-const { Inquiry, Inquiry_reply, Product } = require('../../models');
+const { Inquiry, Inquiry_reply, Customer, Product } = require('../../models');
 
-// 문의 내역 조회
+// 나의 문의 내역 조회
 const getMyInquiries = async (req, res) => {
   try {
     const customerId = req.user.customer_id;
@@ -18,7 +17,7 @@ const getMyInquiries = async (req, res) => {
         'inquiry_id',
         'title',
         'content',
-        'category',        // ✅ 반드시 포함
+        'category',        // 반드시 포함
         'status',
         'is_visible',
         'created_at',
@@ -69,7 +68,97 @@ const getMyInquiries = async (req, res) => {
   }
 };
 
-// 문의 게시
+// 직매장 소통채널 - 문의 게시판 - 문의 내역 조회
+const getInquiries = async (req, res) => {
+  try {
+    const customerId = req.user.customer_id;
+    const page = parseInt(req.query.page, 10) || 1;
+    const pageSize = parseInt(req.query.pageSize, 10) || 10;
+    const offset = (page - 1) * pageSize;
+
+    // 이름 마스킹
+    const maskName = (name) => {
+      if (!name) return '';
+      if (name.length <= 2) return name[0] + '*';
+      return name[0] + '*'.repeat(name.length - 2) + name[name.length - 1];
+    };
+
+    const { rows, count } = await Inquiry.findAndCountAll({
+      include: [
+        { model: Customer, attributes: ['customer_id', 'name'] },
+        {
+          model: Inquiry_reply, 
+          attributes: ['inquiry_reply_id', 'content', 'created_at'],
+        },
+      ],
+      order: [
+        ['created_at', 'DESC'],
+        [Inquiry_reply, 'created_at', 'ASC'],
+      ],
+      limit: pageSize,
+      offset,
+    });
+
+    // 데이터 가공
+    const result = rows.map((q) => {
+      const isPrivate = q.is_visible === '비공개';
+      const isOwnerOrAdminOrSeller =
+        (req.user?.customer_id && req.user.customer_id === q.customer_id) ||
+        req.user?.role === 'admin' ||
+        req.user?.role === 'seller';
+
+      const title = isPrivate && !isOwnerOrAdminOrSeller ? '비밀글입니다.' : q.title;
+      const body = isPrivate && !isOwnerOrAdminOrSeller ? null : q.content;
+
+      // 답변 처리
+      const repliesSrc = q.Inquiry_replies || [];
+      const replies =
+        isPrivate && !isOwnerOrAdminOrSeller
+          ? repliesSrc.map((r) => ({
+              inquiry_reply_id: r.inquiry_reply_id,
+              content: null,
+              created_at: r.created_at,
+            }))
+          : repliesSrc.map((r) => ({
+              inquiry_reply_id: r.inquiry_reply_id,
+              content: r.content,
+              created_at: r.created_at,
+            }));
+
+      return {
+        inquiry_id: q.inquiry_id,
+        title,
+        content: body,
+        is_visible: q.is_visible, // '공개' | '비공개'
+        author_masked: maskName(q.Customer?.name),
+        status: q.status, // '접수' | '답변완료'
+        created_at: q.created_at,
+        reply_count: replies.length,
+        replies,
+      };
+    });
+
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        result,
+        page,
+        pageSize,
+        totalElements: count,
+        totalPages: Math.ceil(count / pageSize),
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      status: 'error',
+      code: 'SERVER_ERROR',
+      message: '서버 내부 오류가 발생했습니다.',
+    });
+  }
+};
+
+// 직매장 소통채널 - 문의 게시판 - 문의 게시
 const createInquiry = async (req, res) => {
   try {
     const customerId = req.user.customer_id;
@@ -134,5 +223,5 @@ const createInquiry = async (req, res) => {
 };
 
 module.exports = {
-  getMyInquiries, createInquiry
+  getMyInquiries, getInquiries,createInquiry
 };

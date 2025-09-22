@@ -34,20 +34,15 @@ const getMyOrders = async (req, res) => {
               ]
             }
           ]
-        
-        },
+        }
+        // {
+        //   model: DeliveryDetail,
+        //   as: 'delivery',
+        //   attributes: ['delivery_status'],
+        //   required: false,
+        // }
       ]
     });
-
-    const orderIds = orders.map(o => o.order_id);
-    let deliveryMap = {};
-    if (orderIds.length) {
-      const dels = await DeliveryDetail.findAll({
-        where: { order_id: { [Op.in]: orderIds } },
-        attributes: ['order_id', 'delivery_status'],
-      });
-      deliveryMap = Object.fromEntries(dels.map(d => [d.order_id, d]));
-    }
 
     // 응답 형식 맞춰 데이터 가공
     const formattedOrders = (orders || []).map(order => ({ 
@@ -143,13 +138,12 @@ const getMyOrderDetail = async (req, res) => {
 
     const items = order.items || [];
 
-    // 응답 포맷
     const formattedOrder = {
       order_id: order.order_id,
       order_date: order.order_date,
       order_price: order.order_price,
       order_state: order.order_state,
-        delivery_status: delivery?.delivery_status ?? '배송준비',
+      delivery_status: delivery?.delivery_status ?? '배송준비',
         tracking_number: delivery?.tracking_number ?? null,
         courier: delivery?.courier ?? null,
         shipping_fee :  order.order_shipping_fee ?? 0, // 배송비 추가
@@ -186,13 +180,13 @@ const getMyOrderDetail = async (req, res) => {
         amount: order.Payment?.amount ?? 0,
         method: order.Payment?.method ?? null,
         discountAmount: 0,
-        couponUsed: null
+        couponUsed: null,
       },
     };
 
     res.status(200).json({
       status: 'success',
-      data: formattedOrder
+      data: formattedOrder,
     });
   } catch (err) {
     console.error(err);
