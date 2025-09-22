@@ -1,4 +1,4 @@
-const { Inquiry, Inquiry_reply, Customer } = require('../../models');
+const { Inquiry, Inquiry_reply, Customer, Product } = require('../../models');
 
 // 나의 문의 내역 조회
 const getMyInquiries = async (req, res) => {
@@ -13,6 +13,16 @@ const getMyInquiries = async (req, res) => {
     // 문의 내역 조회
     const inquiries = await Inquiry.findAll({
       where: { customer_id: customerId },
+      attributes: [
+        'inquiry_id',
+        'title',
+        'content',
+        'category',        // 반드시 포함
+        'status',
+        'is_visible',
+        'created_at',
+        'product_id',
+      ],
       include: [{ model: Inquiry_reply }],
       order: [['created_at', 'DESC']],
       limit: pageSize,
@@ -24,6 +34,7 @@ const getMyInquiries = async (req, res) => {
       inquiry_id: q.inquiry_id,
       title: q.title,
       content: q.content,
+      category: q.category || null,  //프론트에서 추가
       status: q.status === '접수' ? 'PENDING' : 'ANSWERED',
       is_visible: q.is_visible === '공개' ? 'public' : 'private',
       created_at: q.created_at,

@@ -15,9 +15,9 @@ export default function MyListSection() {
     const items = [
         { icon: <FaStar size={36} />, label: '즐겨찾기', path: '/my/favorites' },
         { icon: <FaHeart size={36} />, label: '찜 목록', path: '/my/wishlist' },
-        { icon: <FaCalendarAlt size={36} />, label: '나의 정기 배송', path: '/my/subscriptions' },
-        { icon: <FaGift size={36} />, label: '나의 금액권', path: '/my/coupons' },
-        { icon: <FaPercentage size={36} />, label: '쿠폰(할인권)', path: '/my/discounts' },
+        { icon: <FaCalendarAlt size={36} />, label: '나의 정기 배송', path: '/mypage/subscription' },
+        { icon: <FaGift size={36} />, label: '나의 금액권', path: '/my/vouchers' },
+        { icon: <FaPercentage size={36} />, label: '쿠폰(할인권)', path: '/my/coupons' },
         { icon: <FaSmile size={36} />, label: '나의 리뷰 목록', path: '/my/reviews' },
     ];
 

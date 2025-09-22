@@ -20,6 +20,21 @@ import ProfileEdit from './components/mypage/ProfileEdit';
 import RefundDetailPage from './pages/RefundDetailPage';
 import PaymentPage from './pages/PaymentPage';
 
+import BuyerWishlistPage from './components/mypage/BuyerWishlistPage';
+import FavoritesPage from './components/mypage/FavoritesPage';
+import VoucherPage from './components/mypage/VoucherPage';
+import CouponsPage from './components/mypage/CouponsPage';
+import MyReviewsPage from "./components/mypage/MyReviewsPage";
+import MySubscriptionListPage from "./components/mypage/MySubscriptionListPage";
+import MyInquiryListPage from "./components/mypage/MyInquiryListPage";
+
+import MyInquiryDetailPage from "./components/mypage/MyInquiryDetailPage";
+import InquiryPage from "./components/mypage/InquiryPage";
+import MyInquiryDetailView from "./components/mypage/MyInquiryDetailView";import InquiryBoardPage from "./components/mypage/InquiryBoardPage";
+
+import SearchPage from '../src/ai_chatbot/SearchPage';
+import SeasonalPage from '../src/ai_chatbot/SeasonalPage';
+
 //판매자 관련
 import SellerLayout from './components/layout/SellerLayout';
 import ProductRegisterPage from './seller/ProductRegisterPage';
@@ -32,6 +47,38 @@ import ProductAICustomInput from './seller/ProductAICustomInput';
 import ProductVideoPreview from './seller/ProductVideoPreview';
 import ProductFinalPage from './seller/ProductFinalPage';
 import ProductCompletePage from './seller/ProductCompletePage';
+import SellerMainPage from './seller/MainPage';
+import OrderManagementPage from './seller/OrderManagementPage';
+import MyStorePage from './seller/MyStorePage';
+
+import SellerProductDetailPage from './seller/SellerProductDetailPage';
+import SalesPreferenceAnalytics from './seller/SalesPreferenceAnalytics';
+import PreferenceOverviewPage from './seller/PreferenceOverviewPage';
+
+import SellerMyPage from './seller/SellerMyPage';
+import MemberInfoPage from './seller/MemberInfoPage';
+
+
+// App.js 맨 위 import들 아래
+const dummyOrderList = [
+  {
+    smartDelivery: 'Y',
+    orderNo: 'ORD-20250824-001',
+    buyer: '김바로',
+    product: '친환경 사과 5kg',
+    status: '결제완료',
+    date: '2025-08-24',
+  },
+  {
+    smartDelivery: 'N',
+    orderNo: 'ORD-20250824-002',
+    buyer: '이팜',
+    product: '바로팜 흙당근 2kg',
+    status: '배송중',
+    date: '2025-08-24',
+  },
+];
+
 
 function App() {
 
@@ -60,7 +107,82 @@ function App() {
             <Route path="/my/cancel/:refundId" element={<RefundDetailPage />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/payments" element={<PaymentPage />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/seasonal" element={<SeasonalPage />} />
+            <Route path="/my/wishlist" element={<BuyerWishlistPage />}/>  
+            <Route path="/my/favorites" element={<FavoritesPage />} />  
+            <Route
+  path="/my/vouchers"
+  element={
+    <VoucherPage
+      vouchers={[
+        {
+          id: 1,
+          marketName: "옹이네 채소",
+          voucherName: "옹이네 채소 금액권",
+          imageUrl: "https://images.unsplash.com/photo-1524592714635-d77511a4834a?q=80&w=400&auto=format&fit=crop",
+          expiresAt: "2025.05.31",
+          usableAmount: 120000,
+          refundableUntil: "2025.05.31",
+        },
+        {
+          id: 2,
+          marketName: "바로팜",
+          voucherName: "바로팜 금액권",
+          imageUrl: "/logo192.png",
+          expiresAt: "2025.05.31",
+          usableAmount: 45000,
+          refundableUntil: "2025.05.31",
+        },
+      ]}
+      onClickUsage={(id) => console.log("usage", id)}
+      onClickRefund={(id) => console.log("refund", id)}
+    />
+  }
+/>        <Route
+  path="/my/coupons"
+  element={
+    <CouponsPage
+      banners={[
+        { id: 1, imageUrl: "https://picsum.photos/1200/400?1", alt: "봄맞이 특가" },
+        { id: 2, imageUrl: "https://picsum.photos/1200/400?2", alt: "주말 할인" },
+      ]}
+      coupons={[
+        {
+          id: 101,
+          discountText: "20% 할인",
+          productName: "심광쌀 > 맛있는밥상",
+          marketName: "맛있는밥상",
+          imageUrl: "https://images.unsplash.com/photo-1604335399105-a0d7b16f2b6a?q=80&w=400&auto=format&fit=crop",
+        },
+        {
+          id: 102,
+          discountText: "10% 할인",
+          productName: "주호네 농원 사과 >",
+          marketName: "주호네 농원",
+          imageUrl: "https://images.unsplash.com/photo-1570913149827-d2ac84ab3f9a?q=80&w=400&auto=format&fit=crop",
+        },
+        {
+          id: 103,
+          discountText: "10% 할인",
+          productName: "장수막걸리 >",
+          marketName: "장수합시다",
+          imageUrl: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?q=80&w=400&auto=format&fit=crop",
+        },
+      ]}
+      onClaim={(id) => console.log("claim coupon", id)}
+    />
+  }
+/>
 
+          <Route path="/my/reviews" element={<MyReviewsPage />} />
+          <Route path="/mypage/subscription" element={<MySubscriptionListPage />} />
+
+          <Route path="/mypage/inquiries" element={<MyInquiryListPage />} />
+          <Route path="/mypage/inquiry/:id" element={<MyInquiryDetailPage />} />
+          <Route path="/mypage/inquiry" element={<InquiryPage />} />
+          <Route path="/mypage/inquiryView" element={<MyInquiryDetailView />} />
+          <Route path="/inquiry/board" element={<InquiryBoardPage />} />
           </Route>
 
           {/* 판매자 레이아웃(NavBar) ↓ */}
@@ -75,6 +197,18 @@ function App() {
             <Route path="/product/video-preview" element={<ProductVideoPreview />} />
             <Route path="/product/final" element={<ProductFinalPage />} />
             <Route path="/product/complete" element={<ProductCompletePage />} />
+            <Route path="/seller/main" element={<SellerMainPage />} /> 
+            <Route path="/order" element={<OrderManagementPage orderList={dummyOrderList} />} />
+
+
+            <Route path="/shop" element={<MyStorePage />} />
+            <Route path="/seller/product/:id" element={<SellerProductDetailPage />} />
+
+            <Route path="/seller/mypage" element={<SellerMyPage />} />
+            <Route path="/mypage/member-info" element={<MemberInfoPage />} />
+            <Route path="/analytics" element={<SalesPreferenceAnalytics />} />
+            <Route path="/analytics/preference/overview" element={<PreferenceOverviewPage />} />
+
           </Route>
         </Routes>
       </div>

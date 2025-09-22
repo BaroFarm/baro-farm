@@ -1,0 +1,95 @@
+/* 컨테이너 */
+.wrap { display:flex; justify-content:center; width:100%; }
+.container { width:100%; max-width:1200px; padding:20px 16px 40px; }
+
+.headerRow { display:flex; align-items:center; justify-content:space-between; }
+.title { font-size:22px; font-weight:700; margin:0; text-align: left; }
+.ai { color:#3c5a2a; font-weight:600; }
+.hr { height:1px; background:#e5e5e5; margin:14px 0 18px; }
+
+/* 배너 */
+.banner { margin:18px 0 28px; }
+.bannerImg { width:100%; height:220px; object-fit:cover; display:block; border-radius:10px; background:#d9d9d9; }
+.bannerPlaceholder {
+  display:flex; align-items:center; justify-content:center;
+  width:100%; height:220px; border-radius:10px; background:#d1d1d1;
+  color:#222; font-weight:700; text-align:center; line-height:1.6;
+}
+
+/* 공통/빈 상태 */
+.listWrap { margin-top:8px; }
+.empty { border:1px solid #eee; border-radius:12px; padding:40px 16px; text-align:center; background:#fff; }
+.emptyTitle { font-weight:700; margin-bottom:6px; }
+.emptyDesc { font-size:14px; color:#666; }
+
+/* ✅ 한 줄 묶음(연두 배경 박스) */
+.rowBox {
+  background:#e9f1e4;        /* 연한 연두 */
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:20px;
+  overflow-x: auto;
+}
+
+/* ✅ 묶음 내부: 1→2→3열 */
+.grid { display:grid; gap:18px; grid-template-columns:repeat(3, minmax(0,1fr));
+        min-width: calc(300px * 3 + 18px * 2); }
+/* @media (min-width:768px){ .grid{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
+@media (min-width:1200px){ .grid{ grid-template-columns:repeat(3, minmax(0,1fr)); } } */
+
+/* 카드 레이아웃 */
+.card {
+  display:grid;
+  grid-template-columns: 90px 1fr 100px; /* 좌/중/우 */
+  align-items:center;
+  background:#fff;
+  border:1px solid #e3e3e3;
+  border-radius:12px;
+  overflow:hidden;
+}
+
+.leftCol { display:flex; align-items:center; justify-content:center; background:#f7f7f7; }
+.thumb { width:72px; height:72px; object-fit:cover; border-radius:8px; }
+
+/* 가운데 정보 */
+.centerCol { padding:12px 14px; border-left:1px solid #eee; }
+.badge {
+  display:inline-block;
+  
+  color:#d64545;
+  font-weight:700;
+  font-size:12px;
+  padding:4px 8px;
+  border-radius:6px;
+  margin-bottom:8px;
+}
+.prod { font-size:16px; font-weight:800; color:#1a1a1a; margin:4px 0; }
+.market { font-size:13px; color:#777; }
+
+/* ✅ 오른쪽 패널(버튼 아님, 패널 전체 클릭) */
+.rightCol {
+  height:100%;
+  background:#dfe9d9;           /* 연한 초록(배경과 분리) */
+  border-left:1px solid #d3dfcd;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+}
+.claimText {
+  color:#274b2e;                 /* 진한 초록 텍스트 */
+  font-weight:700;
+  letter-spacing:0.2px;
+}
+.rightCol:hover { filter:brightness(0.98); }
+
+/* 둥근 모서리 유지 */
+.card, .leftCol, .centerCol, .rightCol { box-sizing:border-box; }
+
+/* 발급 완료(비활성화) */
+.disabled {
+  background: #f0f0f0 !important;
+  border-left: 1px solid #ddd !important;
+  cursor: not-allowed !important;
+}
+.disabled .claimText {
+  color: #999 !important;
+}

@@ -7,31 +7,27 @@ const num = (v) => {
 };
 
 function ProductVideoPreview() {
-  const {state} =useLocation() || {};
+  const {state} = useLocation() || {};
   const navigate = useNavigate();
 
-  // productId: state → localStorage
   const productId =
     num(state?.productId) ?? num(localStorage.getItem("current_product_id"));
 
   const BASE = (process.env.REACT_APP_API_BASE_URL || "").replace(/\/$/, "");
   const token = localStorage.getItem("accessToken");
 
-  // 캐시된 영상 URL 먼저 사용
   const cached = productId ? localStorage.getItem(`last_ai_video_${productId}`) : "";
   const [videoUrl, setVideoUrl] = useState(cached || "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // ▶ 폴백 URL 계산: .env 지정 > 백엔드 정적 경로 > (없으면) 프론트 퍼블릭
   const fallbackUrl = useMemo(() => {
     if (process.env.REACT_APP_VIDEO_PLACEHOLDER)
-      return process.env.REACT_APP_VIDEO_PLACEHOLDER; // 예: https://…/sample.mp4
-    if (BASE) return `${BASE}/videos/test_720p.mp4`; // server/public/videos/test_720p.mp4
-    return "/videos/test_720p.mp4"; // CRA public 폴더에 둘 경우
+      return process.env.REACT_APP_VIDEO_PLACEHOLDER;
+    if (BASE) return `${BASE}/videos/test_720p.mp4`;
+    return "/videos/test_720p.mp4";
   }, [BASE]);
 
-  // ▶ 영상 생성 호출
   const generate = async () => {
     setError("");
     if (!productId) return setError("상품 ID가 없습니다.");
@@ -39,72 +35,61 @@ function ProductVideoPreview() {
 
     setLoading(true);
     try {
-    // 1) 먼저 POST /video-gen (임시 구현 약속)
-    let url = await (async () => {
-      const res = await fetch(`${BASE}/api/s-products/${productId}/video-gen`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ product_id: Number(productId) }),
-      });
+      let url = await (async () => {
+        const res = await fetch(`${BASE}/api/s-products/${productId}/video-gen`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ product_id: Number(productId) }),
+        });
 
-      if (res.status === 401) {
-        setError("로그인이 필요합니다. 다시 로그인해주세요.");
-        setTimeout(() => navigate("/login"), 500);
-        return null;
-      }
-
-      // 라우트가 없거나 메서드가 다르면 404/405로 떨어질 수 있음 → 다음 전략으로
-      if (res.status === 404 || res.status === 405) return null;
-
-      if (!res.ok) {
-        // 다른 오류는 에러 처리
-        const t = await res.text().catch(() => "");
-        throw new Error(t || `영상 생성 실패 (${res.status})`);
-      }
-
-      const json = await res.json().catch(() => ({}));
-      return json?.data?.video_url || json?.video_url || null;
-    })();
-
-    // 2) 대체 경로 시도: GET /video (서버가 조회용으로 이렇게 만들어둔 경우 대비)
-    if (!url) {
-      const res = await fetch(`${BASE}/api/s-products/${productId}/video`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
-
-      if (res.ok) {
+        if (res.status === 401) {
+          setError("로그인이 필요합니다. 다시 로그인해주세요.");
+          setTimeout(() => navigate("/login"), 500);
+          return null;
+        }
+        if (res.status === 404 || res.status === 405) return null;
+        if (!res.ok) {
+          const t = await res.text().catch(() => "");
+          throw new Error(t || `영상 생성 실패 (${res.status})`);
+        }
         const json = await res.json().catch(() => ({}));
-        url = json?.data?.video_url || json?.video_url || null;
+        return json?.data?.video_url || json?.video_url || null;
+      })();
+
+      if (!url) {
+        const res = await fetch(`${BASE}/api/s-products/${productId}/video`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+        if (res.ok) {
+          const json = await res.json().catch(() => ({}));
+          url = json?.data?.video_url || json?.video_url || null;
+        }
       }
-    }
 
-    // 3) 최종 결정: 성공했으면 그 URL, 아니면 폴백
-    if (!url) {
-      setError("영상 API를 찾을 수 없어 임시 영상으로 대체합니다.");
+      if (!url) {
+        setError("영상 API를 찾을 수 없어 임시 영상으로 대체합니다.");
+        setVideoUrl(fallbackUrl);
+        localStorage.setItem(`last_ai_video_${productId}`, fallbackUrl);
+        return;
+      }
+
+      setVideoUrl(url);
+      localStorage.setItem(`last_ai_video_${productId}`, url);
+    } catch (e) {
+      setError(e.message || "영상 생성 중 오류가 발생했습니다.");
       setVideoUrl(fallbackUrl);
-      localStorage.setItem(`last_ai_video_${productId}`, fallbackUrl);
-      return;
+    } finally {
+      setLoading(false);
     }
+  };
 
-    setVideoUrl(url);
-    localStorage.setItem(`last_ai_video_${productId}`, url);
-  } catch (e) {
-    setError(e.message || "영상 생성 중 오류가 발생했습니다.");
-    // 에러 시에도 폴백 적용
-    setVideoUrl(fallbackUrl);
-  } finally {
-    setLoading(false);
-  }
-};
-
-  // 최초 진입 시 자동 생성(캐시 없을 때만)
   useEffect(() => {
     if (productId && !videoUrl) generate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -125,45 +110,38 @@ function ProductVideoPreview() {
       <h2 style={styles.title}>상품 등록</h2>
       <p style={styles.subtitle}>상품 상세 정보와 이미지를 바탕으로 제작한 영상입니다.</p>
 
-      {/* ▶️ 여기에 나중에 AI 영상이 들어갈 예정 */}
-      <div style={styles.videoBox}>
-        {videoUrl ? (
-          <video
-            key={videoUrl}
-            src={videoUrl}
-            controls
-            style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 8 }}
-            onError={() => {
-              // 재생 오류도 폴백으로 자동 대체
-              if (videoUrl !== fallbackUrl) {
-                setError("영상 재생 오류 — 임시 영상으로 대체합니다.");
-                setVideoUrl(fallbackUrl);
-              }
-            }}
-          />
-        ) : (
-          <div style={styles.placeholder}>
-            {loading ? "영상 생성 중…" : "영상이 아직 없습니다."}
-          </div>
-        )}
+      {/* ▶ 영상 크기 축소 + 중앙 정렬 */}
+      <div style={styles.videoOuter}>
+        <div style={styles.videoBox}>
+          {videoUrl ? (
+            <video
+              key={videoUrl}
+              src={videoUrl}
+              controls
+              style={styles.videoEl}
+              onError={() => {
+                if (videoUrl !== fallbackUrl) {
+                  setError("영상 재생 오류 — 임시 영상으로 대체합니다.");
+                  setVideoUrl(fallbackUrl);
+                }
+              }}
+            />
+          ) : (
+            <div style={styles.placeholder}>
+              {loading ? "영상 생성 중…" : "영상이 아직 없습니다."}
+            </div>
+          )}
+        </div>
       </div>
-      {/* {error && (
-        <p style={{ color: "#c00", marginTop: 8, whiteSpace: "pre-wrap" }}>{error}</p>
-      )} */}
 
       <p style={styles.question}>사용하시겠습니까?</p>
 
+      {/* ▶ 버튼 사이 간격 더 크게 */}
       <div style={styles.buttonGroup}>
-        <button
-          style={styles.button}
-          onClick={() => navigate('/product/final', { state: { withVideo: true } })}
-        >
+        <button style={styles.button} onClick={() => goFinal(true)}>
           영상 사용할게요
         </button>
-        <button
-          style={styles.button}
-          onClick={() => navigate('/product/final', { state: { withVideo: false } })}
-        >
+        <button style={styles.button} onClick={() => goFinal(false)}>
           영상은 빼주세요
         </button>
       </div>
@@ -172,51 +150,69 @@ function ProductVideoPreview() {
 }
 
 const styles = {
+  // ProductFormPage 기준 좌측 정렬 컨테이너
   wrapper: {
-    maxWidth: '800px',
+    maxWidth: '1200px',
     margin: '0 auto',
     padding: '40px 20px',
-    textAlign: 'center',
+    textAlign: 'left',
   },
   title: {
-    fontSize: '22px',
-    fontWeight: 'bold',
-    textAlign: 'left',
-    marginBottom: '24px',
+    fontSize: 28, fontWeight: 'bold',marginTop: 0, textAlign: "left", color: "#1d1d1f",
   },
   subtitle: {
     fontSize: '16px',
     marginBottom: '24px',
+    textAlign: 'center',
+  },
+
+  // ▶ 영상 가로폭 축소 (중앙 정렬)
+  videoOuter: {
+    display: 'flex',
+    justifyContent: 'center',
   },
   videoBox: {
     width: '100%',
-    height: '250px',
+    maxWidth: '640px',        // ✅ 가로폭 줄임 (원하면 560/600 등으로 조정)
+    aspectRatio: '16 / 9',    // ✅ 16:9 유지
     backgroundColor: '#f5f5f5',
     border: '1px solid #ccc',
-    marginBottom: '32px',
+    borderRadius: '8px',
+    overflow: 'hidden',
   },
+  videoEl: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    display: 'block',
+  },
+
   question: {
     fontSize: '18px',
-    marginBottom: '32px',
+    marginTop: '24px',
+    marginBottom: '0px',
+    textAlign: 'center',
   },
+
+  // ▶ 버튼 간격 더 크게 + 중앙 정렬
   buttonGroup: {
     display: 'flex',
-    justifyContent: 'space-between',
-    maxWidth: '500px',
-    margin: '0 auto',
-    gap: '80px',
+    justifyContent: 'center',
+    gap: '360px',           // ✅ 240 → 360 으로 더 크게
+    maxWidth: '100%',
+    margin: '36px auto 0',  // 상단 여백도 살짝 증가
+    flexWrap: 'wrap',
   },
   button: {
     backgroundColor: '#B6D19B',
     border: '1px solid #000',
-    borderRadius: '999px',
-    padding: '10px 24px',
-    fontSize: '14px',
+    borderRadius: '8px',
+    padding: '12px 24px',
+    fontSize: '16px',
     fontWeight: '500',
     cursor: 'pointer',
-    flex: 1,
+    minWidth: '180px',
   },
 };
 
 export default ProductVideoPreview;
-//

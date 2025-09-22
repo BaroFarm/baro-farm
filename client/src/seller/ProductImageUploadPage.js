@@ -8,7 +8,6 @@ export default function ProductImageUploadPage() {
   const [searchParams] = useSearchParams();
   const location = useLocation();
 
-  // 여러 경로에서 productId 확보
   const qid = searchParams.get("id");
   const stateId = location.state?.productId;
   const storedId =
@@ -24,7 +23,6 @@ export default function ProductImageUploadPage() {
   const [uploadedCount, setUploadedCount] = useState(0);
   const [error, setError] = useState(null);
 
-  // 미리보기
   const previews = useMemo(
     () => files.map((f) => ({ name: f.name, url: URL.createObjectURL(f) })),
     [files]
@@ -57,15 +55,10 @@ export default function ProductImageUploadPage() {
     try {
       setUploading(true);
 
-      // ▶︎ 명세: multipart/form-data, POST /api/s-products/:id/images
       const fd = new FormData();
-      // 필요시 서버에서 path-param 외에도 활용할 수 있게 함께 넣어줌
       fd.append("product_id", String(id));
-
       const nowISO = new Date().toISOString();
       files.forEach((file, idx) => {
-        // 서버 구현에 따라 field 이름이 'images' 또는 'file'일 수 있어
-        // 가장 흔한 'images'로 전송. (백엔드가 'file'을 기대하면 거기에 맞춰 변경)
         fd.append("images", file);
         fd.append("img_order[]", String(idx + 1));
         fd.append("created_at[]", nowISO);
@@ -84,10 +77,9 @@ export default function ProductImageUploadPage() {
         throw new Error(data?.message || `업로드 실패 (HTTP ${res.status})`);
       }
 
-      const data = await res.json(); // { product_id, images: [{img_id, img_url, img_order, created_at}, ...] }
+      const data = await res.json();
       setUploadedCount(Array.isArray(data?.images) ? data.images.length : files.length);
 
-      // 다음 단계로 이동 (기존 경로 유지)
       navigate(`/seller/products/${id}/description/ai-gen`);
     } catch (e) {
       setError(e?.message || "업로드 실패");
@@ -97,90 +89,185 @@ export default function ProductImageUploadPage() {
   };
 
   return (
-    <div style={{ padding: 16 }}>
-      <div style={{fontSize: '18px', margin: '50px 0px'}}> 상품등록을 위해 이미지를 업로드 하세요</div>
-      {!pidFromUrl && (
-        <div style={{ marginBottom: 8 }}>
-          <label>상품 ID: </label>
-          <input
-            value={productId}
-            onChange={(e) => setProductId(e.target.value)}
-            placeholder="예: 1"
-            style={{ border: "1px solid #ccc", padding: 6 }}
-          />
+    <div style={styles.pageWrapper}>
+      {/* 상단 제목 */}
+      <div style={{ marginBottom: "24px" }}>
+        <h2 style={styles.title}>상품 등록</h2>
+      </div>
+
+      {/* 본문 안내 + 업로드 버튼 */}
+      <div style={styles.mainSection}>
+        <p style={styles.subTitle}>
+          <span>상품등록을 위해</span>
+          <br />
+          <span>이미지를 업로드 하세요</span>
+        </p>
+
+        <div style={styles.centerContent}>
+          <label style={styles.fileButton}>
+            이미지 업로드
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={onPickFiles}
+              style={{ display: "none" }}
+            />
+          </label>
+
+          {!!files.length && (
+            <p style={styles.helperText}>
+              여러 장 선택 가능 · 위/아래 버튼으로 순서 조정 (순서가 <code>img_order</code>가 됩니다)
+            </p>
+          )}
         </div>
-      )}
+      </div>
 
-      <div>
-  {/* label을 버튼처럼 스타일 */}
-  <label 
-    style={{ 
-      display: "inline-block", 
-      backgroundColor: "#B6D19B",  // 원하는 버튼 색
-      padding: "8px 16px",
-      borderRadius: "6px",
-      cursor: "pointer",
-      marginTop: '14px'
-    }}
-  >
-    파일 선택
-    {/* 실제 input은 숨김 */}
-    <input 
-      type="file" 
-      accept="image/*" 
-      multiple 
-      onChange={onPickFiles} 
-      style={{ display: "none" }} 
-    />
-  </label>
-  <p style={{ fontSize: 12, color: "#666" }}>
-    여러 장 선택 가능 · 위/아래 버튼으로 순서 조정 (이 순서가 <code>img_order</code>가 됩니다)
-  </p>
-</div>
-
+      {/* 이미지 미리보기 */}
       {!!files.length && (
-        <ul style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginTop: 12 }}>
+        <ul style={styles.previewGrid}>
           {previews.map((p, idx) => (
-            <li key={p.url} style={{ border: "1px solid #ddd", borderRadius: 8, padding: 8 }}>
-              <img src={p.url} alt={p.name} style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 6 }} />
-              <div style={{ fontSize: 12, marginTop: 6 }}>{idx + 1}. {p.name}</div>
+            <li key={p.url} style={styles.previewItem}>
+              <img src={p.url} alt={p.name} style={styles.previewImg} />
+              <div style={{ fontSize: 12, marginTop: 6 }}>
+                {idx + 1}. {p.name}
+              </div>
               <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-                <button onClick={() => move(idx, -1)} disabled={idx === 0}>위로</button>
-                <button onClick={() => move(idx, 1)} disabled={idx === files.length - 1}>아래</button>
-                <button style={{ marginLeft: "auto", color: "#c00" }} onClick={() => remove(idx)}>삭제</button>
+                <button onClick={() => move(idx, -1)} disabled={idx === 0}>
+                  위로
+                </button>
+                <button onClick={() => move(idx, 1)} disabled={idx === files.length - 1}>
+                  아래
+                </button>
+                <button
+                  style={{ marginLeft: "auto", color: "#c00" }}
+                  onClick={() => remove(idx)}
+                >
+                  삭제
+                </button>
               </div>
             </li>
           ))}
         </ul>
       )}
 
-      <div style={{ display: "flex", 
-        alignItems: "center", 
-        justifyContent: "center",  // 가로 가운데 정렬
-        gap: 10, 
-        marginTop: 12  }}>
+      {/* 하단 네비 버튼 */}
+      <div style={styles.bottomNav}>
+        <button type="button" style={styles.prevBtn} onClick={() => navigate("/product/form")}>
+          &lt; 이전 단계로 이동
+        </button>
         <button
-          onClick={onUpload}
-          disabled={uploading || !files.length}
+          type="button"
           style={{
-            backgroundColor: uploading || !files.length ? "#aaa" : "#B6D19B", // 비활성화일 땐 회색
-            padding: "8px 16px",
-            borderRadius: "6px",
-            cursor: uploading || !files.length ? "not-allowed" : "pointer",
-            border: "none"
+            ...styles.nextBtn,
+            opacity: uploading ? 0.6 : 1,
+            cursor: uploading ? "not-allowed" : "pointer",
           }}
+          onClick={onUpload}
+          disabled={uploading}
         >
-          {uploading ? "업로드 중..." : "이미지 업로드"}
-      </button>
+          다음 단계로 이동 &gt;
+        </button>
+      </div>
 
-  {uploadedCount > 0 && (
-    <span style={{ color: "green", fontSize: 13 }}>
-      {uploadedCount}개 업로드 완료
-    </span>
-  )}
-</div>
-
-      {error && <p style={{ color: "#c00", marginTop: 8 }}>{error}</p>}
+      {uploadedCount > 0 && (
+        <p style={{ color: "green", fontSize: 13, textAlign: "center", marginTop: 10 }}>
+          {uploadedCount}개 업로드 완료
+        </p>
+      )}
+      {error && <p style={{ color: "#c00", marginTop: 8, textAlign: "center" }}>{error}</p>}
     </div>
   );
 }
+
+const styles = {
+  pageWrapper: {
+    maxWidth: "1200px",
+    margin: "0 auto",
+    padding: "40px 20px",
+  },
+  title: {
+    fontSize: "28px",
+    fontWeight: 'bold',
+    margin: 0,
+    textAlign: "left",
+    color: "#1d1d1f",
+  },
+  mainSection: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: "40vh", // ✅ 전체적으로 아래쪽으로 배치
+    marginBottom: "40px",
+  },
+  subTitle: {
+    fontSize: "24px", // ✅ 더 크게
+    fontWeight: 400, // ✅ 볼드 없음
+    textAlign: "center",
+    marginBottom: "20px",
+    color: "#4a4a4a",
+    lineHeight: 1.5,
+  },
+  centerContent: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "12px",
+  },
+  fileButton: {
+    display: "inline-block",
+    backgroundColor: "#B6D19B",
+    padding: "12px 24px",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontSize: "16px",
+    fontWeight: 500,
+    color: "#1d1d1f",
+    border: "1px solid black",
+  },
+  helperText: {
+    fontSize: "13px",
+    color: "#666",
+  },
+  previewGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(4, 1fr)",
+    gap: 12,
+    marginTop: 20,
+  },
+  previewItem: {
+    border: "1px solid #ddd",
+    borderRadius: 8,
+    padding: 8,
+    textAlign: "center",
+  },
+  previewImg: {
+    width: "100%",
+    height: 120,
+    objectFit: "cover",
+    borderRadius: 6,
+  },
+  bottomNav: {
+    display: "flex",
+     justifyContent: "space-between", // ✅ 좌/우 끝으로 밀기
+    maxWidth: 800,
+    margin: "80px auto 0", // ✅ 전체적으로 아래 배치
+  },
+  prevBtn: {
+    backgroundColor: "#fff",
+    border: "1px solid #bbb",
+    borderRadius: "20px",
+    padding: "14px 40px",   // ✅ 버튼 자체를 가로로 더 길게
+    fontSize: "17px",       // ✅ 글씨 크게
+    
+  },
+  nextBtn: {
+    backgroundColor: "#B6D19B",
+    border: "1px solid black",
+    borderRadius: "20px",
+     padding: "12px 28px",   // ✅ 가로·세로 여백 증가
+    fontSize: "17px",       // ✅ 글씨 크게
+    
+  },
+};

@@ -45,6 +45,9 @@ router.use('/wishlist', wishlistRoutes);
 router.use('/favorites', favoriteRoutes);
 router.use('/address', addressRoutes);
 
+router.use("/chat", require("./chatbot"));
+
+
 router.get('/', (req, res) => {
     res.send('Hello, Express');
 });

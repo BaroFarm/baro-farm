@@ -2,15 +2,20 @@ import React, {useEffect, useState} from 'react';
 import { FaSearch } from 'react-icons/fa';
 import {useNavigate, useLocation} from 'react-router-dom';
 
-export default function SmallNavbar() {
+function getSession() {
+    const token = localStorage.getItem('accessToken');
+    const userType = (localStorage.getItem('userType') || '').toLowerCase(); // 'buyer' | 'seller' | ''
+    return { isLoggedIn: !!token, userType };
+}
+
+export default function UserNav() {
     const navigate = useNavigate(); // 네비게이션 훅 사용
     const location = useLocation(); 
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [{ isLoggedIn, userType }, setSess] = useState(getSession());
+    useEffect(() => setSess(getSession()), [location]); // 라우트 변할 때마다 세션 재평가
 
-    useEffect(() => {
-        const token = localStorage.getItem('accessToken');
-        setIsLoggedIn(!!token);
-    }, [location]);
+        // 역할별 라우팅/메뉴 정책
+    const mypagePath = userType === 'seller' ? '/seller/mypage' : '/mypage/buyer';
 
     const handleLogout = () => {
         localStorage.removeItem('accessToken');
@@ -19,7 +24,7 @@ export default function SmallNavbar() {
         localStorage.removeItem('userType');
         localStorage.removeItem('tokenType');
         alert('로그아웃 되었습니다.');
-        setIsLoggedIn(false);
+        setSess(getSession());
         navigate('/');
     };
 
@@ -45,8 +50,8 @@ export default function SmallNavbar() {
         }}>
             <li><button style={{...buttonStyle, fontWeight: location.pathname === '/cart' ? 'bold' : 'normal', }}
                         onClick={() => navigate('/cart')}>장바구니</button></li>
-            <li><button style={{...buttonStyle, fontWeight: location.pathname === '/mypage/buyer' ? 'bold' : 'normal', }} 
-                        onClick={() => navigate('/mypage/buyer')}>마이페이지</button></li>
+            <li><button style={{...buttonStyle, fontWeight: location.pathname.includes('/mypage') ? 'bold' : 'normal', }} 
+                        onClick={() => navigate(mypagePath)}>마이페이지</button></li>
             <li>
             {isLoggedIn ? (
                         <button style={buttonStyle} onClick={handleLogout}>로그아웃</button>

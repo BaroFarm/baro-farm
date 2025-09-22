@@ -1,0 +1,58 @@
+.wrap { display:flex; justify-content:center; width:100%; }
+.container { width:100%; max-width:1100px; padding:20px 16px 36px; }
+
+.headerRow { display:flex; align-items:center; justify-content:space-between; }
+.title { font-size:22px; font-weight:bold; margin:0; }
+.highlight { background:#ffe54d; padding:2px 6px; border-radius:6px; }
+.hr { height:1px; background:#e6e6e6; margin:14px 0 18px; }
+
+.empty {
+  border:1px solid #eee; border-radius:12px; padding:40px 16px; text-align:center; background:#fff;
+}
+.emptyTitle { font-weight:bold; margin-bottom:6px; }
+.emptyDesc { color:#666; font-size:14px; }
+
+.list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:18px; }
+
+.item {
+  display: grid;
+  /* 오른쪽 조금 여유 주고 싶으면 minmax로 */
+  grid-template-columns: 70px 1fr minmax(500px, 560px);
+  gap: 12px;
+  align-items: center;
+  border-bottom: 1px solid #efefef;
+  padding: 12px 4px 16px 0;
+}
+
+/* ✅ 컬럼 고정 */
+.logo { grid-column: 1; }
+.main { grid-column: 2; }
+.side { grid-column: 3; }
+
+/* (선택) 제목이 너무 쪼개지지 않도록 */
+.market { font-weight:700; white-space: nowrap; }
+
+/* ⚠️ 기존 미디어쿼리 문법 오류 수정
+   '@media (max-width: 100%;)' -> px 같은 단위 필요 */
+@media (max-width: 900px) {
+  .item { grid-template-columns: 1fr; }
+  .side { grid-column: 1; justify-content: flex-start; }
+}
+.badge {
+  background:#ffe54d; border-radius:6px; padding:2px 6px; font-size:12px; font-weight:700;
+}
+.subMarket { color:#777; font-size:14px; }
+.expire { color:#777; font-size:13px; }
+
+.side { display:flex; align-items:center; gap:16px; justify-content:flex-end; }
+.labelCol { display:flex; flex-direction:column; gap:12px; min-width:110px; }
+.valueCol { display:flex; flex-direction:column; gap:12px; text-align:right; min-width:140px; }
+.redLabel { color:#d64545; font-weight:700; font-size:14px; }
+.value { font-weight:700; }
+
+.actions { display:flex; gap:10px; margin-left:8px; }
+.pill {
+  background:#e1eddb; border:0; border-radius:16px; padding:6px 12px;
+  font-size:13px; font-weight:600; color:#2d4b26; cursor:pointer;
+}
+.pill:hover { filter:brightness(0.95); }

@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
 const DELIVERY_LABEL = {
   '배송준비': '배송 준비',
@@ -16,10 +17,9 @@ const METHOD_LABEL = (m) => {
   return m;
 };
 
-// ── 포인트 계산용 상수/헬퍼(컴포넌트 바깥에 OK) ─────────────────────────
-const PERCENT_RATE = 0.01;         // 1%
-const ROUND_TO = 10;               // 10P 단위 내림
-const REVIEW_POINT_PER_ITEM = 100; // 텍스트 리뷰 100P(예상)
+const PERCENT_RATE = 0.01;
+const ROUND_TO = 10;
+const REVIEW_POINT_PER_ITEM = 100;
 
 const sumMerchandise = (items = []) =>
   items.reduce((t, i) => {
@@ -34,16 +34,15 @@ const calcPurchasePoints = (items, discount = 0, rate = PERCENT_RATE, roundTo = 
   if (!roundTo || roundTo <= 1) return Math.floor(net * rate);
   return Math.floor((net * rate) / roundTo) * roundTo;
 };
-// ─────────────────────────────────────────────────────────────────────────
 
 export default function OrderDetailPage({ order, focusProductId, focusOrderProductId }) {
-  // 훅은 항상 최상단
+  const { state } = useLocation();                       
+  const routeFallback = state?.addressFallback || null;  // {zipCode, street, detail, receiver_name?, receiver_phone?}
+
   const orderItems = order?.orderItems ?? [];
 
-  // 클릭했던 상품 우선
   const heroItem = useMemo(() => {
     if (!orderItems.length) return null;
-
     if (focusOrderProductId != null) {
       const hit = orderItems.find(i => String(i.order_product_id) === String(focusOrderProductId));
       if (hit) return hit;
@@ -53,12 +52,10 @@ export default function OrderDetailPage({ order, focusProductId, focusOrderProdu
       if (hit) return hit;
     }
     return orderItems[0];
-  }, [orderItems, focusProductId, focusOrderProductId]);
+  }, [orderItems, focusOrderProductId, focusProductId]);
 
-  // 여기서부터 조기 반환 OK (훅 이후)
   if (!order) return null;
 
-  // order를 구조분해 한 "뒤"에 계산을 하세요
   const {
     order_id,
     order_date,
@@ -67,18 +64,62 @@ export default function OrderDetailPage({ order, focusProductId, focusOrderProdu
     deliveryInfo,
     paymentInfo,
     order_shipping_fee,
+    receiver_name: root_receiver_name,
+    receiver_phone: root_receiver_phone,
+    deliveryAddress: root_deliveryAddress,
+    delivery_status: root_delivery_status,
+
+    // 루트 레거시 키 폴백
+    zip_code: root_zip_code,
+    zipCode: root_zipCode,
+    street: root_street,
+    detail: root_detail,
   } = order;
 
-  const receiver = deliveryInfo?.receiver_name;
-  const phone = deliveryInfo?.receiver_phone;
+  // 수신자/전화 폴백
+  const receiver =
+    deliveryInfo?.receiver_name ??
+    routeFallback?.receiver_name ??
+    root_receiver_name ?? '';
 
+  const phone =
+    deliveryInfo?.receiver_phone ??
+    routeFallback?.receiver_phone ??
+    root_receiver_phone ?? '';
+
+  // 루트 키들로 주소 객체 구성(최후 폴백)
+  const addrFromLegacyRoot = (root_zip_code || root_zipCode || root_street || root_detail)
+    ? {
+        zipCode: root_zipCode ?? root_zip_code ?? null,
+        street:  root_street ?? null,
+        detail:  root_detail ?? null,
+        full: ([root_zipCode ?? root_zip_code, root_street, root_detail].filter(Boolean).join(' ')) || null,
+      }
+    : null;
+
+  // Customer(또는 customer)에서 주소 폴백
+  const cust = order?.Customer ?? order?.customer ?? null;
+  const addrFromCustomer = cust
+    ? {
+        zipCode: cust.zipCode ?? cust.zip_code ?? null,
+        street:  cust.street ?? null,
+        detail:  cust.detail ?? null,
+        full: ([cust.zipCode ?? cust.zip_code, cust.street, cust.detail].filter(Boolean).join(' ')) || null,
+      }
+    : null;
+
+  // 주소 최종 결정 순서: 서버 deliveryAddress → 서버 다른 키 → 라우터 폴백 → Customer → 루트 키
   const address =
     deliveryInfo?.deliveryAddress ??
     deliveryInfo?.address ??
+    root_deliveryAddress ??
+    routeFallback ??
+    addrFromCustomer ??
+    addrFromLegacyRoot ??
     null;
 
   const deliveryStatusText =
-    DELIVERY_LABEL[deliveryInfo?.delivery_status] || '배송 상태 확인 중';
+    DELIVERY_LABEL[deliveryInfo?.delivery_status ?? root_delivery_status] || '배송 상태 확인 중';
 
   const paymentStatusText =
     (paymentInfo?.approved_at || paymentInfo?.status === '성공') ? '결제 완료' : '결제 대기';
@@ -90,7 +131,6 @@ export default function OrderDetailPage({ order, focusProductId, focusOrderProdu
 
   const firstItem = heroItem || orderItems[0] || {};
 
-  // ✅ 계산값은 여기! (order/paymentInfo/orderItems가 정의된 이후)
   const discountAmt = Number(paymentInfo?.discountAmount || 0);
   const purchasePts =
     order.pointInfo?.earned_purchase ??
@@ -98,6 +138,11 @@ export default function OrderDetailPage({ order, focusProductId, focusOrderProdu
   const reviewPts =
     order.pointInfo?.earned_review ??
     (orderItems.length * REVIEW_POINT_PER_ITEM);
+
+  // 썸네일(에러 핸들링/폴백 제거)
+  const thumbnailSrc = firstItem.product_img || '';
+
+  console.debug('ORDER DETAIL raw:', order);
 
   return (
     <>
@@ -130,11 +175,29 @@ export default function OrderDetailPage({ order, focusProductId, focusOrderProdu
 
         {/* 대표(클릭) 상품 */}
         <div style={{ display: 'flex', gap: 16, marginBottom: 24 }}>
-          <img
-            src={firstItem.product_img || 'https://via.placeholder.com/100'}
-            alt="상품 썸네일"
-            style={{ width: 100, height: 100, borderRadius: 8, objectFit: 'cover' }}
-          />
+          {thumbnailSrc ? (
+            <img
+              src={thumbnailSrc}
+              alt="상품 썸네일"
+              style={{ width: 100, height: 100, borderRadius: 8, objectFit: 'cover' }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 100,
+                height: 100,
+                borderRadius: 8,
+                background: '#f2f2f2',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 12,
+                color: '#999',
+              }}
+            >
+              이미지 없음
+            </div>
+          )}
           <div style={{ marginBottom: 10 }}>
             <div style={{ fontSize: 14, color: '#777', marginBottom: 10 }}>
               {order_date ? new Date(order_date).toLocaleDateString('ko-KR') : ''} 주문
