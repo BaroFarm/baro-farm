@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const API_BASE = (process.env.REACT_APP_API_BASE_URL || "").replace(/\/$/, "");
 
@@ -25,6 +25,7 @@ function toPublicBool(v) {
 
 export default function InquiryBoardPage() {
   const [open, setOpen] = useState(false);
+  const location = useLocation();
   const [selectedCat, setSelectedCat] = useState("전체");
   const [query, setQuery] = useState("");
 
@@ -54,11 +55,14 @@ export default function InquiryBoardPage() {
         setLoading(true);
         setErr("");
 
-        const token =
-          localStorage.getItem("accessToken") ||
-          sessionStorage.getItem("accessToken");
+        const token = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
+         // 전체 문의 엔드포인트로 변경
+        const qs = new URLSearchParams({ page: String(page), limit: String(limit) });
+         // 옵션: 상품 상세 탭에서 넘어온 경우 필터 지원 (?product_id=..)
+        const pid = new URLSearchParams(location.search).get("product_id");
+        if (pid) qs.set("product_id", pid);
+        const url = `${API_BASE}/api/my/store-communication/inquiries?${qs.toString()}`;
 
-        const url = `${API_BASE}/api/my/inquiries?page=${page}&limit=${limit}`;
         const res = await fetch(url, {
           headers: {
             "Content-Type": "application/json",
@@ -72,7 +76,9 @@ export default function InquiryBoardPage() {
         }
 
         const json = await res.json();
-        const list = Array.isArray(json?.data?.inquiries) ? json.data.inquiries : [];
+        const list =Array.isArray(json?.data?.result)
+          ? json.data.result
+          : (Array.isArray(json?.data?.inquiries) ? json.data.inquiries : []);
 
         // 방어적 매핑
         const mapped = list.map((it) => {
@@ -86,14 +92,18 @@ export default function InquiryBoardPage() {
             title: it.title ?? "",
             isPublic: toPublicBool(visRaw),
             date: dt ? dt.toLocaleDateString("ko-KR") : "-",
-            status: (it.status === "ANSWERED") ? "답변 완료" : "답변 대기",
+            status: (() => {
+              const s = String(it.status ?? "").trim();
+              return (s === "답변완료" || s === "ANSWERED") ? "답변 완료" : "답변 대기";
+            })(),
           };
         });
 
         setRows(mapped);
 
-        const pg = json?.data?.pagination || {};
-        setTotalPages(Number(pg.totalPages) || 1);
+        const total = Number(json?.data?.totalPages ?? json?.data?.pagination?.totalPages ?? 1);
+        setTotalPages(total);
+        
       } catch (e) {
         console.error("fetchInquiries error:", e);
         setErr(e.message || "불러오기 실패");
@@ -104,7 +114,7 @@ export default function InquiryBoardPage() {
       }
     }
     fetchInquiries();
-  }, [page, limit]);
+  }, [page, limit, location.search]);
 
   const filtered = useMemo(() => {
     const q = query.trim();

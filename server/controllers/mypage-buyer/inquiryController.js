@@ -4,8 +4,8 @@ const { Inquiry, Inquiry_reply, Customer, Product } = require('../../models');
 const getMyInquiries = async (req, res) => {
   try {
     const customerId = req.user.customer_id;
-    const page = parseInt(req.query.page) || 1;
-    const pageSize = parseInt(req.query.pageSize) || 10;
+    const page = parseInt(req.query.page, 10) || 1;
+    const pageSize = parseInt(req.query.pageSize ?? req.query.limit, 10) || 10;
     const offset = (page - 1) * pageSize;
 
     const totalElements = await Inquiry.count({ where: { customer_id: customerId } });
@@ -73,8 +73,9 @@ const getInquiries = async (req, res) => {
   try {
     const customerId = req.user.customer_id;
     const page = parseInt(req.query.page, 10) || 1;
-    const pageSize = parseInt(req.query.pageSize, 10) || 10;
+    const pageSize = parseInt(req.query.pageSize ?? req.query.limit, 10) || 10;
     const offset = (page - 1) * pageSize;
+    const productId = req.query.product_id ? parseInt(req.query.product_id, 10) : null;
 
     // 이름 마스킹
     const maskName = (name) => {
@@ -83,7 +84,11 @@ const getInquiries = async (req, res) => {
       return name[0] + '*'.repeat(name.length - 2) + name[name.length - 1];
     };
 
+    const where = {};
+    if (Number.isFinite(productId)) where.product_id = productId;
+
     const { rows, count } = await Inquiry.findAndCountAll({
+      where,
       include: [
         { model: Customer, attributes: ['customer_id', 'name'] },
         {
@@ -127,6 +132,7 @@ const getInquiries = async (req, res) => {
 
       return {
         inquiry_id: q.inquiry_id,
+        category: q.category ?? null,
         title,
         content: body,
         is_visible: q.is_visible, // '공개' | '비공개'
