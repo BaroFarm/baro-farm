@@ -44,13 +44,33 @@ const getMyOrders = async (req, res) => {
       ]
     });
 
+  
+    //500 에러가 떠서 프론트에서 추가했습니다
+    //추가: 배송 정보 한꺼번에 조회
+    const orderIds = orders.map(o => o.order_id);
+    const latestDeliveryRows = await DeliveryDetail.findAll({
+      attributes: ['order_id', 'delivery_status'],
+      where: { order_id: orderIds },
+      order: [['order_id', 'ASC'], ['delivery_id', 'DESC']],
+      raw: true,
+    });
+
+    // 추가: deliveryMap 생성
+    const deliveryMap = new Map();
+    for (const row of latestDeliveryRows) {
+      if (!deliveryMap.has(row.order_id)) {
+        deliveryMap.set(row.order_id, row);
+      }
+    }
+
     // 응답 형식 맞춰 데이터 가공
     const formattedOrders = (orders || []).map(order => ({ 
       order_id: order.order_id ?? null, 
       order_date: order.order_date ?? null, 
       order_price: order.order_price ?? null, 
       order_state: order.order_state ?? null, 
-      delivery_status: deliveryMap[order.order_id]?.delivery_status ?? '배송준비',
+      delivery_status: deliveryMap.get(order.order_id)?.delivery_status ?? '배송준비',
+      //delivery_status: order.delivery_status ?? '배송준비',
       receiver_name: order.receiver_name ?? null, 
       street: order.Customer?.street ?? null, // 배송지
       itemsPreview: (order.items || []).map(item => {
