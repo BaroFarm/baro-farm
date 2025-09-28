@@ -31,6 +31,7 @@ import MyInquiryListPage from "./components/mypage/MyInquiryListPage";
 import MyInquiryDetailPage from "./components/mypage/MyInquiryDetailPage";
 import InquiryPage from "./components/mypage/InquiryPage";
 import MyInquiryDetailView from "./components/mypage/MyInquiryDetailView";import InquiryBoardPage from "./components/mypage/InquiryBoardPage";
+import InquiryDetail from './components/mypage/InquiryDetail';
 
 import SearchPage from '../src/ai_chatbot/SearchPage';
 import SeasonalPage from '../src/ai_chatbot/SeasonalPage';
@@ -183,6 +184,7 @@ function App() {
           <Route path="/mypage/inquiry" element={<InquiryPage />} />
           <Route path="/mypage/inquiryView" element={<MyInquiryDetailView />} />
           <Route path="/inquiry/board" element={<InquiryBoardPage />} />
+          <Route path="/inquiry/:id" element={<InquiryDetail />} />
           </Route>
 
           {/* 판매자 레이아웃(NavBar) ↓ */}
