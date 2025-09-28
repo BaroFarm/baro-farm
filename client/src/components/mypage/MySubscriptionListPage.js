@@ -1,46 +1,73 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+const API_BASE = process.env.REACT_APP_API_BASE_URL || "";
 
 export default function MySubscriptionListPage() {
   const navigate = useNavigate();
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const delivering = [
-    {
-      id: 1,
-      title: "상품명",
-      qty: "수량",
-      nextShip: "예정 배송일: 7월 31일",
-      price: "~~~원",
-      discount: "~~ ~원",
-      shippingFee: "~~ ~원",
-      payAmount: "~~ ~~원",
-      payMethod: "농협 카드",
-      img: "https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?q=80&w=400&auto=format&fit=crop",
-    },
-  ];
+  useEffect(() => {
+    const fetchSubscriptions = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const token = localStorage.getItem("accessToken");
+        const res = await fetch(
+          `${API_BASE}/api/my/subscriptions?page=${page}&limit=10`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            cache: "no-store",
+          }
+        );
 
-  const completed = [
-    {
-      id: 2,
-      title: "상품명",
-      qty: "수량",
-      nextShip: "다음 배송일: 7월 31일",
-      changeLabel: "변경",
-      price: "~~~원",
-      discount: "~~ ~원",
-      shippingFee: "~~ ~원",
-      payAmount: "~~ ~~원",
-      payMethod: "결제 전",
-      img: "https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?q=80&w=400&auto=format&fit=crop",
-    },
-  ];
+        if (!res.ok) throw new Error("정기배송 내역 조회 실패");
+
+        const json = await res.json();
+        console.log("정기배송 응답:", json);
+
+        const result = json.data?.result ?? [];
+        setSubscriptions(result);
+        setTotalPages(json.data?.totalPages ?? 1);
+      } catch (err) {
+        console.error(err);
+        setError(err.message || "불러오기 실패");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSubscriptions();
+  }, [page]);
 
   const onAdd = () => navigate("/shop/products/subscription");
+
+  // 배송중/배송완료 분리
+  const norm = (v) => String(v ?? '').replace(/\s+/g, '').toUpperCase();
+
+  const delivering = subscriptions.filter(
+      (s) => norm(s.latest_delivery?.delivery_status) === '배송중'.toUpperCase()
+  );
+
+  const completed = subscriptions.filter(
+    (s) => norm(s.latest_delivery?.delivery_status) === '배송완료'.toUpperCase()
+  );
 
   return (
     <div style={styles.pageWrap}>
       <h2 style={styles.pageTitle}>나의 정기배송</h2>
       <hr style={styles.titleLine} />
+
+      {loading && <p>불러오는 중...</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
 
       <div style={styles.searchHintWrap}>
         <input
@@ -53,17 +80,33 @@ export default function MySubscriptionListPage() {
 
       <section style={styles.section}>
         <h3 style={styles.sectionTitle}>배송 중</h3>
+        {delivering.length === 0 && <p>배송중인 정기배송이 없습니다.</p>}
         {delivering.map((item) => (
-          <SubscriptionCard key={item.id} data={item} />
+          <SubscriptionCard key={item.order_id} data={item} />
         ))}
       </section>
 
       <section style={styles.section}>
         <h3 style={styles.sectionTitle}>배송 완료</h3>
+        {completed.length === 0 && <p>배송 완료된 내역이 없습니다.</p>}
         {completed.map((item) => (
-          <SubscriptionCard key={item.id} data={item} completed />
+          <SubscriptionCard key={item.order_id} data={item} completed />
         ))}
       </section>
+
+      {/* 페이지네이션 간단 예시 */}
+      <div style={{ marginTop: 16 }}>
+        {Array.from({ length: totalPages }, (_, i) => (
+          <button
+            key={i}
+            disabled={page === i + 1}
+            onClick={() => setPage(i + 1)}
+            style={{ marginRight: 8 }}
+          >
+            {i + 1}
+          </button>
+        ))}
+      </div>
 
       <div style={{ textAlign: "left", marginTop: 16 }}>
         <button type="button" style={styles.addBtn} onClick={onAdd}>
@@ -75,18 +118,17 @@ export default function MySubscriptionListPage() {
 }
 
 function SubscriptionCard({ data, completed = false }) {
-  const {
-    title,
-    qty,
-    nextShip,
-    changeLabel,
-    price,
-    discount,
-    shippingFee,
-    payAmount,
-    payMethod,
-    img,
-  } = data;
+  const d = data.latest_delivery || {};
+  const status = d.delivery_status || '배송준비';
+
+  const fmtDate = (x) =>
+    x ? new Date(x).toLocaleDateString('ko-KR') : '-';
+  const fmtKRW = (n) =>
+    Number.isFinite(Number(n)) ? Number(n).toLocaleString('ko-KR') + '원' : '-';
+
+  const img = 'https://placehold.co/120x90?text=Subscription';
+  const title = '정기배송 상품';
+  const qty = '-';
 
   return (
     <div style={styles.card}>
@@ -95,45 +137,61 @@ function SubscriptionCard({ data, completed = false }) {
 
         <div style={styles.metaCol}>
           <p style={styles.nextShipRow}>
-            <span style={styles.nextShip}>{nextShip}</span>
-            {completed && changeLabel && (
-              <span style={styles.changeBadge}>{changeLabel}</span>
+            <span style={styles.nextShip}>
+              {d.delivered_at
+                ? `배송 완료일: ${fmtDate(d.delivered_at)}`
+                : status === '배송중'
+                ? '배송 중'
+                : '배송 준비중'}
+            </span>
+            {completed && (
+              <span style={styles.changeBadge}>변경</span>
             )}
           </p>
+          
 
           <div style={styles.kvWrap}>
             <div style={styles.kvRow}>
-              <span style={styles.k}>상품명</span>
-              <span style={styles.v}>{title}</span>
+              <span style={styles.k}>수령인</span>
+              <span style={styles.v}>{data.receiver_name ?? '-'}</span>
             </div>
             <div style={styles.kvRow}>
-              <span style={styles.k}>수량</span>
-              <span style={styles.v}>{qty}</span>
+              <span style={styles.k}>배송 상태</span>
+              <span style={styles.v}>{status}</span>
+            </div>
+            <div style={styles.kvRow}>
+              <span style={styles.k}>택배사</span>
+              <span style={styles.v}>{d.courier ?? '-'}</span>
+            </div>
+            <div style={styles.kvRow}>
+              <span style={styles.k}>송장번호</span>
+              <span style={styles.v}>{d.tracking_number ?? '-'}</span>
+            </div>
+            <div style={styles.kvRow}>
+              <span style={styles.k}>주기</span>
+              <span style={styles.v}>{d.subscription_cycle ?? '-'}</span>
             </div>
           </div>
         </div>
 
         <div style={styles.payCol}>
           <div style={styles.kvRowSm}>
-            <span style={styles.kSm}>상품 가격</span>
-            <span style={styles.vSm}>{price}</span>
+            <span style={styles.kSm}>상품명</span>
+            <span style={styles.vSm}>{title}</span>
           </div>
           <div style={styles.kvRowSm}>
-            <span style={styles.kSm}>할인 금액</span>
-            <span style={styles.vSm}>{discount}</span>
+            <span style={styles.kSm}>수량</span>
+            <span style={styles.vSm}>{qty}</span>
           </div>
-          <div style={{ ...styles.kvRowSm, marginBottom: 8 }}>
+
+          <div style={styles.kvRowSm}>
             <span style={styles.kSm}>배송비</span>
-            <span style={styles.vSm}>{shippingFee}</span>
+            <span style={styles.vSm}>{fmtKRW(data.order_shipping_fee)}</span>
           </div>
 
           <div style={{ ...styles.kvRow, fontWeight: 700 }}>
             <span style={styles.kBold}>결제 금액</span>
-            <span style={styles.vBold}>{payAmount}</span>
-          </div>
-          <div style={styles.kvRow}>
-            <span style={styles.k}>결제 수단</span>
-            <span style={styles.v}>{payMethod}</span>
+            <span style={styles.vBold}>{fmtKRW(data.order_price)}</span>
           </div>
         </div>
       </div>
