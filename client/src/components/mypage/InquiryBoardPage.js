@@ -191,7 +191,7 @@ export default function InquiryBoardPage() {
                     return (
                     <tr
                       key={r.id}
-                      onClick={canOpen ? () => navigate(`/inquiry/${r.id}`) : undefined}
+                      onClick={canOpen ? () => navigate(`/inquiry/${r.id}`, { state: { inquiry: r.raw } }) : undefined}
                       aria-disabled={!canOpen}
                       title={!canOpen ? "비공개 글은 열람할 수 없습니다." : undefined}
                       style={{
