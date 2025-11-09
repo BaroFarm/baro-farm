@@ -73,7 +73,7 @@ BaroFarm은 판매자와 구매자 모두의 편의를 극대화하는 기능을
 * **문서/디자인:** [![Notion](https://img.shields.io/badge/Notion-000000?style=for-the-badge&logo=notion&logoColor=white)](https://www.notion.so/) 
     [![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)](https://www.figma.com/)
 
-
+---
 
 ## 📈 프로젝트 성과 및 향후 기대 효과
 
