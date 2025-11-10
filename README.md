@@ -44,7 +44,6 @@ BaroFarm은 판매자와 구매자 모두의 편의를 극대화하는 기능을
 * **AI 챗봇:** OpenAI의 GPT API를 활용한 RAG 구조의 챗봇으로, 상품, 주문, 배송 등 기본적인 문의에 맥락을 파악하여 적절하게 응답합니다.
 
 ### 2. 데이터 기반 판매 지원 및 신뢰성
-* **AI 판매 데이터 분석:** 품목별 매출 현황, 시기별 매출 변화 등을 시각화하여 제공하며, 농산물 가격 변동 데이터를 분석해 합리적인 가격 설정 기준을 제시합니다.
 * **맞춤형 상품 추천 (하이브리드 CBF):** 사용자의 찜/구매 이력 및 선호도를 분석하여 개인별 최적화된 로컬푸드 상품을 추천합니다.
     * **비로그인 사용자:** 최근 30일 주문/찜 건수 기반 인기 상품을 추천합니다.
     * **로그인 사용자:** **CBF** 기반 선호 카테고리에서 인기 상품을 추천합니다.
@@ -62,9 +61,8 @@ BaroFarm은 판매자와 구매자 모두의 편의를 극대화하는 기능을
 * **AI/LLM:** [![OpenAI](https://img.shields.io/badge/OpenAI-41295D?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com/)  (GPT-3.5-turbo, GPT-4o-mini)
 * **영상/디자인 자동화:** [![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)](https://www.figma.com/) + [![OpenAI](https://img.shields.io/badge/OpenAI-41295D?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com/)
 * **클라우드:** [![Cloudinary](https://img.shields.io/badge/Cloudinary-3448C5?style=for-the-badge&logo=cloudinary&logoColor=white)](https://cloudinary.com/)
-### 3. 인증 및 결제 시스템
+### 3. 인증 시스템
 * **인증:** [![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)](https://jwt.io/)
-* **결제:** [![Toss Payments](https://img.shields.io/badge/Toss%20Payments-3399FF?style=for-the-badge&logo=toss&logoColor=white)](https://www.tosspayments.com/)
 
 ### 4. 협업 및 관리 (DevOps)
 * **버전 관리:** [![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)](https://git-scm.com/) 
