@@ -19,9 +19,9 @@ BaroFarm은 전국 각지의 로컬푸드 직매장을 하나의 온라인 플�
 
 | 성명 | 역할 | 담당 업무 (주요) |
 | :--- | :--- | :--- |
-| **주성아** [@zoosungah] (https://github.com/zoosungah)| PM, 백엔드 개발 | 프로젝트 관리, 판매자 기능 (AI 상품 등록/상세페이지 자동화 등) 개발 |
-| **이해원** [@leehwx] (https://github.com/leehwx) | 백엔드 개발 | 구매자 및 회원관리 기능, AI 챗봇 기능 개발 |
-| **선비** [@Bibibip] (https://github.com/Bibibip)| 프론트엔드 개발 | UI/UX 설계, 구매자 기능 프론트엔드 개발 |
+| **주성아** [@zoosungah](https://github.com/zoosungah)| PM, 백엔드 개발 | 프로젝트 관리, 판매자 기능 (AI 상품 등록/상세페이지 자동화 등) 개발 |
+| **이해원** [@leehwx](https://github.com/leehwx) | 백엔드 개발 | 구매자 및 회원관리 기능, AI 챗봇 기능 개발 |
+| **선비** [@Bibibip](https://github.com/Bibibip)| 프론트엔드 개발 | UI/UX 설계, 구매자 기능 프론트엔드 개발 |
 | **조유진** [@yujinjo1](https://github.com/yujinjo1) | 프론트엔드 개발 | UI/UX 설계, 판매자 기능 프론트엔드 개발 |
 
 
